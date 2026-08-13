@@ -1,0 +1,14 @@
+{
+  "name": "@wendy/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wendy Planner — shared contracts package (DTOs + ID types per ADR-13, ADR-14). Bootstrapped in ARC-005; placeholder until then.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "echo \"@wendy/contracts: lint not configured yet (see ARC-005)\" && exit 0",
+    "typecheck": "tsc --noEmit",
+    "build": "echo \"@wendy/contracts: build not configured yet (see ARC-005)\" && exit 0",
+    "test": "echo \"@wendy/contracts: tests not configured yet (see ARC-005)\" && exit 0"
+  }
+}

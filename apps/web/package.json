@@ -1,0 +1,13 @@
+{
+  "name": "@wendy/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wendy Planner — Vite + React Web tier (per ADR-02). Bootstrapped in ARC-004; placeholder until then.",
+  "scripts": {
+    "lint": "echo \"@wendy/web: lint not configured yet (see ARC-004)\" && exit 0",
+    "typecheck": "echo \"@wendy/web: typecheck not configured yet (see ARC-004)\" && exit 0",
+    "build": "echo \"@wendy/web: build not configured yet (see ARC-004)\" && exit 0",
+    "start:dev": "echo \"@wendy/web: dev server not configured yet (see ARC-004)\" && exit 0",
+    "test": "echo \"@wendy/web: tests not configured yet (see ARC-004)\" && exit 0"
+  }
+}

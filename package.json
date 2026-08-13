@@ -1,0 +1,32 @@
+{
+  "name": "wendy-planner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wendy Planner — wedding management platform monorepo (per ADR-12).",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "test:rules": "node --test tools/eslint/boundary-rules.test.cjs",
+    "dev": "pnpm -r --parallel --if-present start:dev",
+    "clean": "pnpm -r --if-present exec rm -rf dist && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "8.18.0",
+    "@typescript-eslint/parser": "8.18.0",
+    "eslint": "9.17.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-import-resolver-typescript": "3.7.0",
+    "eslint-plugin-import": "2.31.0",
+    "prettier": "3.4.2",
+    "typescript": "5.7.2"
+  }
+}
