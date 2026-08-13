@@ -8,7 +8,10 @@ build/
 *.tsbuildinfo
 
 # Environment
-.env
+# - `.env` is committed: it holds non-sensitive defaults that externalize
+#   config out of source code. See `code/.env` for the header comment.
+# - `.env.local` and `.env.*.local` are gitignored: they hold per-developer
+#   overrides (private keys, real credentials, etc.).
 .env.local
 .env.*.local
 

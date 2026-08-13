@@ -40,12 +40,9 @@ pnpm install
 # 3. start the local Postgres (OPS-023) — Postgres 17 on localhost:5432
 pnpm docker:up
 
-# 4. copy the local env template and fill in the JWT key (see below)
-cp .env.local .env.local.dev   # or just edit .env.local in place
-#   openssl genrsa -out jwt-private.pem 2048
-#   openssl rsa -in jwt-private.pem -pubout -out jwt-public.pem
-#   # paste the contents of jwt-private.pem into JWT_PRIVATE_KEY_PEM
-#   # generate a UUID for JWT_KEY_ID (uuidgen on macOS/Linux)
+# 4. (only if a future story requires secrets) create .env.local and
+#    fill in the JWT_PRIVATE_KEY_PEM / JWT_KEY_ID / etc. Most devs will
+#    never need this file — the committed .env has working defaults.
 
 # 5. run the Prisma migration
 pnpm --filter @wendy/api prisma migrate dev
@@ -69,15 +66,21 @@ pnpm docker:logs   # tail Postgres logs
 
 ### Env files
 
-- `.env.local` (git-ignored) — your local secrets. Edit freely.
-- `apps/api/.env.example` (committed) — the typed-config template; copy fields into `.env.local`.
+Two layers, on purpose:
 
-The API loads env files in this order (first hit wins):
+| File | Committed? | Purpose |
+|---|---|---|
+| **`.env`** | ✅ yes | Non-sensitive defaults that externalize configuration out of source code (host names, ports, issuer names, TTLs, dev credentials matching docker-compose). **Edit via PR**, not locally. |
+| **`.env.local`** | ❌ no (git-ignored) | Per-developer overrides for sensitive values: private keys, real credentials, third-party tokens. Created only when needed. |
+
+NestJS ConfigModule loads the chain (first hit wins):
 
 1. `<monorepo-root>/.env.local`
 2. `<monorepo-root>/.env`
 3. `apps/api/.env.local`
 4. `apps/api/.env`
+
+See the header comment in each file for the contract.
 
 ## Useful root scripts
 
