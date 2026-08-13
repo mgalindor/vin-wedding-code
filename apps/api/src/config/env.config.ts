@@ -9,20 +9,7 @@ import {
   validateSync,
 } from 'class-validator';
 
-/**
- * Typed environment configuration (per ADR-16).
- *
- * Pattern:
- *   - `@Injectable()` so it can be requested as a constructor dependency.
- *   - `class-validator` decorators on every field.
- *   - `fromEnv()` factory reads `process.env`, transforms it into a typed
- *     instance, and validates. Missing or invalid values throw on boot with
- *     a clear, human-readable error message — never silently fallback.
- *
- * This class is the canonical example of ADR-16. New fields belong in
- * dedicated config classes (e.g. `DatabaseConfig`, `JwtConfig`, `S3Config`)
- * registered via the global `AppConfigModule`.
- */
+// Typed env config (ADR-16). One class per domain; validated at boot.
 @Injectable()
 export class EnvConfig {
   @IsEnum(['development', 'staging', 'production', 'test'])
@@ -36,10 +23,7 @@ export class EnvConfig {
   @IsString()
   LOG_LEVEL!: string;
 
-  /**
-   * Build an `EnvConfig` from `process.env`, validating required fields.
-   * Throws on the first invalid value with a clear list of errors.
-   */
+  // Build from process.env and throw on the first invalid value.
   static fromEnv(env: NodeJS.ProcessEnv = process.env): EnvConfig {
     const candidate = plainToInstance(
       EnvConfig,

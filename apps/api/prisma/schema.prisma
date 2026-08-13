@@ -1,0 +1,46 @@
+// Prisma schema — Wendy Planner (ADR-11, ADR-13, ADR-07).
+// Source of truth for all tables. Sprint 1 ships exactly the `users` model.
+// Each bounded context adds its own model in its own migration
+// (evolutionary design rule).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Identity & Access (ARC-008). tenant_id is a column from day one but no
+// tenants table exists yet (ADR-07); application code filters by it.
+model users {
+  id String @id
+
+  tenant_id String
+
+  email String @unique(map: "idx_users_email")
+  full_name String
+  phone     String?
+
+  // bcrypt cost 12 (ADR-05). 72 chars is bcrypt's truncation limit.
+  password_hash String
+
+  role UserRole
+
+  // Nullable FK to users.id — no FK constraint in Sprint 1 (no tenants table).
+  // ARC-011 will convert this to a proper FK in Sprint 2.
+  onboarded_by_admin_id String?
+
+  is_disabled Boolean   @default(false)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@index([tenant_id], name: "idx_users_tenant_id")
+  @@map("users")
+}
+
+enum UserRole {
+  Administrator
+  WeddingPlanner
+}

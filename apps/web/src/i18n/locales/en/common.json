@@ -1,0 +1,21 @@
+{
+  "app": {
+    "title": "Wendy Planner",
+    "tagline": "Wedding management platform for Vineyards"
+  },
+  "dashboard": {
+    "greeting": "Welcome to Wendy Planner \u2014 Sprint 1 foundations ready",
+    "subtitle": "The dashboard will land feature work in Sprint 2. Today, this page proves the routing, i18n, and styling pipeline are wired correctly.",
+    "placeholderButton": "Sprint 1 placeholder button",
+    "languageSwitcher": {
+      "label": "Language",
+      "english": "English",
+      "spanish": "Espa\u00f1ol"
+    }
+  },
+  "invitation": {
+    "placeholder": "You are invited",
+    "subtitle": "This is the public invitation placeholder. In Sprint 3 the real invitation template will render here.",
+    "tokenLabel": "Invitation token"
+  }
+}

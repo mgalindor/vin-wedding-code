@@ -1,0 +1,21 @@
+{
+  "app": {
+    "title": "Wendy Planner",
+    "tagline": "Plataforma de gesti\u00f3n de bodas para Vineyards"
+  },
+  "dashboard": {
+    "greeting": "Bienvenido a Wendy Planner \u2014 las bases del Sprint 1 est\u00e1n listas",
+    "subtitle": "El dashboard recibir\u00e1 trabajo de funcionalidades en el Sprint 2. Hoy, esta p\u00e1gina demuestra que el enrutamiento, la internacionalizaci\u00f3n y el pipeline de estilos est\u00e1n conectados correctamente.",
+    "placeholderButton": "Bot\u00f3n placeholder del Sprint 1",
+    "languageSwitcher": {
+      "label": "Idioma",
+      "english": "English",
+      "spanish": "Espa\u00f1ol"
+    }
+  },
+  "invitation": {
+    "placeholder": "Est\u00e1s invitado",
+    "subtitle": "Este es el placeholder de la invitaci\u00f3n p\u00fablica. En el Sprint 3 la plantilla de invitaci\u00f3n real se renderizar\u00e1 aqu\u00ed.",
+    "tokenLabel": "Token de invitaci\u00f3n"
+  }
+}

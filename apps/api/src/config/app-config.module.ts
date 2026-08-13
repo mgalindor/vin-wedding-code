@@ -1,19 +1,12 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { DatabaseConfig } from './database.config';
 import { EnvConfig } from './env.config';
 
-/**
- * Global typed-config module (per ADR-16).
- *
- * Wraps `@nestjs/config`'s `ConfigModule` and provides a single `EnvConfig`
- * instance to the whole application. The `EnvConfig.fromEnv()` factory is
- * called once on boot; if any required env var is missing or invalid, the
- * process crashes with a clear error message before any HTTP server starts.
- *
- * New typed config classes (e.g. DatabaseConfig, JwtConfig, S3Config) should
- * be added here as additional providers.
- */
+// Global typed-config (ADR-16). ConfigModule loads the .env file; the typed
+// factories below read process.env and validate. App refuses to boot on
+// missing or invalid env vars.
 @Global()
 @Module({
   imports: [
@@ -27,7 +20,11 @@ import { EnvConfig } from './env.config';
       provide: EnvConfig,
       useFactory: () => EnvConfig.fromEnv(),
     },
+    {
+      provide: DatabaseConfig,
+      useFactory: () => DatabaseConfig.fromEnv(),
+    },
   ],
-  exports: [EnvConfig],
+  exports: [EnvConfig, DatabaseConfig],
 })
 export class AppConfigModule {}
