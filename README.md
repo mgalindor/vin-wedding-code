@@ -37,18 +37,47 @@ cd code
 # 2. install all workspace dependencies
 pnpm install
 
-# 3. verify the tooling is wired correctly
-pnpm lint               # runs ESLint across all workspaces (with boundary rules)
-pnpm typecheck          # runs tsc --noEmit across all workspaces
-pnpm test:rules         # runs the boundary-rules unit tests (Node's built-in test runner)
-pnpm --filter @wendy/api test:e2e  # runs the versioned E2E smoke spec
+# 3. start the local Postgres (OPS-023) — Postgres 17 on localhost:5432
+pnpm docker:up
 
-# 4. start the API in dev mode (watch + hot reload)
-pnpm --filter @wendy/api start:dev
+# 4. copy the local env template and fill in the JWT key (see below)
+cp .env.local .env.local.dev   # or just edit .env.local in place
+#   openssl genrsa -out jwt-private.pem 2048
+#   openssl rsa -in jwt-private.pem -pubout -out jwt-public.pem
+#   # paste the contents of jwt-private.pem into JWT_PRIVATE_KEY_PEM
+#   # generate a UUID for JWT_KEY_ID (uuidgen on macOS/Linux)
 
-# 5. verify the API responds
-curl http://localhost:3000/health/live
+# 5. run the Prisma migration
+pnpm --filter @wendy/api prisma migrate dev
+
+# 6. start the API + Web in watch mode
+pnpm dev
+
+# 7. verify the API responds and Prisma is reachable
+curl http://localhost:3000/health/live   # 200 — Terminus liveness
+curl http://localhost:3000/health/ready  # 200 — Prisma + memory + disk OK
 ```
+
+### Stop / restart the local stack
+
+```bash
+pnpm docker:down   # stop and remove the Postgres container
+pnpm docker:logs   # tail Postgres logs
+```
+
+> **No volumes.** The Postgres data is ephemeral — `pnpm docker:down` deletes it. This is intentional: a fresh DB on every `docker:up` keeps local dev reproducible and prevents stale data from leaking between sessions. For stateful data, use a snapshot script.
+
+### Env files
+
+- `.env.local` (git-ignored) — your local secrets. Edit freely.
+- `apps/api/.env.example` (committed) — the typed-config template; copy fields into `.env.local`.
+
+The API loads env files in this order (first hit wins):
+
+1. `<monorepo-root>/.env.local`
+2. `<monorepo-root>/.env`
+3. `apps/api/.env.local`
+4. `apps/api/.env`
 
 ## Useful root scripts
 
@@ -63,6 +92,9 @@ curl http://localhost:3000/health/live
 | `pnpm test` | Runs the unit tests in every workspace. |
 | `pnpm test:rules` | Runs the boundary rules unit tests in `tools/eslint/boundary-rules.test.cjs`. |
 | `pnpm dev` | Runs every workspace's `start:dev` script in parallel. |
+| `pnpm docker:up` | Starts Postgres 17 via `docker-compose.yml` (OPS-023). |
+| `pnpm docker:down` | Stops and removes the Postgres container. |
+| `pnpm docker:logs` | Tails Postgres logs. |
 | `pnpm clean` | Removes every workspace's `dist/` and `node_modules/`. |
 
 ## API test layers

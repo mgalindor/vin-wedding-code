@@ -17,6 +17,9 @@
     "test": "pnpm -r --if-present test",
     "test:rules": "node --test tools/eslint/boundary-rules.test.cjs",
     "dev": "pnpm -r --parallel --if-present start:dev",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
     "clean": "pnpm -r --if-present exec rm -rf dist && rm -rf node_modules"
   },
   "devDependencies": {
