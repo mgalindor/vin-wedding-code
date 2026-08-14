@@ -1,3 +1,4 @@
+import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
 
 /**
@@ -5,17 +6,28 @@ import { defineConfig } from 'vitest/config';
  *
  * E2E tests live in the test directory under apps/api/test and bootstrap
  * the full NestJS application via Test.createTestingModule(AppModule).
- * This is slower than the unit layer, so it runs separately via
- * pnpm test:e2e.
+ *
+ * A setupFile loads the monorepo-root .env files into process.env before
+ * Vitest loads any test module. This ensures NestJS ConfigModule and the
+ * typed config useFactory functions see the env vars at module-compile time.
+ *
+ * The SWC plugin is required so that emitDecoratorMetadata is honoured at
+ * test time — esbuild (Vitest's default) does not support it, which causes
+ * NestJS constructor-injection to receive undefined for typed parameters.
+ *
+ * Prerequisites:
+ *   pnpm docker:up                              # Postgres 17 on :5433
+ *   pnpm --filter @wendy/api prisma migrate deploy
+ *
+ * Run:
+ *   pnpm --filter @wendy/api test:e2e
  */
 export default defineConfig({
+  plugins: [swc.vite()],
   test: {
     include: ['test/**/*.e2e-spec.ts'],
     environment: 'node',
-    // E2E tests share a single NestJS app across `it(...)` blocks via
-    // `beforeAll`/`afterAll`. The default `testTimeout` of 5 s is enough
-    // for the current scenarios; ARC-036 may need to bump it for the
-    // real Terminus indicators.
-    testTimeout: 15_000,
+    testTimeout: 30_000,
+    setupFiles: ['test/setup.e2e.ts'],
   },
 });

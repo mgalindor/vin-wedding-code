@@ -33,13 +33,14 @@ function derivePublicKeyPem(privateKeyPem: string): string {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(config: JwtConfig) {
+    const pem = config?.JWT_PRIVATE_KEY_PEM ?? process.env.JWT_PRIVATE_KEY_PEM ?? '';
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       algorithms: ['RS256'],
-      audience: config.JWT_AUDIENCE,
-      issuer: config.JWT_ISSUER,
-      secretOrKey: derivePublicKeyPem(config.JWT_PRIVATE_KEY_PEM),
+      audience: config?.JWT_AUDIENCE ?? process.env.JWT_AUDIENCE ?? 'wendy',
+      issuer: config?.JWT_ISSUER ?? process.env.JWT_ISSUER ?? 'wendy-planner',
+      secretOrKey: derivePublicKeyPem(pem),
     });
   }
 

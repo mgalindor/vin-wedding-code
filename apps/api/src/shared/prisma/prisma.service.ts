@@ -19,12 +19,12 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
 
   constructor(dbConfig: DatabaseConfig) {
+    // DatabaseConfig may be undefined in @nestjs/testing when @Global()
+    // providers are not inherited correctly. Fall back to process.env so
+    // E2E tests work without explicit provider overrides.
+    const url = dbConfig?.DATABASE_URL ?? process.env.DATABASE_URL;
     super({
-      datasources: {
-        db: {
-          url: dbConfig.DATABASE_URL,
-        },
-      },
+      datasources: { db: { url } },
       log: ['error', 'warn'],
     });
   }

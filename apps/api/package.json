@@ -2,7 +2,7 @@
   "name": "@wendy/api",
   "version": "0.1.0",
   "private": true,
-  "description": "Wendy Planner \u2014 NestJS API tier (per ADR-01, ADR-09).",
+  "description": "Wendy Planner — NestJS API tier (per ADR-01, ADR-09).",
   "main": "dist/main.js",
   "scripts": {
     "build": "nest build",
@@ -31,6 +31,7 @@
     "@wendy/contracts": "workspace:*",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "dotenv": "^17.4.2",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.0.9",
     "passport": "^0.7.0",
@@ -42,6 +43,8 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@swc/core": "^1.16.0",
+    "@swc/helpers": "^0.5.23",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.2",
@@ -52,6 +55,7 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "unplugin-swc": "^1.5.11",
     "vitest": "^2.1.8"
   }
 }
