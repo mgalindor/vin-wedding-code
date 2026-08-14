@@ -1,7 +1,7 @@
 import { Controller, Get, Header } from '@nestjs/common';
 
 import { Public } from '../../../shared/decorators/auth.decorators';
-import { type JwtService } from '../../../shared/jwt/jwt.service';
+import { JwtService } from '../../../shared/jwt/jwt.service';
 
 /**
  * Public key discovery endpoint (Rule 2 of the functional spec,

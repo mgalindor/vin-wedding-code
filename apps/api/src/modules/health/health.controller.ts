@@ -1,19 +1,20 @@
 import { Controller, Get } from '@nestjs/common';
 import {
-  type DiskHealthIndicator,
+  DiskHealthIndicator,
   HealthCheck,
-  type HealthCheckService,
-  type MemoryHealthIndicator,
+  HealthCheckService,
+  MemoryHealthIndicator,
 } from '@nestjs/terminus';
 
 import { Public } from '../../shared/decorators/auth.decorators';
 
 import {
+  HEALTH_DISK_PATH,
   HEALTH_DISK_THRESHOLD_PERCENT,
   HEALTH_MEMORY_HEAP_LIMIT_BYTES,
   HEALTH_MEMORY_RSS_LIMIT_BYTES,
 } from './health.constants';
-import { type PrismaHealthIndicator } from './indicators/prisma.health';
+import { PrismaHealthIndicator } from './indicators/prisma.health';
 
 /**
  * Terminus-backed health endpoints (Rule 14–18 of the functional spec,
@@ -75,7 +76,7 @@ export class HealthController {
       () =>
         this.disk.checkStorage('disk', {
           thresholdPercent: HEALTH_DISK_THRESHOLD_PERCENT,
-          path: '/',
+          path: HEALTH_DISK_PATH,
         }),
     ]);
   }

@@ -4,11 +4,11 @@ import {
   type CanActivate,
   type ExecutionContext,
 } from '@nestjs/common';
-import { type Reflector } from '@nestjs/core';
+import { Reflector } from '@nestjs/core';
 
 import { ROLES_KEY } from '../decorators/auth.decorators';
-import type { AuthenticatedUser } from '../decorators/current-user.decorator';
-import type { Role } from '../jwt/jwt.service';
+import { AuthenticatedUser } from '../decorators/current-user.decorator';
+import { Role } from '../jwt/jwt.service';
 
 /**
  * Role-based authorization guard (Rule 10 of the functional spec).

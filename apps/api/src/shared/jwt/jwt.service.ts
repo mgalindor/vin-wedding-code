@@ -1,9 +1,9 @@
-import { createPublicKey, type KeyObject } from 'node:crypto';
+import { createPublicKey, KeyObject } from 'node:crypto';
 
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 
-import { type JwtConfig } from '../../config/jwt.config';
+import { JwtConfig } from '../../config/jwt.config';
 
 // Branded user-id type (matches @wendy/contracts). The string is what
 // `users.id` looks like in the database — a 10-char NanoId minted in app code.

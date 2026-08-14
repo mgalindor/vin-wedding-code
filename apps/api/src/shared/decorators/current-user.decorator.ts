@@ -1,6 +1,6 @@
-import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-import type { Role, TenantId, UserId } from '../jwt/jwt.service';
+import { Role, TenantId, UserId } from '../jwt/jwt.service';
 
 // Shape populated on req.user by JwtStrategy.validate(). Passport
 // enforces these claims exist on the token — the type is the contract

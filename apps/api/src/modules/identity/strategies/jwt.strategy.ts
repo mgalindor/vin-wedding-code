@@ -4,9 +4,9 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import { type JwtConfig } from '../../../config/jwt.config';
-import type { AuthenticatedUser } from '../../../shared/decorators/current-user.decorator';
-import type { AccessTokenClaims } from '../../../shared/jwt/jwt.service';
+import { JwtConfig } from '../../../config/jwt.config';
+import { AuthenticatedUser } from '../../../shared/decorators/current-user.decorator';
+import { AccessTokenClaims } from '../../../shared/jwt/jwt.service';
 
 // Derive the public key once at construction so passport-jwt can verify
 // signatures against it. Same PEM as JwtService so both share one

@@ -1,9 +1,9 @@
 import { ForbiddenException } from '@nestjs/common';
-import { type Reflector } from '@nestjs/core';
+import { Reflector } from '@nestjs/core';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ROLES_KEY } from '../decorators/auth.decorators';
-import type { AuthenticatedUser } from '../decorators/current-user.decorator';
+import { AuthenticatedUser } from '../decorators/current-user.decorator';
 
 import { RolesGuard } from './roles.guard';
 

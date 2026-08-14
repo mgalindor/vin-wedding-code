@@ -5,7 +5,7 @@ import {
   type HealthIndicatorResult,
 } from '@nestjs/terminus';
 
-import { type PrismaService } from '../../../shared/prisma/prisma.service';
+import { PrismaService } from '../../../shared/prisma/prisma.service';
 import { HEALTH_PRISMA_TIMEOUT_MS } from '../health.constants';
 
 /**

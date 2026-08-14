@@ -99,6 +99,17 @@ export default [
       'import/no-restricted-paths': ['error', boundaryRules],
     },
   },
+  // NestJS (apps/api) uses emitDecoratorMetadata — TypeScript emits runtime
+  // type metadata for constructor parameters via Reflect. Any class used as
+  // a constructor parameter type MUST be a real value import, not an
+  // `import type`. The `consistent-type-imports` rule is fundamentally
+  // incompatible with this pattern, so we turn it off for the whole API.
+  {
+    files: ['apps/api/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': 'off',
+    },
+  },
   // Apply prettier compatibility last to disable conflicting stylistic rules.
   prettierConfig,
 ];

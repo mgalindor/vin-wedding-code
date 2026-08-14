@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 
-import type { Role } from '../jwt/jwt.service';
+import { Role } from '../jwt/jwt.service';
 
 // Decorator keys read by JwtAuthGuard and RolesGuard. Kept as constants
 // so a typo doesn't silently disable the guard.
