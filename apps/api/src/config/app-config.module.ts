@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { DatabaseConfig } from './database.config';
 import { EnvConfig } from './env.config';
+import { JwtConfig } from './jwt.config';
 
 // Global typed-config (ADR-16). ConfigModule loads env files; the typed
 // factories below read process.env and validate. App refuses to boot on
@@ -37,7 +38,11 @@ import { EnvConfig } from './env.config';
       provide: DatabaseConfig,
       useFactory: () => DatabaseConfig.fromEnv(),
     },
+    {
+      provide: JwtConfig,
+      useFactory: () => JwtConfig.fromEnv(),
+    },
   ],
-  exports: [EnvConfig, DatabaseConfig],
+  exports: [EnvConfig, DatabaseConfig, JwtConfig],
 })
 export class AppConfigModule {}

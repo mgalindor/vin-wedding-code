@@ -8,25 +8,34 @@ import { IdentityModule } from './modules/identity/identity.module';
 import { InvitationModule } from './modules/invitation/invitation.module';
 import { PhotosModule } from './modules/photos/photos.module';
 import { WeddingsModule } from './modules/weddings/weddings.module';
+import { JwtInfrastructureModule } from './shared/jwt/jwt.module';
 import { PrismaModule } from './shared/prisma/prisma.module';
 
 /**
  * Root module for the Wendy Planner API.
  *
  * Wires the global typed config (ADR-16), the shared Prisma client
- * (ARC-008), and the seven bounded-context modules (per ADR-09):
+ * (ARC-008), the JWT infrastructure (ARC-013), the Passport strategy
+ * (ARC-015), the Terminus health checks (ARC-036), and the seven
+ * bounded-context modules (per ADR-09):
  *   - identity   (Identity & Access)
  *   - weddings   (Wedding Management)
  *   - guests     (Guest Management)
- *   - invitation (Invitation \u2014 public endpoints, RSVP)
- *   - photos     (Photo Storage \u2014 presigned URLs, lifecycle)
+ *   - invitation (Invitation — public endpoints, RSVP)
+ *   - photos     (Photo Storage — presigned URLs, lifecycle)
  *   - audit      (Audit)
- *   - health     (Terminus health checks \u2014 stubbed in ARC-003, real in ARC-036)
+ *   - health     (Terminus health checks)
+ *
+ * Both JwtAuthGuard and RolesGuard are registered globally in
+ * main.ts (using app.useGlobalGuards) because APP_GUARD with
+ * useClass does not consistently resolve Reflector under
+ * @nestjs/testing in our setup.
  */
 @Module({
   imports: [
     AppConfigModule,
     PrismaModule,
+    JwtInfrastructureModule,
     IdentityModule,
     WeddingsModule,
     GuestsModule,
