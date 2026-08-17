@@ -14,12 +14,17 @@ export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Find a user by email. Returns the fields required for password
-   * verification and the public profile — explicitly NOT every column.
-   * `password_hash` is included here only because the use case needs it
-   * to run bcrypt.compare; it must never be returned to a controller.
+   * ⚠️  AUTH-ONLY — DO NOT USE FROM NON-AUTH USE CASES.
+   *
+   * Loads the credentials (password_hash) needed to run bcrypt.compare.
+   * The result MUST be fed straight into AuthenticateUserUseCase and
+   * MUST NEVER be returned from a controller, mapped into a response
+   * DTO, or logged.
+   *
+   * For profile-only reads (e.g. /me, list users, invite lookup),
+   * add a separate `findProfileByEmail(id)` that excludes password_hash.
    */
-  async findByEmail(email: string) {
+  async findUserForAuth(email: string) {
     return this.prisma.users.findUnique({
       where: { email },
       select: {

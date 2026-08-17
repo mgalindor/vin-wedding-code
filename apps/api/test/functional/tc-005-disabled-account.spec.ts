@@ -13,7 +13,7 @@ describe('TC-005: AuthenticateUserUseCase — disabled account rejected', () => 
   it('returns null when user.is_disabled === true', async () => {
     const passwordHash = await hash('CorrectHorse1!', 4);
     const repo = {
-      findByEmail: vi.fn().mockResolvedValue({
+      findUserForAuth: vi.fn().mockResolvedValue({
         id: 'u-1',
         email: 'disabled@wendy',
         full_name: 'Disabled User',

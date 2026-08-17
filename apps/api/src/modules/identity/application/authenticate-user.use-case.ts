@@ -21,7 +21,7 @@ export class AuthenticateUserUseCase {
     // via @Transform. Never trust upstream sanitisation.
     const email = (rawEmail ?? '').trim().toLowerCase();
 
-    const user = await this.userRepository.findByEmail(email);
+    const user = await this.userRepository.findUserForAuth(email);
 
     // Always run bcrypt.compare, even when the user is missing, so the
     // response time is constant — protects against user enumeration

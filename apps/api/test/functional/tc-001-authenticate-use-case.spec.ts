@@ -11,10 +11,10 @@ import { hash } from 'bcrypt';
 import { AuthenticateUserUseCase } from '../../src/modules/identity/application/authenticate-user.use-case';
 
 describe('TC-001: AuthenticateUserUseCase — valid credentials', () => {
-  let repo: { findByEmail: ReturnType<typeof vi.fn> };
+  let repo: { findUserForAuth: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    repo = { findByEmail: vi.fn() };
+    repo = { findUserForAuth: vi.fn() };
   });
 
   it('returns the user when password matches', async () => {
@@ -28,7 +28,7 @@ describe('TC-001: AuthenticateUserUseCase — valid credentials', () => {
       tenant_id: 'default',
       is_disabled: false,
     };
-    repo.findByEmail.mockResolvedValue(storedUser);
+    repo.findUserForAuth.mockResolvedValue(storedUser);
 
     const useCase = new AuthenticateUserUseCase(repo as any);
     const result = await useCase.signIn('admin@wendy', 'CorrectHorse1!');
@@ -38,7 +38,7 @@ describe('TC-001: AuthenticateUserUseCase — valid credentials', () => {
 
   it('returns null when password does not match', async () => {
     const passwordHash = await hash('CorrectHorse1!', 4);
-    repo.findByEmail.mockResolvedValue({
+    repo.findUserForAuth.mockResolvedValue({
       id: 'u-1',
       email: 'admin@wendy',
       password_hash: passwordHash,
@@ -52,7 +52,7 @@ describe('TC-001: AuthenticateUserUseCase — valid credentials', () => {
   });
 
   it('returns null when user does not exist', async () => {
-    repo.findByEmail.mockResolvedValue(null);
+    repo.findUserForAuth.mockResolvedValue(null);
 
     const useCase = new AuthenticateUserUseCase(repo as any);
     const result = await useCase.signIn('nobody@wendy', 'whatever');
