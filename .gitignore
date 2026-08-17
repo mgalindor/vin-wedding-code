@@ -42,6 +42,19 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 
+# Playwright artifacts (apps/web/test-results/ + blob reports)
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/blob-report/
+playwright/.cache/
+
+# Vitest transpilation outputs (the source .spec.ts stays; the
+# compiled .js / .d.ts / .map are regenerated on every run).
+**/*.spec.js
+**/*.spec.js.map
+**/*.spec.d.ts
+**/*.spec.d.ts.map
+
 # NestJS
 .nest/
 
