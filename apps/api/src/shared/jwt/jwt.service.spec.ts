@@ -45,6 +45,8 @@ describe('JwtService', () => {
     const svc = new JwtService(makeConfig());
     const token = svc.signAccessToken({
       sub: 'user-1' as never,
+      fullName: 'Test User',
+      email: 'test@example.com',
       role: 'WeddingPlanner',
       tenantId: 'tenant-1' as never,
     });
@@ -63,6 +65,8 @@ describe('JwtService', () => {
     const svc = new JwtService(cfg);
     const token = svc.signAccessToken({
       sub: 'u' as never,
+      fullName: 'Admin User',
+      email: 'admin@example.com',
       role: 'Administrator',
       tenantId: 't' as never,
     });
@@ -81,6 +85,8 @@ describe('JwtService', () => {
     const nowSec = Math.floor(Date.now() / 1000);
     const token = svc.signAccessToken({
       sub: 'u' as never,
+      fullName: 'Test User',
+      email: 'test@example.com',
       role: 'WeddingPlanner',
       tenantId: 't' as never,
     });
@@ -98,6 +104,8 @@ describe('JwtService', () => {
     const nowSec = Math.floor(Date.now() / 1000);
     const token = svc.signRefreshToken({
       sub: 'u' as never,
+      fullName: 'Test User',
+      email: 'test@example.com',
       role: 'WeddingPlanner',
       tenantId: 't' as never,
     });

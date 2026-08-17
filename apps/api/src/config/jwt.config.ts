@@ -9,10 +9,7 @@ import {
   validateSync,
 } from 'class-validator';
 
-// Typed JWT config (ADR-16). One class per domain; validated at boot.
-// Backed by Secrets Manager in prod (env var is injected by ECS task def).
-// Per ADR-05 §Token mechanics and ADR-15 §Why RS256, the signing algorithm
-// is RS256 and is NOT configurable via env vars at runtime.
+// RS256 only — the algorithm is fixed by design, not env-driven.
 @Injectable()
 export class JwtConfig {
   @IsString()
@@ -29,7 +26,7 @@ export class JwtConfig {
 
   @IsInt()
   @Min(60)
-  @Max(3600)
+  @Max(2592000)
   JWT_ACCESS_TOKEN_TTL_SECONDS!: number;
 
   @IsInt()
@@ -48,7 +45,7 @@ export class JwtConfig {
         JWT_ACCESS_TOKEN_TTL_SECONDS:
           env.JWT_ACCESS_TOKEN_TTL_SECONDS !== undefined
             ? Number.parseInt(env.JWT_ACCESS_TOKEN_TTL_SECONDS, 10)
-            : 900,
+            : 604800,
         JWT_REFRESH_TOKEN_TTL_SECONDS:
           env.JWT_REFRESH_TOKEN_TTL_SECONDS !== undefined
             ? Number.parseInt(env.JWT_REFRESH_TOKEN_TTL_SECONDS, 10)

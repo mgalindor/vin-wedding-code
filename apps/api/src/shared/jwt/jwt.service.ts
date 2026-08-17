@@ -15,6 +15,8 @@ export interface AccessTokenClaims {
   sub: UserId;
   role: Role;
   tenantId: TenantId;
+  fullName: string;
+  email: string;
   iss?: string;
   aud?: string;
 }
@@ -67,20 +69,28 @@ export class JwtService {
   }
 
   /**
-   * Sign a 15-minute access token. The `jti` is a UUID v4 so the token
+   * Sign a 7-day access token. The `jti` is a UUID v4 so the token
    * can be revoked later if we extend the layer with a revocation list
    * (currently none — see tech-spec.md §Technical Risks).
+   * The user's profile (fullName, email, role, tenantId) rides in the
+   * JWT payload so the FE can render the dashboard without a separate call.
    */
   signAccessToken(claims: AccessTokenClaims): string {
     return jwt.sign(
-      { sub: claims.sub, role: claims.role, tenantId: claims.tenantId },
+      {
+        sub: claims.sub,
+        role: claims.role,
+        tenantId: claims.tenantId,
+        fullName: claims.fullName,
+        email: claims.email,
+      },
       this.privateKey,
       {
         algorithm: 'RS256',
         issuer: (this.config?.JWT_ISSUER ?? process.env.JWT_ISSUER ?? "wendy-planner"),
         audience: (this.config?.JWT_AUDIENCE ?? process.env.JWT_AUDIENCE ?? "wendy"),
         keyid: (this.config?.JWT_KEY_ID ?? process.env.JWT_KEY_ID ?? ""),
-        expiresIn: (this.config?.JWT_ACCESS_TOKEN_TTL_SECONDS ?? 900),
+        expiresIn: (this.config?.JWT_ACCESS_TOKEN_TTL_SECONDS ?? 604800),
         jwtid: crypto.randomUUID(),
       },
     );
@@ -125,6 +135,8 @@ export class JwtService {
       }) as AccessTokenClaims;
       return {
         sub: payload.sub,
+        fullName: payload.fullName,
+        email: payload.email,
         role: payload.role,
         tenantId: payload.tenantId,
       };

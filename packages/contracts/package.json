@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Wendy Planner \u2014 shared contracts package (DTOs + ID types per ADR-13, ADR-14).",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+
   "scripts": {
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "typecheck": "tsc --noEmit",
