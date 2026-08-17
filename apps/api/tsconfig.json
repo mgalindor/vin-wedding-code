@@ -1,18 +1,23 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "target": "ES2022",
-    "lib": ["ES2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    "target": "ES2023",
+    "lib": ["ES2023"],
+
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./",
+
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
     "strictPropertyInitialization": false,
-    "verbatimModuleSyntax": false,
+
     "incremental": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },

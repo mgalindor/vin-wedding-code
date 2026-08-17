@@ -14,9 +14,7 @@ import { defineConfig } from 'vitest/config';
  */
 export default defineConfig({
   test: {
-    // Run only unit tests by default (spec.ts files under src/).
-    include: ['src/**/*.spec.ts'],
-    // E2E tests live in test/ and run via pnpm test:e2e.
+    include: ['src/**/*.spec.ts', 'test/functional/**/*.spec.ts'],
     environment: 'node',
   },
 });

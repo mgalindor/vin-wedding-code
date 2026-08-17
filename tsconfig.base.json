@@ -1,25 +1,39 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": ["ES2022"],
+    "moduleResolution": "bundler",
+    "lib": ["ES2023"],
+    "resolvePackageJsonExports": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+
+    // Strict bundle — activate all family at once instead of cherry-picking
     "strict": true,
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
+    // Decorators (NestJS / class-validator)
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+
+    // Build helpers
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "useDefineForClassFields": false
+    "removeComments": false,
+    "newLine": "lf"
   },
   "exclude": ["node_modules", "dist", "build", "coverage"]
 }
