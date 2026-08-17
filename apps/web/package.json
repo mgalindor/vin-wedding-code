@@ -2,7 +2,7 @@
   "name": "@wendy/web",
   "version": "0.1.0",
   "private": true,
-  "description": "Wendy Planner \u2014 Vite + React Web tier (per ADR-02).",
+  "description": "Wendy Planner — Vite + React Web tier (per ADR-02).",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,11 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.0",
@@ -20,16 +24,18 @@
     "@wendy/contracts": "workspace:*",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "i18next": "^24.0.5",
+    "i18next": "^26.3.6",
     "i18next-browser-languagedetector": "^8.0.2",
     "lucide-react": "^0.469.0",
     "nanoid": "^5.0.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-i18next": "^15.1.3",
+    "react-hook-form": "^7.85.0",
+    "react-i18next": "^17.0.11",
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/router-plugin": "^1.95.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -40,7 +46,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^25.0.1",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.7.2",
+    "typescript": "^7.0.2",
     "vite": "^5.4.11",
     "vitest": "^2.1.8"
   }

@@ -3,7 +3,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { LocaleSwitcher } from '@/features/locale-switcher/locale-switcher';
+import { AuthProvider } from '@/shared/auth';
 
 import '@/i18n/config';
 import { router } from '@/router';
@@ -26,13 +26,10 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col">
-        <header className="flex items-center justify-end gap-3 border-b border-border bg-background/95 px-6 py-3">
-          <LocaleSwitcher />
-        </header>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
-      </div>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   </StrictMode>,
 );

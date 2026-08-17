@@ -1,0 +1,19 @@
+{
+  "loading": "Cargando...",
+  "greeting": "Bienvenido, {{name}}",
+  "landing": {
+    "title": "Todo está listo",
+    "subtitle": "Tu panel de planificación de bodas está listo. Nuevas funciones llegando en Sprint 2. Por ahora, relájate y disfruta la elegancia de Wendy.",
+    "stats": {
+      "weddings": "Bodas",
+      "guests": "Invitados",
+      "rsvps": "Respuestas"
+    },
+    "footer": "📅 Nuevas funciones en Sprint 2: crear bodas, gestionar invitados, seguir RSVPs y compartir invitaciones."
+  },
+  "signOut": "Cerrar sesión",
+  "empty": {
+    "title": "Aún no hay bodas",
+    "body": "Crea tu primera boda en Sprint 2"
+  }
+}

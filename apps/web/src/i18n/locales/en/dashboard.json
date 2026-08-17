@@ -1,0 +1,19 @@
+{
+  "loading": "Loading...",
+  "greeting": "Welcome back, {{name}}",
+  "landing": {
+    "title": "You're all set",
+    "subtitle": "Your wedding planning dashboard is ready. New features are coming in Sprint 2. For now, sit back and enjoy the elegance of Wendy.",
+    "stats": {
+      "weddings": "Weddings",
+      "guests": "Guests",
+      "rsvps": "Responses"
+    },
+    "footer": "📅 New features launching in Sprint 2: create weddings, manage guests, track RSVPs, and share invitations."
+  },
+  "signOut": "Sign out",
+  "empty": {
+    "title": "No weddings yet",
+    "body": "Create your first wedding in Sprint 2"
+  }
+}

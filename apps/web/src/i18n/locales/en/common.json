@@ -3,14 +3,28 @@
     "title": "Wendy Planner",
     "tagline": "Wedding management platform for Vineyards"
   },
+  "languageSwitcher": {
+    "label": "Language",
+    "english": "EN",
+    "spanish": "ES"
+  },
   "dashboard": {
-    "greeting": "Welcome to Wendy Planner \u2014 Sprint 1 foundations ready",
-    "subtitle": "The dashboard will land feature work in Sprint 2. Today, this page proves the routing, i18n, and styling pipeline are wired correctly.",
-    "placeholderButton": "Sprint 1 placeholder button",
-    "languageSwitcher": {
-      "label": "Language",
-      "english": "English",
-      "spanish": "Espa\u00f1ol"
+    "loading": "Loading...",
+    "greeting": "Welcome back, {{name}}",
+    "landing": {
+      "title": "You're all set",
+      "subtitle": "Your wedding planning dashboard is ready. New features are coming in Sprint 2. For now, sit back and enjoy the elegance of Wendy.",
+      "stats": {
+        "weddings": "Weddings",
+        "guests": "Guests",
+        "rsvps": "Responses"
+      },
+      "footer": "📅 New features launching in Sprint 2: create weddings, manage guests, track RSVPs, and share invitations."
+    },
+    "signOut": "Sign out",
+    "empty": {
+      "title": "No weddings yet",
+      "body": "Create your first wedding in Sprint 2"
     }
   },
   "invitation": {
