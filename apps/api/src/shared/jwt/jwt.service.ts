@@ -69,11 +69,12 @@ export class JwtService {
   }
 
   /**
-   * Sign a 7-day access token. The `jti` is a UUID v4 so the token
-   * can be revoked later if we extend the layer with a revocation list
-   * (currently none — see tech-spec.md §Technical Risks).
-   * The user's profile (fullName, email, role, tenantId) rides in the
-   * JWT payload so the FE can render the dashboard without a separate call.
+   * Sign a 1-hour access token. The `jti` is a UUID v4 minted per
+   * token; we do NOT maintain a revocation list in MVP (tech-spec.md
+   * §Token Lifecycle). Payload carries sub / role / tenantId plus the
+   * user's fullName and email as claims so the FE can render the
+   * dashboard from the token alone — the login response body stays
+   * minimal and preserves the OAuth token-shape contract.
    */
   signAccessToken(claims: AccessTokenClaims): string {
     return jwt.sign(
@@ -90,16 +91,15 @@ export class JwtService {
         issuer: (this.config?.JWT_ISSUER ?? process.env.JWT_ISSUER ?? "wendy-planner"),
         audience: (this.config?.JWT_AUDIENCE ?? process.env.JWT_AUDIENCE ?? "wendy"),
         keyid: (this.config?.JWT_KEY_ID ?? process.env.JWT_KEY_ID ?? ""),
-        expiresIn: (this.config?.JWT_ACCESS_TOKEN_TTL_SECONDS ?? 604800),
+        expiresIn: (this.config?.JWT_ACCESS_TOKEN_TTL_SECONDS ?? 3600),
         jwtid: crypto.randomUUID(),
       },
     );
   }
 
   /**
-   * Sign a 7-day refresh token. The contract (HttpOnly; Secure;
-   * SameSite=Lax cookie) is documented in Rule 4 of the functional
-   * spec; ARC-014 sets the cookie in /oauth/token.
+   * Sign a 3-day refresh token. Audience is `refresh` so an access
+   * token cannot be replayed as a refresh token. No revocation in MVP.
    */
   signRefreshToken(claims: AccessTokenClaims): string {
     return jwt.sign(
@@ -115,7 +115,7 @@ export class JwtService {
         issuer: (this.config?.JWT_ISSUER ?? process.env.JWT_ISSUER ?? "wendy-planner"),
         audience: 'refresh',
         keyid: (this.config?.JWT_KEY_ID ?? process.env.JWT_KEY_ID ?? ""),
-        expiresIn: (this.config?.JWT_REFRESH_TOKEN_TTL_SECONDS ?? 604800),
+        expiresIn: (this.config?.JWT_REFRESH_TOKEN_TTL_SECONDS ?? 259200),
         jwtid: crypto.randomUUID(),
       },
     );

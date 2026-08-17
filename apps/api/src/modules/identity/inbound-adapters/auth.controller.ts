@@ -42,17 +42,15 @@ export class AuthController {
       email: user.email,
     });
 
+    // OAuth-style response: only the token shape. The user profile
+    // (fullName, email, role, tenantId) is encoded in the JWT claims so
+    // the FE can decode it without a follow-up /me call. Keeps the
+    // contract minimal and stable.
     return {
       access_token: accessToken,
       token_type: 'Bearer',
-      expires_in: 604800,
-      user: {
-        id: user.id as any,
-        fullName: user.full_name,
-        email: user.email,
-        role: user.role as any,
-        tenantId: user.tenant_id as any,
-      },
+      // 1 hour (3600s). See tech-spec.md §Token Lifecycle.
+      expires_in: 3600,
     };
   }
 }

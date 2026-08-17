@@ -19,7 +19,8 @@
     "prisma": "prisma",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "db:seed": "ts-node tools/db-seed.ts"
+    "db:seed": "ts-node tools/db-seed.ts",
+    "gen:keys": "ts-node tools/gen-keys.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.1",

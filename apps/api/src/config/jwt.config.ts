@@ -3,35 +3,44 @@ import { plainToInstance } from 'class-transformer';
 import {
   IsInt,
   IsString,
-  IsUUID,
   Max,
   Min,
+  MinLength,
   validateSync,
 } from 'class-validator';
 
 // RS256 only — the algorithm is fixed by design, not env-driven.
+// Defaults per tech-spec.md §Token Lifecycle:
+//   - Access token:  1 hour (3600s)
+//   - Refresh token: 3 days  (259200s)
+// No revocation in MVP. See ADR-05.
 @Injectable()
 export class JwtConfig {
   @IsString()
   JWT_PRIVATE_KEY_PEM!: string;
 
-  @IsUUID('4')
+  @IsString()
+  @MinLength(1)
   JWT_KEY_ID!: string;
 
   @IsString()
+  @MinLength(1)
   JWT_ISSUER!: string;
 
   @IsString()
+  @MinLength(1)
   JWT_AUDIENCE!: string;
 
+  // Access token: bounded [60s .. 24h]. Default 1h.
   @IsInt()
   @Min(60)
-  @Max(2592000)
+  @Max(86400)
   JWT_ACCESS_TOKEN_TTL_SECONDS!: number;
 
+  // Refresh token: bounded [1h .. 7d]. Default 3d.
   @IsInt()
   @Min(3600)
-  @Max(2592000)
+  @Max(604800)
   JWT_REFRESH_TOKEN_TTL_SECONDS!: number;
 
   static fromEnv(env: NodeJS.ProcessEnv = process.env): JwtConfig {
@@ -45,11 +54,11 @@ export class JwtConfig {
         JWT_ACCESS_TOKEN_TTL_SECONDS:
           env.JWT_ACCESS_TOKEN_TTL_SECONDS !== undefined
             ? Number.parseInt(env.JWT_ACCESS_TOKEN_TTL_SECONDS, 10)
-            : 604800,
+            : 3600,
         JWT_REFRESH_TOKEN_TTL_SECONDS:
           env.JWT_REFRESH_TOKEN_TTL_SECONDS !== undefined
             ? Number.parseInt(env.JWT_REFRESH_TOKEN_TTL_SECONDS, 10)
-            : 604800,
+            : 259200,
       },
       { enableImplicitConversion: false },
     );

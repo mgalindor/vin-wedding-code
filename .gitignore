@@ -8,12 +8,18 @@ build/
 *.tsbuildinfo
 
 # Environment
-# - `.env` is committed: it holds non-sensitive defaults that externalize
-#   config out of source code. See `code/.env` for the header comment.
-# - `.env.local` and `.env.*.local` are gitignored: they hold per-developer
-#   overrides (private keys, real credentials, etc.).
+# - `.env` is committed: it holds NON-SENSITIVE defaults (DB host, TTLs,
+#   issuer/audience). The PEM private key NEVER lives here.
+# - `.env.local` and `.env.*.local` are gitignored: per-developer overrides
+#   (private keys, real credentials, etc.). See `apps/api/.env` header.
 .env.local
 .env.*.local
+
+# Defence-in-depth: even if someone accidentally adds a secret to a
+# file outside the .env pattern, never let it leak.
+*.pem
+*.key
+apps/api/jwt-dev/
 
 # Logs
 logs/

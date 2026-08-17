@@ -16,10 +16,24 @@ export class AuthenticateUserUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async signIn(email: string, password: string) {
+  async signIn(rawEmail: string, password: string) {
+    // Defence-in-depth: normalise even though the DTO already does it
+    // via @Transform. Never trust upstream sanitisation.
+    const email = (rawEmail ?? '').trim().toLowerCase();
+
     const user = await this.userRepository.findByEmail(email);
 
-    if (!user || !(await compare(password, user.password_hash))) {
+    // Always run bcrypt.compare, even when the user is missing, so the
+    // response time is constant — protects against user enumeration
+    // via timing attacks. The dummy hash below is a pre-computed bcrypt
+    // of a random 72-byte string; cost matches the production factor.
+    const DUMMY_HASH =
+      '$2b$10$CwTycUXWue0Thq9StjUM0uJ8q3pK1y4w8oJ4vq2gF2dC5lQ9hG8aO';
+    const passwordToCompare = user?.password_hash ?? DUMMY_HASH;
+
+    const passwordOk = await compare(password, passwordToCompare);
+
+    if (!user || !passwordOk) {
       return null;
     }
 
