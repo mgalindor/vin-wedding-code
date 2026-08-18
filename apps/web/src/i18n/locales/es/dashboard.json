@@ -1,19 +1,61 @@
 {
   "loading": "Cargando...",
-  "greeting": "Bienvenido, {{name}}",
+  "greeting": "Bienvenido de vuelta, {{name}}",
+  "sidebar": {
+    "brand": "Wendy",
+    "brandSub": "Wedding Planner",
+    "workspace": "Workspace",
+    "administration": "Administración",
+    "weddings": "Bodas",
+    "weddingPlanners": "Wedding Planners",
+    "auditLog": "Registro de auditoría",
+    "logout": "Cerrar sesión"
+  },
+  "topbar": {
+    "date": "{{date}}",
+    "newWedding": "+ Nueva boda"
+  },
+  "stats": {
+    "activeWeddings": "Bodas activas",
+    "totalGuests": "Invitados totales",
+    "confirmedRsvps": "RSVPs confirmados",
+    "daysToNext": "Días para la próxima",
+    "activeWeddingsSub": "{{count}} esta temporada",
+    "totalGuestsSub": "en {{count}} bodas",
+    "confirmedRsvpsSub": "{{rate}}% de respuesta",
+    "daysToNextSub": "{{couple}} · {{date}}"
+  },
+  "section": {
+    "myWeddings": "Mis bodas",
+    "weddingsCount_one": "{{count}} boda",
+    "weddingsCount_other": "{{count}} bodas",
+    "filters": {
+      "all": "Todas",
+      "active": "Activas",
+      "draft": "Borradores",
+      "archived": "Archivadas",
+      "sortDate": "Boda más cercana",
+      "sortAdded": "Capturadas recientemente",
+      "searchPlaceholder": "Buscar por nombre…"
+    },
+    "empty": {
+      "title": "Aún no hay bodas",
+      "body": "Crea tu primera boda en el Sprint 2",
+      "filterTitle": "No se encontraron bodas",
+      "filterBody": "Prueba con otro filtro o término de búsqueda."
+    }
+  },
   "landing": {
-    "title": "Todo está listo",
-    "subtitle": "Tu panel de planificación de bodas está listo. Nuevas funciones llegando en Sprint 2. Por ahora, relájate y disfruta la elegancia de Wendy.",
     "stats": {
       "weddings": "Bodas",
       "guests": "Invitados",
       "rsvps": "Respuestas"
     },
-    "footer": "📅 Nuevas funciones en Sprint 2: crear bodas, gestionar invitados, seguir RSVPs y compartir invitaciones."
+    "footer": "📅 Nuevas funcionalidades disponibles en Sprint 2: crear bodas, gestionar invitados, hacer seguimiento de confirmaciones y compartir invitaciones."
   },
   "signOut": "Cerrar sesión",
   "empty": {
     "title": "Aún no hay bodas",
-    "body": "Crea tu primera boda en Sprint 2"
+    "body": "Crea tu primera boda en el Sprint 2"
   }
 }

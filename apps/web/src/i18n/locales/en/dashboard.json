@@ -1,9 +1,51 @@
 {
   "loading": "Loading...",
   "greeting": "Welcome back, {{name}}",
+  "sidebar": {
+    "brand": "Wendy",
+    "brandSub": "Wedding Planner",
+    "workspace": "Workspace",
+    "administration": "Administration",
+    "weddings": "Weddings",
+    "weddingPlanners": "Wedding Planners",
+    "auditLog": "Audit Log",
+    "logout": "Log out"
+  },
+  "topbar": {
+    "date": "{{date}}",
+    "newWedding": "+ New Wedding"
+  },
+  "stats": {
+    "activeWeddings": "Active Weddings",
+    "totalGuests": "Total Guests",
+    "confirmedRsvps": "Confirmed RSVPs",
+    "daysToNext": "Days to Next",
+    "activeWeddingsSub": "{{count}} this season",
+    "totalGuestsSub": "across {{count}} weddings",
+    "confirmedRsvpsSub": "{{rate}}% response rate",
+    "daysToNextSub": "{{couple}} · {{date}}"
+  },
+  "section": {
+    "myWeddings": "My Weddings",
+    "weddingsCount_one": "{{count}} wedding",
+    "weddingsCount_other": "{{count}} weddings",
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "draft": "Draft",
+      "archived": "Archived",
+      "sortDate": "Closest Wedding",
+      "sortAdded": "Recently Captured",
+      "searchPlaceholder": "Search by name…"
+    },
+    "empty": {
+      "title": "No weddings yet",
+      "body": "Create your first wedding in Sprint 2",
+      "filterTitle": "No weddings found",
+      "filterBody": "Try a different filter or search term."
+    }
+  },
   "landing": {
-    "title": "You're all set",
-    "subtitle": "Your wedding planning dashboard is ready. New features are coming in Sprint 2. For now, sit back and enjoy the elegance of Wendy.",
     "stats": {
       "weddings": "Weddings",
       "guests": "Guests",

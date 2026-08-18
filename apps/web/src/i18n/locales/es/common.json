@@ -4,8 +4,8 @@
     "tagline": "Plataforma de gesti\u00f3n de bodas para Vineyards"
   },  "languageSwitcher": {
     "label": "Idioma",
-    "english": "EN",
-    "spanish": "ES"
+    "en": "Inglés",
+    "es": "Español"
   },  "dashboard": {
     "loading": "Cargando...",
     "greeting": "Bienvenido de vuelta, {{name}}",

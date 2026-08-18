@@ -6,29 +6,50 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 47.4% 11.2%);
+  /* Brand palette (DESIGN.md — Antique Gold primary, M3 surfaces) */
+  --color-background: #f9f8f7;
+  --color-foreground: #1c1b1a;
 
-  --color-primary: hsl(222.2 47.4% 11.2%);
-  --color-primary-foreground: hsl(210 40% 98%);
+  --color-primary: #735c00;
+  --color-primary-foreground: #ffffff;
 
-  --color-secondary: hsl(210 40% 96.1%);
-  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-secondary: #605e5c;
+  --color-secondary-foreground: #ffffff;
 
-  --color-muted: hsl(210 40% 96.1%);
-  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --color-muted: #f3f2f0;
+  --color-muted-foreground: #4d4635;
 
-  --color-accent: hsl(210 40% 96.1%);
-  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --color-accent: #f3f2f0;
+  --color-accent-foreground: #1c1b1a;
 
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-destructive: #ba1a1a;
+  --color-destructive-foreground: #ffffff;
 
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(222.2 84% 4.9%);
+  --color-border: #d0c5af;
+  --color-input: #d0c5af;
+  --color-ring: #735c00;
 
+  --color-surface: #f9f8f7;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f2f0;
+  --color-surface-container-high: #e8e7e5;
+  --color-on-surface: #1c1b1a;
+  --color-on-surface-variant: #4d4635;
+  --color-outline-variant: #d0c5af;
+
+  --color-status-confirmed-bg: #dcf5e8;
+  --color-status-confirmed-text: #1a5c35;
+  --color-status-pending-bg: #fff4e0;
+  --color-status-pending-text: #7c4f00;
+
+  --font-display: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
+
+  --radius-sm: 0.25rem;
   --radius: 0.5rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
 }
 
 @layer base {

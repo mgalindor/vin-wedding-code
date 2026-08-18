@@ -1,17 +1,25 @@
 /**
- * TC-010: Landing page renders correctly after login.
+ * TC-010: Dashboard landing page renders correctly after login (Sprint 1 redesign).
  *
- * - Header: greeting, email, role badge
- * - Body: "You're all set" + 3 stat cards + info banner
- * - NO buttons / actions (Sprint 1 landing only)
+ * Visual contract (mockup 02-dashboard.html):
+ *  - Sidebar: brand "Wendy", section "Workspace" with "Weddings" item,
+ *             section "Administration" (admin only) with "Wedding Planners".
+ *  - Topbar: greeting line, today's date, "+ New Wedding" action button.
+ *  - Stats row: 4 stat cards (Active Weddings, Total Guests, Confirmed RSVPs,
+ *               Days to Next).
+ *  - Body: empty state for "No weddings yet" (Sprint 1 has no data).
+ *  - Admin extras: "Wedding Planners" landing card with primary CTA.
+ *
+ * Sprint 1 still surfaces the locale switcher and the New Wedding button;
+ * both are inert placeholders that become real flows in Sprint 2.
  */
 
 import { test, expect } from '@playwright/test';
 
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from './helpers/api';
 
-test.describe('TC-010: Landing page after login', () => {
-  test('shows header + greeting + role badge + stat cards + info banner', async ({ page }) => {
+test.describe('TC-010: Dashboard landing page after login', () => {
+  test('renders sidebar + topbar + stats + empty state', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel(/username/i).fill(ADMIN_EMAIL);
     await page.getByLabel(/password/i).fill(ADMIN_PASSWORD);
@@ -20,23 +28,53 @@ test.describe('TC-010: Landing page after login', () => {
     // Redirected to dashboard
     await page.waitForURL(/\/dashboard/, { timeout: 15_000 });
 
-    // Greeting
-    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
-    // Role badge — Administrator
-    await expect(page.getByText(/administrator/i).first()).toBeVisible();
+    // Sidebar brand
+    await expect(page.getByRole('heading', { name: /^Wendy$/ })).toBeVisible();
+    await expect(page.getByText(/wedding planner/i).first()).toBeVisible();
 
-    // Stat cards
-    await expect(page.getByText(/weddings/i).first()).toBeVisible();
-    await expect(page.getByText(/guests/i).first()).toBeVisible();
-    await expect(page.getByText(/responses/i).first()).toBeVisible();
+    // Sidebar nav sections
+    await expect(page.getByText(/^workspace$/i)).toBeVisible();
+    await expect(page.getByText(/^administration$/i)).toBeVisible();
+    await expect(page.getByRole('link', { name: /^weddings$/i })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: /wedding planners/i }),
+    ).toBeVisible();
 
-    // Info banner about Sprint 2 (use .first() since "Sprint 2" appears twice)
-    await expect(page.getByText(/sprint 2/i).first()).toBeVisible();
+    // Topbar greeting ("Welcome back, <name>")
+    await expect(
+      page.getByRole('heading', { name: /welcome back/i }),
+    ).toBeVisible();
 
-    // No action buttons on landing
-    const buttons = await page.getByRole('button').all();
-    // Login form "Log in" button is gone — only 0 buttons remain on the
-    // landing page because the design hides them in Sprint 1.
-    expect(buttons.length).toBeLessThanOrEqual(2); // language toggle only
+    // Topbar action — + New Wedding
+    await expect(
+      page.getByRole('button', { name: /\+ new wedding/i }),
+    ).toBeVisible();
+
+    // Locale switcher (compact EN | ES toggle)
+    await expect(
+      page.getByRole('button', { name: /^english$/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /^spanish$/i }),
+    ).toBeVisible();
+
+    // Stats row: 4 cards (regex tolerant of i18n substitution)
+    await expect(page.getByText(/active weddings/i)).toBeVisible();
+    await expect(page.getByText(/total guests/i)).toBeVisible();
+    await expect(page.getByText(/confirmed rsvps/i)).toBeVisible();
+    await expect(page.getByText(/days to next/i)).toBeVisible();
+
+    // Empty state
+    await expect(
+      page.getByRole('heading', { name: /no weddings yet/i }),
+    ).toBeVisible();
+
+    // Admin landing card with the primary CTA
+    await expect(
+      page.getByRole('button', { name: /add wedding planner/i }),
+    ).toBeVisible();
+
+    // Sidebar user-chip + icon-only logout button
+    await expect(page.getByRole('button', { name: /^log out$/i })).toBeVisible();
   });
 });

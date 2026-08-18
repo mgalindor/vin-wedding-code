@@ -5,8 +5,8 @@
   },
   "languageSwitcher": {
     "label": "Language",
-    "english": "EN",
-    "spanish": "ES"
+    "en": "English",
+    "es": "Spanish"
   },
   "dashboard": {
     "loading": "Loading...",
