@@ -42,10 +42,11 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 
-# Playwright artifacts (apps/web/test-results/ + blob reports)
+# Playwright artifacts (apps/web/test-results/ + blob reports + raw results JSON)
 apps/web/test-results/
 apps/web/playwright-report/
 apps/web/blob-report/
+apps/web/playwright-results.json
 playwright/.cache/
 
 # Vitest transpilation outputs (the source .spec.ts stays; the
