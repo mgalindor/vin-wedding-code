@@ -1,9 +1,10 @@
-import { useCallback, useState } from 'react';
-import {
+import type {
   AuthenticateUserDto,
   AuthenticateUserResponseDto,
   UserProfileDto,
 } from '@wendy/contracts';
+import { useCallback, useState } from 'react';
+
 import { useAuth } from './use-auth';
 
 /**
@@ -20,7 +21,8 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
   const parts = token.split('.');
   if (parts.length !== 3) return null;
   try {
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = parts[1]?.replace(/-/g, '+').replace(/_/g, '/');
+    if (!payload) return null;
     const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
     const json = atob(padded);
     return JSON.parse(json) as Record<string, unknown>;
@@ -96,7 +98,16 @@ export function useLogin() {
         }
         const user = profileFromClaims(claims);
 
-        // Store token + user profile in memory (Rule 11 of the functional spec).
+        // Mirror the access token to localStorage so route-level guards
+        // (TanStack Router beforeLoad) can read it before the React tree
+        // mounts. The auth store stays the in-memory source of truth.
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.setItem('__wendy_jwt__', data.access_token);
+          } catch {
+            // localStorage may be unavailable (private mode); in-memory store is the fallback.
+          }
+        }
         dispatch({
           type: 'LOGIN',
           payload: { accessToken: data.access_token, user },

@@ -12,6 +12,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Tenants (US-001). One row per tenant — the slug email suffix is
+// read from this table, not from env (no TENANT_EMAIL_SUFFIX env var).
+// Sprint 1 ships exactly one row, seeded by tools/db-seed.ts.
+model tenants {
+  id String @id
+
+  email_suffix String @unique(map: "idx_tenants_email_suffix")
+  display_name String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("tenants")
+}
+
 // Identity & Access (ARC-008). tenant_id is a column from day one but no
 // tenants table exists yet (ADR-07); application code filters by it.
 model users {

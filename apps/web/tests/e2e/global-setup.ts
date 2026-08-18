@@ -36,6 +36,18 @@ export default async function globalSetup(): Promise<void> {
   );
   const nodeBin = process.execPath;
 
+  // E2E_ADMIN_PASSWORD is the password the suite expects. Forward it
+  // through SEED_ADMIN_PASSWORD so the seed writes a matching bcrypt
+  // hash for `admin@wendy`. Without this, the seed would mint a fresh
+  // random password on every run and tests would have to scrape stdout
+  // — fragile, especially on Windows where stdout line endings vary.
+  const seedEnv: NodeJS.ProcessEnv = {
+    ...process.env,
+    ...(process.env.E2E_ADMIN_PASSWORD
+      ? { SEED_ADMIN_PASSWORD: process.env.E2E_ADMIN_PASSWORD }
+      : {}),
+  };
+
   // `--transpile-only` skips type-checking (the seed script doesn't need it).
   // We override the api tsconfig (which uses nodenext/nodenext for production)
   // to emit CommonJS — the seed script's `import { nanoid } from 'nanoid'`
@@ -53,7 +65,7 @@ export default async function globalSetup(): Promise<void> {
     {
       cwd: API_DIR,
       stdio: 'inherit',
-      env: { ...process.env },
+      env: seedEnv,
     },
   );
 

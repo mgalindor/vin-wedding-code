@@ -2,3 +2,4 @@
 // Consumers import from '@wendy/contracts', not from subpaths.
 export * from './ids.js';
 export * from './dtos/auth.dtos.js';
+export * from './dtos/wedding-planners.dtos.js';

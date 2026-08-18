@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+
 import { useAuth } from './use-auth';
 
 /**
@@ -17,6 +18,13 @@ export function useLogout() {
   const { dispatch } = useAuth();
 
   const logout = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem('__wendy_jwt__');
+      } catch {
+        // ignore — localStorage may be unavailable
+      }
+    }
     dispatch({ type: 'LOGOUT' });
   }, [dispatch]);
 

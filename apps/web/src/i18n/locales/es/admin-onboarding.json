@@ -1,0 +1,44 @@
+{
+  "landing": {
+    "emptyTitle": "Aún no hay Wedding Planners",
+    "emptyBody": "Da de alta a un Wedding Planner en el equipo. Podrá empezar a trabajar en bodas tan pronto como completes el onboarding.",
+    "primaryAction": "Dar de alta un Wedding Planner"
+  },
+  "form": {
+    "pageTitle": "Dar de alta a un nuevo Wedding Planner",
+    "subtitle": "Crea la cuenta, entrega las credenciales fuera de la plataforma y el nuevo Wedding Planner estará listo para trabajar.",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Email",
+    "username": "Usuario",
+    "usernameHint": "Solo la parte local — la plataforma añade el sufijo automáticamente.",
+    "phone": "Teléfono",
+    "phoneOptional": "(opcional)",
+    "password": "Contraseña inicial",
+    "passwordHint": "Entre 10 y 25 caracteres. Se permiten espacios y símbolos.",
+    "generatePassword": "Generar contraseña",
+    "submit": "Guardar Planner",
+    "cancel": "Cancelar",
+    "errors": {
+      "required": "Este campo es obligatorio",
+      "usernameFormat": "Solo letras minúsculas y dígitos (sin @, sin espacios)",
+      "emailFormat": "Introduce una dirección de email válida",
+      "passwordLength": "La contraseña debe tener entre 10 y 25 caracteres",
+      "usernameConflict": "El usuario ya está en uso",
+      "emailConflict": "El email ya está en uso",
+      "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
+    }
+  },
+  "confirmation": {
+    "pageTitle": "Guarda las credenciales",
+    "subtitle": "La contraseña en claro se muestra exactamente una vez. Cópiala ahora — no podrás volver a verla.",
+    "usernameLabel": "Usuario",
+    "passwordLabel": "Contraseña inicial",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "warning": "La contraseña no se puede consultar después desde la plataforma. Solo se puede reemplazar mediante un futuro flujo de restauración — guarda el valor en un lugar seguro antes de continuar.",
+    "acknowledge": "He guardado las credenciales",
+    "primaryAction": "Listo",
+    "back": "Volver a Wedding Planners"
+  }
+}

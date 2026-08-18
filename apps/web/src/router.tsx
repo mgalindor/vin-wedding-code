@@ -4,17 +4,17 @@ import {
   createRouter,
   Navigate,
   Outlet,
+  redirect,
+  useLocation,
+  useParams,
 } from '@tanstack/react-router';
+import type { OnboardWeddingPlannerResponseDto } from '@wendy/contracts';
+import { UserRole } from '@wendy/contracts';
 import { lazy, Suspense } from 'react';
 
-import { LocaleSwitcher } from '@/features/locale-switcher/locale-switcher';
-import { useAuth } from '@/shared/auth';
+import { useAuth, useRoleGuard } from '@/shared/auth';
 
-// Two lazy route groups (ADR-02): (dashboard) and (public). Guests do not
-// download the dashboard chunk and vice versa. Code-based routing so we
-// can assign explicit paths like /i/:token.
 
-// Lazy chunks — Vite splits each into a separate JS file.
 const LoginScreen = lazy(() =>
   import('@/features/auth/components/login-screen').then((m) => ({
     default: m.LoginScreen,
@@ -27,9 +27,15 @@ const DashboardLayout = lazy(() =>
   })),
 );
 
-const DashboardPlaceholder = lazy(() =>
-  import('@/features/dashboard/components/dashboard-layout').then((m) => ({
-    default: m.DashboardPlaceholder,
+const OnboardWeddingPlannerScreen = lazy(() =>
+  import('@/features/admin-onboarding/components/onboard-wedding-planner-screen').then((m) => ({
+    default: m.OnboardWeddingPlannerScreen,
+  })),
+);
+
+const CredentialsConfirmationScreen = lazy(() =>
+  import('@/features/admin-onboarding/components/credentials-confirmation-screen').then((m) => ({
+    default: m.CredentialsConfirmationScreen,
   })),
 );
 
@@ -61,26 +67,12 @@ function RootLayout(): React.ReactElement {
   );
 }
 
-// Wraps authenticated routes with the global header (locale switcher).
-function AuthenticatedLayout(): React.ReactElement {
-  return (
-    <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-end gap-3 border-b border-border bg-background/95 px-6 py-3">
-        <LocaleSwitcher />
-      </header>
-      <Outlet />
-    </div>
-  );
-}
-
-// Login route (US-006, Rule 13)
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   component: LoginScreen,
 });
 
-// Root index: bounce to /dashboard if signed in, /login otherwise.
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
@@ -92,40 +84,95 @@ function RootIndex(): React.ReactElement {
   return <Navigate to={state.isAuthenticated ? '/dashboard' : '/login'} />;
 }
 
-// Outer wrapper: global header (locale switcher) + outlet for nested routes.
+// Coarse auth gate at the route level. The role check (Administrator vs
+// Wedding Planner) is intentionally NOT done here — Rule 28 of the
+// functional spec forbids reading the role from a client-decoded JWT.
+// The fine-grained role gate runs inside the screen via useIsAdmin(),
+// which calls the server-authenticated GET /oauth/userinfo.
+//
+// We only check token *presence* so we can redirect an unauthenticated
+// visitor to /login before the React tree mounts. The mirror to
+// localStorage is owned by useLogin / useLogout.
+function requireAuth() {
+  if (typeof window === 'undefined') return;
+  const token = window.localStorage.getItem('__wendy_jwt__');
+  if (!token) {
+    throw redirect({ to: '/login' });
+  }
+}
+
+// Pathless layout — no path/id collision, no URL segment. Its sole
+// purpose is to inject <DashboardLayout /> around every /dashboard/* route.
 const dashboardLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/dashboard',
-  component: AuthenticatedLayout,
-});
-
-// Inner wrapper: greeting, role badge, logout, and bounce to /login if auth resets.
-const dashboardRoute = createRoute({
-  getParentRoute: () => dashboardLayoutRoute,
-  path: '/',
+  id: 'dashboardLayout',
   component: DashboardLayout,
 });
 
-// Dashboard index placeholder (Sprint 1; future stories will add content)
 const dashboardIndexRoute = createRoute({
-  getParentRoute: () => dashboardRoute,
-  path: '/',
-  component: DashboardPlaceholder,
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard',
+  component: DashboardPlaceholderRoute,
 });
 
-// Public invitation route
+const onboardWeddingPlannerRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/wedding-planners/onboard',
+  component: OnboardWeddingPlannerScreen,
+  beforeLoad: requireAuth,
+});
+
+const credentialsConfirmationRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/wedding-planners/$plannerId/credentials',
+  component: CredentialsRoute,
+  beforeLoad: requireAuth,
+});
+
+interface CredentialsState {
+  credentials?: OnboardWeddingPlannerResponseDto;
+}
+
+function CredentialsRoute(): React.ReactElement {
+  // Rule 28 — server-authenticated role gate. The router-level
+  // beforeLoad only checks that a token exists; the actual role check
+  // runs here via /oauth/userinfo.
+  useRoleGuard({ allow: [UserRole.Administrator] });
+
+  // TanStack Router exposes URL params + navigation state to route
+  // components via hooks. The form navigates with `params: { plannerId }`
+  // and `state: { credentials }`; we forward both to the screen here.
+  const params = useParams({ strict: false }) as { plannerId?: string };
+  const location = useLocation();
+  const state = (location.state as CredentialsState | undefined) ?? {};
+  return (
+    <CredentialsConfirmationScreen
+      plannerId={params.plannerId ?? ''}
+      state={state}
+    />
+  );
+}
+
+// Index of /dashboard — placeholder content. The DashboardLayout already
+// renders the welcome content when the matched route is this index, so
+// this component is intentionally a no-op (<Outlet /> renders nothing).
+function DashboardPlaceholderRoute(): React.ReactElement {
+  return <Outlet />;
+}
+
 const publicInvitationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/i/$token',
   component: PublicInvitationPlaceholderScreen,
 });
 
-// Build route tree
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   dashboardLayoutRoute.addChildren([
-    dashboardRoute.addChildren([dashboardIndexRoute]),
+    dashboardIndexRoute,
+    onboardWeddingPlannerRoute,
+    credentialsConfirmationRoute,
   ]),
   publicInvitationRoute,
 ]);
@@ -136,7 +183,6 @@ export const router = createRouter({
   defaultPreloadStaleTime: 0,
 });
 
-// Type the registered routes so useNavigate / <Link> are typed.
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;

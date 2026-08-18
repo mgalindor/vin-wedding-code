@@ -1,15 +1,13 @@
 /**
  * TC-005: Disabled account rejected (is_disabled=true blocks login).
- *
- * Verifies the AuthenticateUserUseCase rejects disabled accounts.
  */
 
-import { describe, it, expect, vi } from 'vitest';
 import { hash } from 'bcrypt';
+import { describe, it, expect, vi } from 'vitest';
 
-import { AuthenticateUserUseCase } from '../../src/modules/identity/application/authenticate-user.use-case';
+import { IdentityService } from '../../src/modules/identity/application/identity.service';
 
-describe('TC-005: AuthenticateUserUseCase — disabled account rejected', () => {
+describe('TC-005: IdentityService.authenticate — disabled account rejected', () => {
   it('returns null when user.is_disabled === true', async () => {
     const passwordHash = await hash('CorrectHorse1!', 4);
     const repo = {
@@ -24,9 +22,11 @@ describe('TC-005: AuthenticateUserUseCase — disabled account rejected', () => 
       }),
     };
 
-    const useCase = new AuthenticateUserUseCase(repo as any);
+    const service = new IdentityService(repo as any, {
+      findSuffixByTenantId: vi.fn(),
+    } as any);
 
-    const result = await useCase.signIn('disabled@wendy', 'CorrectHorse1!');
+    const result = await service.authenticate('disabled@wendy', 'CorrectHorse1!');
 
     expect(result).toBeNull();
   });

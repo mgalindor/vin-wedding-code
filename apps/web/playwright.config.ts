@@ -25,6 +25,9 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 10_000,
     navigationTimeout: 30_000,
+    // Default password the seed prints (dev seed is non-deterministic
+    // by design; this matches the value printed during the last local
+    // `pnpm db:seed` run). CI must override via E2E_ADMIN_PASSWORD.
   },
   projects: [
     {

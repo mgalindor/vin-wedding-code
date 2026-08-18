@@ -31,5 +31,10 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 30_000,
     setupFiles: ['test/setup.e2e.ts'],
+    // Adapter tests share a single Postgres instance. Running them in
+    // parallel causes the resetDatabase() helper to truncate rows that
+    // a sibling test is mid-way through seeding. Single-threaded by
+    // file is enough to keep the suite deterministic.
+    fileParallelism: false,
   },
 });

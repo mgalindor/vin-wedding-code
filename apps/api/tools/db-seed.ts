@@ -2,17 +2,25 @@ import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 
-/**
- * Idempotent seed: creates the default Administrator if absent.
- * Prints the password once, never logs it again.
- */
 async function main() {
   const prisma = new PrismaClient();
   const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@wendy';
   const tenantId = 'default';
+  const tenantSuffix = 'wendy';
+  const tenantDisplayName = 'Vineyards';
   const costFactor = 12;
 
   try {
+    await prisma.tenants.upsert({
+      where: { id: tenantId },
+      update: {},
+      create: {
+        id: tenantId,
+        email_suffix: tenantSuffix,
+        display_name: tenantDisplayName,
+      },
+    });
+
     const existingAdmin = await prisma.users.findUnique({
       where: { email },
     });
@@ -29,7 +37,8 @@ async function main() {
       );
     }
 
-    const randomPassword = randomBytes(24).toString('base64');
+    const randomPassword = process.env.SEED_ADMIN_PASSWORD
+      ?? randomBytes(24).toString('base64');
     const passwordHash = await hash(randomPassword, costFactor);
 
     await prisma.users.create({

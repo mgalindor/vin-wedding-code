@@ -3,10 +3,10 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { router } from '@/router';
 import { AuthProvider } from '@/shared/auth';
 
 import '@/i18n/config';
-import { router } from '@/router';
 
 import './index.css';
 

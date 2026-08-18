@@ -16,10 +16,9 @@
  *   - Use case branch logic
  */
 import { hash } from 'bcrypt';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { PrismaService } from '../../src/shared/prisma/prisma.service';
 import { buildTestApp, resetDatabase } from './helpers/test-app.factory';
 import type { IntegrationTestContext } from './helpers/test-app.factory';
 
@@ -83,10 +82,16 @@ describe('TC-101: POST /oauth/token — AuthController adapter', () => {
       })
       .expect(400);
 
-    expect(res.body.message).toMatch(/Only grant_type=password/);
+    // ValidationPipe may return the message as a string or as an array
+    // of constraint strings depending on which decorators fire.
+    expect(JSON.stringify(res.body.message)).toMatch(/Only grant_type=password/);
   });
 
-  it('returns 400 when username is not an email', async () => {
+  it('returns 401 with generic message on an unknown but well-formed username', async () => {
+    // The platform's username is `<slug>@<tenant-suffix>`; it is NOT
+    // validated as a real email. A non-email-shaped value still flows
+    // through to the auth use case, which reports the same generic
+    // "Invalid username or password" as any other miss.
     const res = await request(ctx.app.getHttpServer())
       .post('/oauth/token')
       .send({
@@ -94,9 +99,22 @@ describe('TC-101: POST /oauth/token — AuthController adapter', () => {
         username: 'not-an-email',
         password: 'x',
       })
+      .expect(401);
+
+    expect(res.body.message).toBe('Invalid username or password');
+  });
+
+  it('returns 400 when username is too short', async () => {
+    const res = await request(ctx.app.getHttpServer())
+      .post('/oauth/token')
+      .send({
+        grant_type: 'password',
+        username: 'a', // below min length 3
+        password: 'x',
+      })
       .expect(400);
 
-    expect(res.body.message).toMatch(/Username must be a valid email/);
+    expect(JSON.stringify(res.body.message)).toMatch(/Username is too short/);
   });
 
   it('returns 401 with generic message on unknown user', async () => {
@@ -136,7 +154,7 @@ describe('TC-101: POST /oauth/token — AuthController adapter', () => {
       })
       .expect(400);
 
-    expect(res.body.message).toMatch(/should not exist|is_unknown/);
+    expect(JSON.stringify(res.body.message)).toMatch(/should not exist|is_unknown/);
   });
 
   it('returns 401 when the account is disabled', async () => {

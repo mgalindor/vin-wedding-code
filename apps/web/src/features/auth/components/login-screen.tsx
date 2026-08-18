@@ -1,8 +1,9 @@
+import { useNavigate } from '@tanstack/react-router';
+import type { AuthenticateUserDto } from '@wendy/contracts';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { AuthenticateUserDto } from '@wendy/contracts';
+
 import { useAuth, useLogin } from '@/shared/auth';
 
 /**
@@ -144,7 +145,12 @@ export function LoginScreen(): React.ReactElement {
               {...register('username', {
                 required: t('login.errors.required'),
                 pattern: {
-                  value: /^[a-z]+@wendy$/,
+                  // Accept the same slug shape the onboarding form
+                  // accepts (US-001 Rule 2): lowercase letters + digits,
+                  // followed by the org suffix. The previous regex
+                  // excluded digits and rejected accounts whose slug
+                  // contained numbers (e.g. `grace2026@wendy`).
+                  value: /^[a-z0-9]+@wendy$/,
                   message: t('login.errors.format'),
                 },
               })}

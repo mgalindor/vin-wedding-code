@@ -1,0 +1,44 @@
+{
+  "landing": {
+    "emptyTitle": "No Wedding Planners yet",
+    "emptyBody": "Bring a Wedding Planner onto the team. They will be able to start working on weddings as soon as you onboard them.",
+    "primaryAction": "Onboard Wedding Planner"
+  },
+  "form": {
+    "pageTitle": "Onboard a new Wedding Planner",
+    "subtitle": "Create the account, hand off the credentials out-of-band, and the new Wedding Planner is ready to work.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "username": "Username",
+    "usernameHint": "Local part only — the platform appends the suffix automatically.",
+    "phone": "Phone",
+    "phoneOptional": "(optional)",
+    "password": "Initial Password",
+    "passwordHint": "Between 10 and 25 characters. Spaces and symbols are allowed.",
+    "generatePassword": "Generate password",
+    "submit": "Save Planner",
+    "cancel": "Cancel",
+    "errors": {
+      "required": "This field is required",
+      "usernameFormat": "Use lowercase letters and digits only (no @, no spaces)",
+      "emailFormat": "Enter a valid email address",
+      "passwordLength": "Password must be 10-25 characters",
+      "usernameConflict": "Username already in use",
+      "emailConflict": "Email already in use",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "confirmation": {
+    "pageTitle": "Save the credentials",
+    "subtitle": "The cleartext password is shown exactly once. Copy it now — you will not be able to see it again.",
+    "usernameLabel": "Username",
+    "passwordLabel": "Initial Password",
+    "copy": "Copy",
+    "copied": "Copied",
+    "warning": "The password cannot be consulted later through the platform. It can only be replaced through a future restore flow — save the value somewhere safe before acknowledging.",
+    "acknowledge": "I have saved the credentials",
+    "primaryAction": "Done",
+    "back": "Back to Wedding Planners"
+  }
+}

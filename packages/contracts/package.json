@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },

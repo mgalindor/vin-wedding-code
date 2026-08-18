@@ -1,5 +1,6 @@
-import React, { createContext, ReactNode, useReducer } from 'react';
-import { UserProfileDto } from '@wendy/contracts';
+import type { UserProfileDto } from '@wendy/contracts';
+import { createContext, useReducer } from 'react';
+import type { ReactNode } from 'react';
 
 /**
  * Authenticated user session state stored in memory.

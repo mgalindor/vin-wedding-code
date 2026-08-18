@@ -9,8 +9,11 @@
  */
 
 export const ADMIN_EMAIL = 'admin@wendy';
+// Default password the seed writes when SEED_ADMIN_PASSWORD is not
+// set. CI/local must keep this value in sync with `playwright.config.ts`
+// or set E2E_ADMIN_PASSWORD + SEED_ADMIN_PASSWORD together.
 export const ADMIN_PASSWORD =
-  process.env.E2E_ADMIN_PASSWORD ?? 'gT0xeq6nbhEUVelWnljKx8nWV4ILMNAL';
+  process.env.E2E_ADMIN_PASSWORD ?? 'wendy-dev-admin-password';
 
 export const API_URL = process.env.E2E_API_URL ?? 'http://localhost:3000';
 

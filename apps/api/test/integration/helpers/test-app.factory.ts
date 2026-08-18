@@ -14,9 +14,12 @@
  *     on the other). Use cases and JWT internals stay in functional/.
  */
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { AppModule } from '../../../src/app.module';
+import { JwtAuthGuard } from '../../../src/shared/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../src/shared/guards/roles.guard';
 import { PrismaService } from '../../../src/shared/prisma/prisma.service';
 
 export interface IntegrationTestContext {
@@ -42,6 +45,22 @@ export async function buildTestApp(): Promise<IntegrationTestContext> {
       transform: true,
     }),
   );
+
+  // Mirror the global guard wiring that main.ts performs at boot
+  // (see ADR-15 and the comment in main.ts about APP_GUARD). Without
+  // these, protected endpoints hit the controller with req.user
+  // undefined and the @CurrentUser() decorator throws.
+  //
+  // `Test.createTestingModule(...)` does not auto-register NestJS's
+  // internal Reflector provider the way `NestFactory.create()` does.
+  // We instantiate it directly because Reflector is stateless — its
+  // sole job is to read metadata set by our decorators.
+  const reflector = new Reflector();
+  app.useGlobalGuards(
+    new JwtAuthGuard(reflector),
+    new RolesGuard(reflector),
+  );
+
   await app.init();
 
   return {

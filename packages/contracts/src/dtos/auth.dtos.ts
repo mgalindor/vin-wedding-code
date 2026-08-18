@@ -1,10 +1,12 @@
 import {
   IsEmail,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsString,
   Matches,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -18,8 +20,11 @@ export enum UserRole {
 
 // Password grant only; refresh tokens are out of scope for MVP.
 // Username is normalised server-side (trim + lowercase) before any
-// DB lookup, and validated as a real email so the FE can't bypass
-// the per-tenant format check.
+// DB lookup. The platform's username is a simple string of the form
+// `<slug>@<tenant-suffix>`; it is NOT a real internet email (the
+// suffix is the org identifier, not an FQDN), so we deliberately do
+// not apply email-format validation here — only min/max length and
+// presence of an `@` separator.
 export class AuthenticateUserDto {
   @IsEnum(['password'], {
     message: 'Only grant_type=password is supported',
@@ -31,10 +36,7 @@ export class AuthenticateUserDto {
   )
   @IsString({ message: 'Username must be a string' })
   @IsNotEmpty({ message: 'Username is required' })
-  @IsEmail(
-    {},
-    { message: 'Username must be a valid email address' },
-  )
+  @MinLength(3, { message: 'Username is too short' })
   @MaxLength(254, { message: 'Username is too long' })
   username!: string;
 

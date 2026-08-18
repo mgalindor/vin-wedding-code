@@ -1,7 +1,19 @@
 import { useAuth } from '@/shared/auth';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+const API_PREFIX = '/api/v1';
+
 /**
  * Fetch wrapper that injects the Bearer token and clears auth on 401.
+ *
+ * Base URL resolution order:
+ *   1. `VITE_API_BASE_URL` env var (production / staging).
+ *   2. Same-origin (empty base) — relies on Vite's dev proxy.
+ *
+ * Every endpoint is prefixed with `/api/v1` per the API versioning rule
+ * (the only exempt endpoint, `/oauth/*`, lives in `use-login.ts` /
+ * `use-user-info.ts` which use the raw `fetch` API and are pinned to
+ * RFC 6749 URL paths).
  */
 export function useApiClient() {
   const { state, dispatch } = useAuth();
@@ -17,13 +29,11 @@ export function useApiClient() {
         headers.Authorization = `Bearer ${state.accessToken}`;
       }
 
-      const response = await fetch(
-        `/api/v1${url}`,
-        {
-          ...options,
-          headers,
-        },
-      );
+      const fullUrl = `${API_BASE_URL}${API_PREFIX}${url}`;
+      const response = await fetch(fullUrl, {
+        ...options,
+        headers,
+      });
 
       // 401 means the session is gone — drop auth state and bounce to login.
       if (response.status === 401) {

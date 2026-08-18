@@ -1,21 +1,25 @@
 /**
- * TC-001 (backend): AuthenticateUserUseCase returns user on valid credentials.
+ * TC-001 (backend): IdentityService.authenticate returns user on valid credentials.
  *
  * - bcrypt comparison succeeds
  * - Returns full user record
+ * - Returns null on miss / wrong password / disabled
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { hash } from 'bcrypt';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { AuthenticateUserUseCase } from '../../src/modules/identity/application/authenticate-user.use-case';
+import { IdentityService } from '../../src/modules/identity/application/identity.service';
 
-describe('TC-001: AuthenticateUserUseCase — valid credentials', () => {
+describe('TC-001: IdentityService.authenticate — valid credentials', () => {
   let repo: { findUserForAuth: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     repo = { findUserForAuth: vi.fn() };
   });
+
+  const makeService = () =>
+    new IdentityService(repo as any, { findSuffixByTenantId: vi.fn() } as any);
 
   it('returns the user when password matches', async () => {
     const passwordHash = await hash('CorrectHorse1!', 4);
@@ -30,8 +34,7 @@ describe('TC-001: AuthenticateUserUseCase — valid credentials', () => {
     };
     repo.findUserForAuth.mockResolvedValue(storedUser);
 
-    const useCase = new AuthenticateUserUseCase(repo as any);
-    const result = await useCase.signIn('admin@wendy', 'CorrectHorse1!');
+    const result = await makeService().authenticate('admin@wendy', 'CorrectHorse1!');
 
     expect(result).toEqual(storedUser);
   });
@@ -45,8 +48,7 @@ describe('TC-001: AuthenticateUserUseCase — valid credentials', () => {
       is_disabled: false,
     });
 
-    const useCase = new AuthenticateUserUseCase(repo as any);
-    const result = await useCase.signIn('admin@wendy', 'wrong-password');
+    const result = await makeService().authenticate('admin@wendy', 'wrong-password');
 
     expect(result).toBeNull();
   });
@@ -54,8 +56,7 @@ describe('TC-001: AuthenticateUserUseCase — valid credentials', () => {
   it('returns null when user does not exist', async () => {
     repo.findUserForAuth.mockResolvedValue(null);
 
-    const useCase = new AuthenticateUserUseCase(repo as any);
-    const result = await useCase.signIn('nobody@wendy', 'whatever');
+    const result = await makeService().authenticate('nobody@wendy', 'whatever');
 
     expect(result).toBeNull();
   });
