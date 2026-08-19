@@ -27,6 +27,12 @@ const DashboardLayout = lazy(() =>
   })),
 );
 
+const WeddingPlannersLandingCard = lazy(() =>
+  import('@/features/admin-onboarding/components/wedding-planners-landing-card').then((m) => ({
+    default: m.WeddingPlannersLandingCard,
+  })),
+);
+
 const OnboardWeddingPlannerScreen = lazy(() =>
   import('@/features/admin-onboarding/components/onboard-wedding-planner-screen').then((m) => ({
     default: m.OnboardWeddingPlannerScreen,
@@ -115,6 +121,13 @@ const dashboardIndexRoute = createRoute({
   component: DashboardPlaceholderRoute,
 });
 
+const dashboardWeddingPlannersRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/wedding-planners',
+  component: WeddingPlannersLandingCard,
+  beforeLoad: requireAuth,
+});
+
 const onboardWeddingPlannerRoute = createRoute({
   getParentRoute: () => dashboardLayoutRoute,
   path: '/dashboard/wedding-planners/onboard',
@@ -171,6 +184,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardLayoutRoute.addChildren([
     dashboardIndexRoute,
+    dashboardWeddingPlannersRoute,
     onboardWeddingPlannerRoute,
     credentialsConfirmationRoute,
   ]),

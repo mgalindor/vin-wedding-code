@@ -6,20 +6,22 @@ import { defineConfig } from 'vitest/config';
  *
  * Adapter tests live in apps/api/test/integration/ and bootstrap the
  * full NestJS application via Test.createTestingModule(AppModule). They
- * drive HTTP via supertest, hit a real Postgres (docker-compose on 5433),
- * and exercise only the primary inbound / outbound adapters.
+ * drive HTTP via supertest and exercise only the primary inbound /
+ * outbound adapters.
  *
- * A setupFile loads the monorepo-root .env files into process.env before
- * Vitest loads any test module. This ensures NestJS ConfigModule and the
- * typed config useFactory functions see the env vars at module-compile time.
+ * The DB is provisioned by the `globalSetup` script below — it spins
+ * up a fresh Postgres container via @testcontainers/postgresql, applies
+ * the Prisma migrations, and sets DATABASE_URL before any worker
+ * spawns. The container is destroyed on teardown. The developer's
+ * local Postgres (and any data they have on it) is never touched.
  *
- * The SWC plugin is required so that emitDecoratorMetadata is honoured at
- * test time - esbuild (Vitest's default) does not support it, which causes
- * NestJS constructor-injection to receive undefined for typed parameters.
+ * The SWC plugin is required so that emitDecoratorMetadata is honoured
+ * at test time — esbuild (Vitest's default) does not support it,
+ * which causes NestJS constructor-injection to receive undefined for
+ * typed parameters.
  *
  * Prerequisites:
- *   pnpm docker:up                              # Postgres 17 on :5433
- *   pnpm --filter @wendy/api prisma migrate deploy
+ *   - Docker running on the host (testcontainers needs the daemon).
  *
  * Run:
  *   pnpm --filter @wendy/api test:integration
@@ -29,12 +31,14 @@ export default defineConfig({
   test: {
     include: ['test/integration/**/*.spec.ts'],
     environment: 'node',
-    testTimeout: 30_000,
+    testTimeout: 60_000, // give the container boot + migrate room
     setupFiles: ['test/setup.e2e.ts'],
-    // Adapter tests share a single Postgres instance. Running them in
-    // parallel causes the resetDatabase() helper to truncate rows that
-    // a sibling test is mid-way through seeding. Single-threaded by
-    // file is enough to keep the suite deterministic.
+    globalSetup: ['test/global-setup.e2e.ts'],
+    // Adapter tests share a single Postgres container (started by
+    // globalSetup). Running them in parallel would cause
+    // resetDatabase() to truncate rows a sibling test is mid-way
+    // through seeding. Single-threaded by file is enough to keep the
+    // suite deterministic.
     fileParallelism: false,
   },
 });

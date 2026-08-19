@@ -40,5 +40,28 @@
     "acknowledge": "I have saved the credentials",
     "primaryAction": "Done",
     "back": "Back to Wedding Planners"
+  },
+  "directory": {
+    "sectionTitle": "Wedding Planners",
+    "subtitle": "Manage planner accounts, roles and access.",
+    "onboardCta": "Onboard Wedding Planner",
+    "onboardedAtLabel": "Onboarded {{date}}",
+    "columns": {
+      "planner": "Wedding Planner",
+      "onboardedAt": "Onboarded",
+      "status": "Status"
+    },
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "status": "Status",
+      "onboardedAt": "Onboarded"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "loading": "Loading Wedding Planners…",
+    "errorBanner": "We couldn't load your Wedding Planners — try again in a moment."
   }
 }

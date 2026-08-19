@@ -3,6 +3,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Get,
   HttpCode,
   Logger,
   NotFoundException,
@@ -11,6 +12,7 @@ import {
 import {
   OnboardWeddingPlannerDto,
   OnboardWeddingPlannerResponseDto,
+  type WeddingPlannerSummaryDto,
 } from '@wendy/contracts';
 
 import { Roles } from '../../../shared/decorators/auth.decorators';
@@ -30,6 +32,15 @@ export class WeddingPlannersController {
   private readonly logger = new Logger(WeddingPlannersController.name);
 
   constructor(private readonly identityService: IdentityService) {}
+
+  @Get()
+  @Roles('Administrator')
+  async list(@CurrentUser() caller: AuthenticatedUser) {
+    return this.identityService.listWeddingPlannersByTenant({
+      actorId: caller.id,
+      tenantId: caller.tenantId,
+    });
+  }
 
   @Post()
   @Roles('Administrator')

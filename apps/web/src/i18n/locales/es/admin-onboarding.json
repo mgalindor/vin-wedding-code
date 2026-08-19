@@ -40,5 +40,28 @@
     "acknowledge": "He guardado las credenciales",
     "primaryAction": "Listo",
     "back": "Volver a Wedding Planners"
+  },
+  "directory": {
+    "sectionTitle": "Wedding Planners",
+    "subtitle": "Gestiona las cuentas, roles y accesos de los planners.",
+    "onboardCta": "Dar de alta un Wedding Planner",
+    "onboardedAtLabel": "Dado de alta el {{date}}",
+    "columns": {
+      "planner": "Wedding Planner",
+      "onboardedAt": "Dado de alta",
+      "status": "Estado"
+    },
+    "fields": {
+      "fullName": "Nombre completo",
+      "email": "Email",
+      "status": "Estado",
+      "onboardedAt": "Dado de alta"
+    },
+    "status": {
+      "active": "Activo",
+      "disabled": "Deshabilitado"
+    },
+    "loading": "Cargando Wedding Planners…",
+    "errorBanner": "No pudimos cargar tus Wedding Planners — inténtalo de nuevo en un momento."
   }
 }

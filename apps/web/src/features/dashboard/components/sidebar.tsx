@@ -36,7 +36,7 @@ const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
 
 const ADMIN_ITEMS: ReadonlyArray<NavItem> = [
   {
-    to: '/dashboard/wedding-planners/onboard',
+    to: '/dashboard/wedding-planners',
     labelKey: 'sidebar.weddingPlanners',
     adminOnly: true,
     icon: (

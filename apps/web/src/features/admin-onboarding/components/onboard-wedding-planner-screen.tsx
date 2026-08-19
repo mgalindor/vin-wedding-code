@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useRoleGuard } from '@/shared/auth';
 
-import { useAdminOnboardingService } from '../admin-onboarding.service';
+import { useWeddingPlannersService } from '../wedding-planners.service';
 
 import { OnboardWeddingPlannerForm } from './onboard-wedding-planner-form';
 
@@ -22,7 +22,7 @@ interface ServerError {
 export function OnboardWeddingPlannerScreen(): React.ReactElement {
   const { t } = useTranslation('admin-onboarding');
   const navigate = useNavigate();
-  const service = useAdminOnboardingService();
+  const service = useWeddingPlannersService();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<ServerError | null>(null);
 

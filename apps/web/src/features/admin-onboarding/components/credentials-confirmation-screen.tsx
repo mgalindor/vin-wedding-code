@@ -129,7 +129,7 @@ export function CredentialsConfirmationScreen({
         <Button
           type="button"
           variant="ghost"
-          onClick={() => void navigate({ to: '/dashboard' })}
+          onClick={() => void navigate({ to: '/dashboard/wedding-planners' })}
         >
           ← {t('confirmation.back')}
         </Button>
@@ -138,8 +138,7 @@ export function CredentialsConfirmationScreen({
           variant="default"
           disabled={!ack}
           onClick={() => {
-            // Drop the navigation state by leaving the route entirely.
-            void navigate({ to: '/dashboard' });
+            void navigate({ to: '/dashboard/wedding-planners' });
           }}
         >
           {t('confirmation.primaryAction')}

@@ -3,17 +3,16 @@ import type { UserProfileDto } from '@wendy/contracts';
 
 import { useAuth } from './use-auth';
 
-// Server-authenticated role source. Replaces client-side JWT-decoded
-// role claims for any UI-gating decision (Rule 28).
 export function useUserInfo() {
   const { state, dispatch } = useAuth();
   const token = state.accessToken;
+  const userId = state.user?.id ?? null;
 
   const query = useQuery<UserProfileDto>({
-    enabled: Boolean(token),
+    enabled: Boolean(token && userId),
     staleTime: 60_000,
     gcTime: 5 * 60_000,
-    queryKey: ['oauth', 'userinfo'],
+    queryKey: userScopedUserInfoKey(userId),
     queryFn: async () => {
       const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
       const res = await fetch(`${baseUrl}/oauth/userinfo`, {
@@ -40,6 +39,12 @@ export function useUserInfo() {
 
   return query;
 }
+
+export const userScopedUserInfoKey = (userId: string | null) => [
+  'oauth',
+  'userinfo',
+  userId,
+] as const;
 
 export function useIsAdmin(): boolean {
   const { data } = useUserInfo();

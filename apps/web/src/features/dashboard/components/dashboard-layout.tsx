@@ -57,7 +57,7 @@ export function DashboardLayout(): React.ReactElement {
         />
 
         <main className="flex-1 px-10 py-8">
-          {isIndex ? <DashboardIndex isAdmin={isAdmin} /> : <Outlet />}
+          {isIndex ? <DashboardIndex /> : <Outlet />}
         </main>
       </div>
     </div>

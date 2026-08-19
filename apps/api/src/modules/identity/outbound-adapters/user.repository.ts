@@ -70,4 +70,24 @@ export class UserRepository {
     };
     return this.prisma.users.create({ data });
   }
+
+  async listWeddingPlannersByTenant(tenantId: TenantId) {
+    return this.prisma.users.findMany({
+      where: {
+        tenant_id: tenantId,
+        role: 'WeddingPlanner',
+      },
+      orderBy: [{ created_at: 'desc' }, { id: 'asc' }],
+      select: this.supervisionFields,
+    });
+  }
+
+  private readonly supervisionFields = {
+    id: true,
+    full_name: true,
+    email: true,
+    role: true,
+    is_disabled: true,
+    created_at: true,
+  } as const;
 }

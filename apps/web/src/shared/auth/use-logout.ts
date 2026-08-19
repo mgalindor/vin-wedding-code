@@ -1,32 +1,23 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import { useAuth } from './use-auth';
 
-/**
- * Hook to handle user logout.
- * Clears the in-memory auth state (Rule 18 of the functional spec).
- * The JWT on the backend remains valid until natural expiry, but the FE
- * cannot use it since the token is no longer in memory.
- *
- * Usage:
- * ```tsx
- * const { logout } = useLogout();
- * logout(); // redirects to /login
- * ```
- */
 export function useLogout() {
   const { dispatch } = useAuth();
+  const queryClient = useQueryClient();
 
   const logout = useCallback(() => {
     if (typeof window !== 'undefined') {
       try {
         window.localStorage.removeItem('__wendy_jwt__');
       } catch {
-        // ignore — localStorage may be unavailable
+        // localStorage may be unavailable
       }
     }
+    queryClient.clear();
     dispatch({ type: 'LOGOUT' });
-  }, [dispatch]);
+  }, [dispatch, queryClient]);
 
   return { logout };
 }

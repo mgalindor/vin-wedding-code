@@ -3,3 +3,4 @@
 export * from './ids.js';
 export * from './dtos/auth.dtos.js';
 export * from './dtos/wedding-planners.dtos.js';
+export * from './dtos/wedding-planner-summary.dto.js';

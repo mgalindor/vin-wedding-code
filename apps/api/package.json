@@ -52,6 +52,7 @@
     "@nestjs/testing": "^11.2.1",
     "@swc/core": "^1.16.0",
     "@swc/helpers": "^0.5.23",
+    "@testcontainers/postgresql": "^12.1.0",
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",

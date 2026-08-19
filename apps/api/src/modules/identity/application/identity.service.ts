@@ -6,6 +6,7 @@ import type {
   OnboardWeddingPlannerResponseDto,
   UserProfileDto,
   UserRole,
+  WeddingPlannerSummaryDto,
 } from '@wendy/contracts';
 import { compare, hash } from 'bcrypt';
 
@@ -25,15 +26,15 @@ const BCRYPT_COST = 12;
 const EMAIL_LIKE_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SLUG_PATTERN = /^[a-z0-9]+$/;
 
-// Runtime-generated bcrypt hash to keep `authenticate` constant-time
-// against user-enumeration timing attacks. Generated from random bytes
-// (never a literal) so it cannot leak via source control or scanners.
-let dummyHashPromise: Promise<string> | null = null;
-function getDummyHash(): Promise<string> {
-  if (!dummyHashPromise) {
-    dummyHashPromise = hash(randomBytes(24).toString('base64'), BCRYPT_COST);
+let constantTimeHashPromise: Promise<string> | null = null;
+function getConstantTimeHash(): Promise<string> {
+  if (!constantTimeHashPromise) {
+    constantTimeHashPromise = hash(
+      randomBytes(24).toString('base64'),
+      BCRYPT_COST,
+    );
   }
-  return dummyHashPromise;
+  return constantTimeHashPromise;
 }
 
 export interface OnboardWeddingPlannerInput {
@@ -59,8 +60,8 @@ export class IdentityService {
     const email = (rawEmail ?? '').trim().toLowerCase();
 
     const user = await this.userRepository.findUserForAuth(email);
-    const dummyHash = await getDummyHash();
-    const passwordToCompare = user?.password_hash ?? dummyHash;
+    const constantTimeHash = await getConstantTimeHash();
+    const passwordToCompare = user?.password_hash ?? constantTimeHash;
     const passwordOk = await compare(password, passwordToCompare);
 
     if (!user || !passwordOk || user.is_disabled) {
@@ -185,6 +186,21 @@ export class IdentityService {
       createdAt: new Date().toISOString(),
       onboardedByAdminId: principal.actorId,
     };
+  }
+
+  async listWeddingPlannersByTenant(principal: AdminPrincipal) {
+    const rows = await this.userRepository.listWeddingPlannersByTenant(
+      principal.tenantId,
+    );
+
+    return rows.map((row) => ({
+      id: row.id as WeddingPlannerSummaryDto['id'],
+      fullName: row.full_name,
+      email: row.email,
+      role: row.role as UserRole,
+      isDisabled: row.is_disabled,
+      createdAt: row.created_at.toISOString(),
+    }));
   }
 }
 
