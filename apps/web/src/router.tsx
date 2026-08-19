@@ -45,6 +45,18 @@ const CredentialsConfirmationScreen = lazy(() =>
   })),
 );
 
+const NewWeddingScreen = lazy(() =>
+  import('@/features/weddings/components/new-wedding-screen').then((m) => ({
+    default: m.NewWeddingScreen,
+  })),
+);
+
+const WeddingDetailPlaceholderScreen = lazy(() =>
+  import('@/features/weddings/components/wedding-detail-placeholder-screen').then((m) => ({
+    default: m.WeddingDetailPlaceholderScreen,
+  })),
+);
+
 const PublicInvitationPlaceholderScreen = lazy(() =>
   import('@/routes/(public)/invitation.$token').then((m) => ({
     default: m.PublicInvitationPlaceholderScreen,
@@ -142,6 +154,20 @@ const credentialsConfirmationRoute = createRoute({
   beforeLoad: requireAuth,
 });
 
+const newWeddingRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/weddings/new',
+  component: NewWeddingRoute,
+  beforeLoad: requireAuth,
+});
+
+const weddingDetailPlaceholderRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/weddings/$weddingId',
+  component: WeddingDetailPlaceholderRoute,
+  beforeLoad: requireAuth,
+});
+
 interface CredentialsState {
   credentials?: OnboardWeddingPlannerResponseDto;
 }
@@ -166,6 +192,27 @@ function CredentialsRoute(): React.ReactElement {
   );
 }
 
+/**
+ * Wrapper route for /dashboard/weddings/new. US-009 doesn't add a new
+ * role gate at the route level — the server-side `@Roles(WeddingPlanner)`
+ * on POST /api/v1/weddings is the source of truth, and a Wedding
+ * Planner session is the only one that can reach this screen today
+ * (the dashboard itself is gated by token presence + the userinfo call).
+ */
+function NewWeddingRoute(): React.ReactElement {
+  return <NewWeddingScreen />;
+}
+
+/**
+ * Wrapper route for /dashboard/weddings/$weddingId (US-009 placeholder).
+ * Same auth posture as the create route. US-010 ships the dedicated
+ * GET endpoint and the full read surface; until then, the placeholder
+ * reads the create response from navigation state.
+ */
+function WeddingDetailPlaceholderRoute(): React.ReactElement {
+  return <WeddingDetailPlaceholderScreen />;
+}
+
 // Index of /dashboard — placeholder content. The DashboardLayout already
 // renders the welcome content when the matched route is this index, so
 // this component is intentionally a no-op (<Outlet /> renders nothing).
@@ -187,6 +234,8 @@ const routeTree = rootRoute.addChildren([
     dashboardWeddingPlannersRoute,
     onboardWeddingPlannerRoute,
     credentialsConfirmationRoute,
+    newWeddingRoute,
+    weddingDetailPlaceholderRoute,
   ]),
   publicInvitationRoute,
 ]);

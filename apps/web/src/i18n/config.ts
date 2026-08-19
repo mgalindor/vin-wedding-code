@@ -6,10 +6,12 @@ import enAdminOnboarding from './locales/en/admin-onboarding.json';
 import enAuth from './locales/en/auth.json';
 import enCommon from './locales/en/common.json';
 import enDashboard from './locales/en/dashboard.json';
+import enWeddings from './locales/en/weddings.json';
 import esAdminOnboarding from './locales/es/admin-onboarding.json';
 import esAuth from './locales/es/auth.json';
 import esCommon from './locales/es/common.json';
 import esDashboard from './locales/es/dashboard.json';
+import esWeddings from './locales/es/weddings.json';
 
 // Detection order: cookie (wendy_locale) → navigator → fallback 'en'.
 // Locale choice persists in a cookie so it survives reloads and cross-device login.
@@ -23,17 +25,19 @@ void i18n
         auth: enAuth,
         dashboard: enDashboard,
         'admin-onboarding': enAdminOnboarding,
+        weddings: enWeddings,
       },
       es: {
         common: esCommon,
         auth: esAuth,
         dashboard: esDashboard,
         'admin-onboarding': esAdminOnboarding,
+        weddings: esWeddings,
       },
     },
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'auth', 'dashboard', 'admin-onboarding'],
+    ns: ['common', 'auth', 'dashboard', 'admin-onboarding', 'weddings'],
     supportedLngs: ['en', 'es'],
     detection: {
       order: ['cookie', 'navigator'],

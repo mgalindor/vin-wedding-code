@@ -1,0 +1,52 @@
+{
+  "create": {
+    "pageTitle": "New wedding",
+    "subtitle": "Create a new wedding record. You can configure the invitation and add guests after saving.",
+    "sections": {
+      "couple": "Couple information",
+      "venue": "Event date & main venue"
+    },
+    "fields": {
+      "partner1Name": "Partner 1",
+      "partner1Placeholder": "e.g. Sofía Ramírez",
+      "partner2Name": "Partner 2",
+      "partner2Placeholder": "e.g. Andrés López",
+      "eventDate": "Wedding date",
+      "venueName": "Venue name",
+      "venuePlaceholder": "e.g. Nuestra Boda Sofía y Andrés",
+      "venueCity": "City",
+      "venueCityPlaceholder": "e.g. CDMX"
+    },
+    "warnings": {
+      "pastDate": "This date is in the past — confirm to continue.",
+      "pastDateAcknowledge": "Confirm"
+    },
+    "actions": {
+      "save": "Save & continue →",
+      "cancel": "Cancel",
+      "submitting": "Saving…"
+    },
+    "errors": {
+      "required": "This field is required",
+      "tooLong": "This value is too long",
+      "invalidDate": "Please enter a valid date",
+      "submitFailed": "We couldn't save the wedding. Please try again in a moment."
+    }
+  },
+  "detailPlaceholder": {
+    "pageTitle": "Wedding",
+    "summary": "Wedding summary",
+    "fields": {
+      "partner1Name": "Partner 1",
+      "partner2Name": "Partner 2",
+      "eventDate": "Wedding date",
+      "venueName": "Venue name",
+      "venueCity": "City"
+    },
+    "actions": {
+      "configureInvitation": "Configure invitation",
+      "addGuests": "Add guests"
+    },
+    "comingSoon": "Coming in a future release"
+  }
+}

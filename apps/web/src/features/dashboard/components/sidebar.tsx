@@ -23,12 +23,27 @@ const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
         fill="none"
         stroke="currentColor"
         strokeWidth={1.5}
-        aria-hidden="true"
       >
         <rect x="1" y="1" width="6" height="6" rx="1" />
         <rect x="9" y="1" width="6" height="6" rx="1" />
         <rect x="1" y="9" width="6" height="6" rx="1" />
         <rect x="9" y="9" width="6" height="6" rx="1" />
+      </svg>
+    ),
+  },
+  {
+    to: '/dashboard/weddings/new',
+    labelKey: 'sidebar.newWedding',
+    icon: (
+      <svg
+        className="h-4 w-4 opacity-60"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      >
+        <circle cx="8" cy="8" r="7" />
+        <path d="M8 5v6M5 8h6" />
       </svg>
     ),
   },

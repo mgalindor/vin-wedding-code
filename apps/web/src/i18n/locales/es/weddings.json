@@ -1,0 +1,52 @@
+{
+  "create": {
+    "pageTitle": "Nueva boda",
+    "subtitle": "Crea un registro de boda. Podrás configurar la invitación y agregar invitados después de guardar.",
+    "sections": {
+      "couple": "Información de los novios",
+      "venue": "Fecha del evento y lugar principal"
+    },
+    "fields": {
+      "partner1Name": "Pareja 1",
+      "partner1Placeholder": "ej. Sofía Ramírez",
+      "partner2Name": "Pareja 2",
+      "partner2Placeholder": "ej. Andrés López",
+      "eventDate": "Fecha de la boda",
+      "venueName": "Nombre del lugar",
+      "venuePlaceholder": "ej. Nuestra Boda Sofía y Andrés",
+      "venueCity": "Ciudad",
+      "venueCityPlaceholder": "ej. CDMX"
+    },
+    "warnings": {
+      "pastDate": "Esta fecha ya pasó — confirma para continuar.",
+      "pastDateAcknowledge": "Confirmar"
+    },
+    "actions": {
+      "save": "Guardar y continuar →",
+      "cancel": "Cancelar",
+      "submitting": "Guardando…"
+    },
+    "errors": {
+      "required": "Este campo es obligatorio",
+      "tooLong": "Este valor es demasiado largo",
+      "invalidDate": "Por favor ingresa una fecha válida",
+      "submitFailed": "No pudimos guardar la boda. Por favor intenta de nuevo en un momento."
+    }
+  },
+  "detailPlaceholder": {
+    "pageTitle": "Boda",
+    "summary": "Resumen de la boda",
+    "fields": {
+      "partner1Name": "Pareja 1",
+      "partner2Name": "Pareja 2",
+      "eventDate": "Fecha de la boda",
+      "venueName": "Nombre del lugar",
+      "venueCity": "Ciudad"
+    },
+    "actions": {
+      "configureInvitation": "Configurar invitación",
+      "addGuests": "Agregar invitados"
+    },
+    "comingSoon": "Próximamente en una versión futura"
+  }
+}

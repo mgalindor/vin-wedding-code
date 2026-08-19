@@ -34,7 +34,7 @@ model users {
 
   tenant_id String
 
-  email String @unique(map: "idx_users_email")
+  email     String  @unique(map: "idx_users_email")
   full_name String
   phone     String?
 
@@ -47,9 +47,9 @@ model users {
   // ARC-011 will convert this to a proper FK in Sprint 2.
   onboarded_by_admin_id String?
 
-  is_disabled Boolean   @default(false)
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  is_disabled Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   @@index([tenant_id], name: "idx_users_tenant_id")
   @@map("users")
@@ -58,4 +58,43 @@ model users {
 enum UserRole {
   Administrator
   WeddingPlanner
+}
+
+// Wedding Management (US-009 / ARC-019).
+// Source of truth for the weddings table; US-009 ships the create flow
+// against this model. `wedding_data` (per-template payload) is owned by
+// ARC-020 / US-022 and is intentionally NOT created here — per the
+// project's lean principle (do not add tables until strictly necessary).
+model weddings {
+  id String @id
+
+  tenant_id     String
+  // FK to users.id (no DB-level constraint; the relationship is enforced
+  // at the application layer, mirroring the existing users.onboarded_by_admin_id
+  // pattern until ARC-011 lands).
+  owner_user_id String
+
+  partner_1_name String
+  partner_2_name String
+  event_date     DateTime @db.Date
+
+  venue_name String
+  venue_city String
+
+  status WeddingStatus @default(draft)
+
+  created_at         DateTime @default(now())
+  created_by_user_id String
+  updated_at         DateTime @updatedAt
+  updated_by_user_id String
+
+  @@index([tenant_id, owner_user_id, status], name: "idx_weddings_tenant_owner_status")
+  @@index([tenant_id, owner_user_id, event_date], name: "idx_weddings_tenant_owner_date")
+  @@map("weddings")
+}
+
+enum WeddingStatus {
+  draft
+  published
+  archived
 }
