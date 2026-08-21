@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { WEDDING_REPOSITORY_PORT } from './application/wedding-list.repository.port';
 import { WeddingsService } from './application/weddings.service';
 import { WeddingsController } from './inbound-adapters/weddings.controller';
 import { WeddingRepository } from './outbound-adapters/wedding.repository';
@@ -7,15 +8,21 @@ import { WeddingRepository } from './outbound-adapters/wedding.repository';
 /**
  * Wedding bounded context (ARC-019).
  *
- * US-009 ships the first surface: the create use case, the
- * `weddings` table repository, and the `POST /api/v1/weddings`
- * endpoint. Sibling contexts reach this module only through future
- * cross-context contracts added to a `public/` folder; for US-009
- * nothing in `identity` or any other context depends on this module
- * yet.
+ * The application depends on `WeddingListRepositoryPort`; the
+ * concrete `WeddingRepository` adapter satisfies that port via a
+ * `useExisting` binding. Swapping Prisma for, say, a Postgres-only
+ * test double touches only the adapter — the service stays blind to
+ * the substitution.
  */
 @Module({
   controllers: [WeddingsController],
-  providers: [WeddingsService, WeddingRepository],
+  providers: [
+    WeddingsService,
+    WeddingRepository,
+    {
+      provide: WEDDING_REPOSITORY_PORT,
+      useExisting: WeddingRepository,
+    },
+  ],
 })
 export class WeddingsModule {}

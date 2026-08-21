@@ -28,6 +28,8 @@
   },
   "section": {
     "myWeddings": "Mis bodas",
+    "allWeddings": "Todas las bodas",
+    "allWeddingsSubtitle": "Bodas de los WPs de esta organización",
     "weddingsCount_one": "{{count}} boda",
     "weddingsCount_other": "{{count}} bodas",
     "filters": {
@@ -45,6 +47,30 @@
       "filterTitle": "No se encontraron bodas",
       "filterBody": "Prueba con otro filtro o término de búsqueda."
     }
+  },
+  "list": {
+    "card": {
+      "statusActive": "Activa",
+      "statusDraft": "Borrador",
+      "statusArchived": "Archivada",
+      "coupleSeparator": " & "
+    },
+    "empty": {
+      "title": "Aún no tienes bodas",
+      "body": "Crea tu primera boda para comenzar.",
+      "action": "+ Nueva boda"
+    },
+    "noMatches": {
+      "title": "No se encontraron bodas",
+      "body": "Prueba con otro filtro o término de búsqueda."
+    },
+    "error": {
+      "title": "No se pudieron cargar tus bodas",
+      "body": "Algo salió mal — por favor intenta de nuevo.",
+      "action": "Reintentar"
+    },
+    "showMore": "Mostrar más",
+    "loading": "Cargando tus bodas…"
   },
   "landing": {
     "stats": {

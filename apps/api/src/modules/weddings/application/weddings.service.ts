@@ -1,51 +1,30 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { newId, WeddingStatus } from '@wendy/contracts';
 import type { CreateWeddingDto, WeddingDto } from '@wendy/contracts';
 import type { WeddingId } from '@wendy/contracts';
 
-import type {
-  TenantId,
-  UserId,
-} from '../../../shared/jwt/jwt.service';
+import type { AuthenticatedUser } from '../../../shared/decorators/current-user.decorator';
 import { WeddingPlannerPrincipal } from '../domain/wedding-planner-principal';
-import { WeddingRepository } from '../outbound-adapters/wedding.repository';
 
-/**
- * Application-layer use cases for the Wedding bounded context.
- *
- * US-009 ships only the `createWedding` use case. Subsequent stories
- * (US-010, US-011, US-012, US-013, US-022) extend this class with the
- * read, update, archive, and publish operations — same shape, same
- * module, no cross-context imports.
- *
- * The use case is the integration point for ARC-021 (S3 prefix
- * provisioning on create): when ARC-021 lands, its ensure-prefix hook
- * attaches here without changing the controller or the DTO contract.
- */
+import {
+  WEDDING_REPOSITORY_PORT,
+  type ListArgs,
+  type NewWedding,
+  type StatusFilter,
+  type WeddingListFilter,
+  type WeddingListOrderBy,
+  type WeddingListRepositoryPort,
+} from './wedding-list.repository.port';
+
 @Injectable()
 export class WeddingsService {
   private readonly logger = new Logger(WeddingsService.name);
 
-  constructor(private readonly weddingRepository: WeddingRepository) {}
+  constructor(
+    @Inject(WEDDING_REPOSITORY_PORT)
+    private readonly repository: WeddingListRepositoryPort,
+  ) {}
 
-  /**
-   * Creates a wedding record under the calling Wedding Planner's
-   * tenant and ownership.
-   *
-   * Behaviour (per functional-spec v1.2.0 + tech-spec v1.2.0):
-   *   - `id`, `tenantId`, `ownerUserId`, `createdAt`, and
-   *     `createdByUserId` come from the security context — never from
-   *     the request body (Rule 2 / Rule 3).
-   *   - `status` is always `draft` on create. The FE never picks the
-   *     status; lifecycle transitions arrive with US-022 / US-013.
-   *   - Past dates are accepted without ceremony. The past-date
-   *     warning is a FE-only concern; the BE stores whatever the
-   *     request carries (already validated by `class-validator` on the
-   *     DTO).
-   *   - Whitespace is trimmed from the four text fields to defend
-   *     against the `name='  '` edge case (Rule 11 + Rule 12 of the
-   *     functional spec).
-   */
   async createWedding(
     principal: WeddingPlannerPrincipal,
     dto: CreateWeddingDto,
@@ -56,9 +35,7 @@ export class WeddingsService {
     const venueCity = (dto.venueCity ?? '').trim();
     const eventDate = (dto.eventDate ?? '').trim();
 
-    // The DTO decorators already enforce the same rules, but trimming
-    // after the validators is defensive — a non-breaking surprise if
-    // someone wires a future DTO without decorators.
+    // Belt-and-suspenders: the DTO decorators already enforce these.
     if (!partner1Name || !partner2Name || !venueName || !venueCity || !eventDate) {
       throw new ValidationError(
         'All fields are required',
@@ -69,7 +46,7 @@ export class WeddingsService {
     const newWeddingId = newId<WeddingId>();
     const now = new Date();
 
-    const row = await this.weddingRepository.create({
+    const created = await this.repository.insert({
       id: newWeddingId,
       tenantId: principal.tenantId,
       ownerUserId: principal.actorId,
@@ -77,68 +54,119 @@ export class WeddingsService {
       updatedByUserId: principal.actorId,
       partner1Name,
       partner2Name,
-      // The DTO stores `eventDate` as a string ("YYYY-MM-DD"); Prisma's
-      // `Date` column accepts a JS Date — we anchor at UTC midnight so
-      // the date is timezone-neutral (calendar-day granularity per
-      // tech-spec §Endpoint contract notes).
       eventDate: parseIsoDate(eventDate),
       venueName,
       venueCity,
       status: WeddingStatus.Draft,
       createdAt: now,
       updatedAt: now,
-    });
+    } satisfies NewWedding);
 
     this.logger.log({
       event: 'wedding.created',
-      weddingId: row.id,
-      tenantId: row.tenant_id,
-      ownerUserId: row.owner_user_id,
+      weddingId: created.id,
+      tenantId: created.tenantId,
+      ownerUserId: created.ownerUserId,
       actorId: principal.actorId,
       timestamp: now.toISOString(),
     });
 
-    return toWeddingDto(row);
+    return created;
+  }
+
+  async listWeddings(
+    caller: AuthenticatedUser,
+    query: ListWeddingsQuery,
+  ): Promise<{ items: WeddingDto[]; total: number }> {
+    const filter = buildFilter(caller, query);
+    const orderBy = buildOrderBy(query.sort);
+    const args: ListArgs = {
+      filter,
+      orderBy,
+      skip: query.offset,
+      take: query.limit,
+    };
+
+    const [items, total] = await Promise.all([
+      this.repository.list(args),
+      this.repository.count(filter),
+    ]);
+
+    this.logger.log({
+      event: 'weddings.listed',
+      tenantId: caller.tenantId,
+      role: caller.role,
+      actorId: caller.id,
+      query: {
+        search: query.search ?? null,
+        status: query.status ?? 'all',
+        sort: query.sort ?? 'date',
+        limit: query.limit,
+        offset: query.offset,
+        returned: items.length,
+        total,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    return { items, total };
   }
 }
 
-/**
- * Maps the Prisma row into the response DTO. Same shape whether the
- * row came from a create or a future read.
- */
-function toWeddingDto(row: {
-  id: string;
-  tenant_id: string;
-  owner_user_id: string;
-  partner_1_name: string;
-  partner_2_name: string;
-  event_date: Date;
-  venue_name: string;
-  venue_city: string;
-  status: string;
-  created_at: Date;
-  created_by_user_id: string;
-}): WeddingDto {
+export interface ListWeddingsQuery {
+  search?: string;
+  status?: 'all' | 'active' | 'draft' | 'archived';
+  sort?: 'date' | 'added';
+  limit: number;
+  offset: number;
+}
+
+// Wedding Planner → owns the row. Administrator → every row in the
+// tenant (the WP-vs-WP fence is intentionally dropped — see ADR-05).
+function buildFilter(
+  caller: AuthenticatedUser,
+  query: ListWeddingsQuery,
+): WeddingListFilter {
+  const scope =
+    caller.role === 'WeddingPlanner'
+      ? { tenantId: caller.tenantId, ownerUserId: caller.id }
+      : { tenantId: caller.tenantId };
+  const searchTerm = query.search?.trim() || undefined;
   return {
-    id: row.id as WeddingId,
-    tenantId: row.tenant_id as TenantId,
-    ownerUserId: row.owner_user_id as UserId,
-    partner1Name: row.partner_1_name,
-    partner2Name: row.partner_2_name,
-    eventDate: toIsoDate(row.event_date),
-    venueName: row.venue_name,
-    venueCity: row.venue_city,
-    status: row.status as WeddingStatus,
-    createdAt: row.created_at.toISOString(),
-    createdByUserId: row.created_by_user_id as UserId,
+    scope,
+    status: toStatusFilter(query.status),
+    searchTerm,
   };
 }
 
-/**
- * `YYYY-MM-DD` → JS Date at UTC midnight. Defensive parse — DTO
- * validation has already checked the format, but a corrupt string
- * would otherwise crash the DB driver with a confusing error.
- */
+function toStatusFilter(s: ListWeddingsQuery['status']): StatusFilter {
+  switch (s) {
+    case 'draft':
+      return { kind: 'exact', value: 'draft' };
+    case 'archived':
+      return { kind: 'exact', value: 'archived' };
+    case 'active':
+      return { kind: 'active', publishedAfterOrAt: startOfTodayUtc() };
+    case 'all':
+    case undefined:
+    default:
+      return { kind: 'all' };
+  }
+}
+
+function buildOrderBy(sort: ListWeddingsQuery['sort']): WeddingListOrderBy {
+  return sort === 'added'
+    ? { kind: 'createdAtNewestFirst' }
+    : { kind: 'eventDateUpcomingFirst' };
+}
+
+function startOfTodayUtc(): Date {
+  const now = new Date();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+}
+
 function parseIsoDate(value: string): Date {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) {
@@ -147,22 +175,9 @@ function parseIsoDate(value: string): Date {
       'eventDate',
     );
   }
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  return new Date(Date.UTC(year, month - 1, day));
-}
-
-/**
- * JS Date (midnight UTC) → `YYYY-MM-DD`. Reverses `parseIsoDate`. The
- * stored `event_date` column is `DATE` (no time-of-day) so this is a
- * pure date projection.
- */
-function toIsoDate(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return new Date(
+    Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])),
+  );
 }
 
 export class ValidationError extends Error {

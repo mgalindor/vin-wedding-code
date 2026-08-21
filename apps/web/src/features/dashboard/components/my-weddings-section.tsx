@@ -21,6 +21,7 @@ interface MyWeddingsSectionProps {
   readonly sort: SortValue;
   readonly search: string;
   readonly filteredCount: number;
+  readonly headingVariant: 'planner' | 'admin';
   readonly onFilterChange: (next: FilterValue) => void;
   readonly onSortChange: (next: SortValue) => void;
   readonly onSearchChange: (next: string) => void;
@@ -32,6 +33,7 @@ export function MyWeddingsSection({
   sort,
   search,
   filteredCount,
+  headingVariant,
   onFilterChange,
   onSortChange,
   onSearchChange,
@@ -53,25 +55,47 @@ export function MyWeddingsSection({
     { value: 'archived', labelKey: 'section.filters.archived' },
   ];
 
+  const headingText =
+    headingVariant === 'admin'
+      ? t('section.allWeddings')
+      : hasWeddings
+        ? t('section.myWeddings')
+        : t('section.empty.title');
+  const subtitle =
+    headingVariant === 'admin' ? t('section.allWeddingsSubtitle') : null;
+
   return (
     <section>
       <div className="mb-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2
-            className="text-2xl font-semibold text-[var(--color-on-surface)]"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            {hasWeddings ? t('section.myWeddings') : t('section.empty.title')}
-            <span
-              className="ml-2 text-[13px] font-normal text-[var(--color-secondary)]"
-              style={{ fontFamily: 'var(--font-sans)' }}
+          <div>
+            <h2
+              className="text-2xl font-semibold text-[var(--color-on-surface)]"
+              style={{ fontFamily: 'var(--font-display)' }}
             >
-              {count}
-            </span>
-          </h2>
+              {headingText}
+              <span
+                className="ml-2 text-[13px] font-normal text-[var(--color-secondary)]"
+                style={{ fontFamily: 'var(--font-sans)' }}
+              >
+                {count}
+              </span>
+            </h2>
+            {subtitle && (
+              <p
+                className="mt-1 text-[13px]"
+                style={{
+                  color: 'var(--color-on-surface-variant)',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                {subtitle}
+              </p>
+            )}
+          </div>
         </div>
 
-        {hasWeddings && (
+        {(
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex flex-wrap gap-1.5">
               {filterOptions.map((opt) => (
@@ -120,32 +144,6 @@ export function MyWeddingsSection({
         )}
       </div>
 
-      {!hasWeddings && (
-        <div
-          className="rounded-lg border px-6 py-16 text-center"
-          style={{
-            borderColor: 'var(--color-outline-variant)',
-            background: 'var(--color-surface-container-lowest)',
-          }}
-        >
-          <div
-            className="mb-3 text-3xl text-[var(--color-outline-variant)]"
-            style={{ fontFamily: 'var(--font-display)' }}
-            aria-hidden="true"
-          >
-            ♡
-          </div>
-          <p
-            className="mb-1.5 text-lg font-semibold text-[var(--color-on-surface)]"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            {t('section.empty.title')}
-          </p>
-          <p className="text-[13px] text-[var(--color-secondary)]">
-            {t('section.empty.body')}
-          </p>
-        </div>
-      )}
       {/* locale i18n kept warm to avoid tree-shake */}
       <span className="hidden" aria-hidden="true">
         {i18n.language}

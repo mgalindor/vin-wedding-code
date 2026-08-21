@@ -1,11 +1,16 @@
 import {
   IsDateString,
   IsEnum,
+  IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 import type { TenantId, UserId, WeddingId } from '../ids.js';
 
@@ -140,4 +145,67 @@ export class WeddingDto {
     message: 'createdByUserId must be a 6-64 char NanoId',
   })
   createdByUserId!: UserId;
+}
+
+// `active` is a derived filter (status='published' AND event_date
+// >= today) — encoded in the BE service, not in the stored column.
+export type WeddingListStatus = 'all' | 'active' | 'draft' | 'archived';
+export const WeddingListStatus = {
+  All: 'all',
+  Active: 'active',
+  Draft: 'draft',
+  Archived: 'archived',
+} as const satisfies Record<string, WeddingListStatus>;
+
+export type WeddingListSort = 'date' | 'added';
+export const WeddingListSort = {
+  Date: 'date',
+  Added: 'added',
+} as const satisfies Record<string, WeddingListSort>;
+
+export class ListWeddingsQueryDto {
+  @IsOptional()
+  @IsString({ message: 'search must be a string' })
+  @MaxLength(120, { message: 'search is too long' })
+  search?: string;
+
+  @IsOptional()
+  @IsEnum(WeddingListStatus, {
+    message: 'status must be one of: all, active, draft, archived',
+  })
+  status?: WeddingListStatus;
+
+  @IsOptional()
+  @IsEnum(WeddingListSort, {
+    message: 'sort must be one of: date, added',
+  })
+  sort?: WeddingListSort;
+
+  @IsOptional()
+  // @Type tells class-transformer to coerce the query string to a
+  // number — without it `transform: true` leaves it as a string and
+  // @IsInt() rejects it.
+  @Type(() => Number)
+  @IsInt({ message: 'limit must be an integer' })
+  @Min(1, { message: 'limit must be at least 1' })
+  @Max(100, { message: 'limit must be at most 100' })
+  limit?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'offset must be an integer' })
+  @Min(0, { message: 'offset must be at least 0' })
+  offset?: number;
+}
+
+export class ListWeddingsResponseDto {
+  items!: WeddingDto[];
+
+  @IsInt()
+  total!: number;
+
+  // String so the wire stays compatible with future cross-language
+  // consumers; the FE reads `=== 'true'` to flip a boolean.
+  @IsString()
+  hasMore!: 'true' | 'false';
 }

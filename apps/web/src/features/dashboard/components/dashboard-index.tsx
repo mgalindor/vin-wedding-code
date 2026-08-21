@@ -1,41 +1,26 @@
+import { UserRole } from '@wendy/contracts';
 import { useTranslation } from 'react-i18next';
 
-import { MyWeddingsSection, type FilterValue, type SortValue } from './my-weddings-section';
-import { StatsRow, type WeddingStats } from './stats-row';
+import { WeddingsListSection } from '@/features/weddings/components/weddings-list-section';
+import { useUserInfo } from '@/shared/auth/use-user-info';
 
-const ZERO_STATS: WeddingStats = {
-  activeWeddings: 0,
-  activeWeddingsSubCount: 0,
-  totalGuests: 0,
-  totalGuestsSubCount: 0,
-  confirmedRsvps: 0,
-  confirmedRsvpsRate: 0,
-  daysToNext: null,
-  daysToNextCouple: null,
-  daysToNextDate: null,
-};
-
+/**
+ * Dashboard index — drives the role-aware list surface (US-011).
+ * The per-WP stats row remains unwired until US-021 lands.
+ */
 export function DashboardIndex(): React.ReactElement {
   const { t } = useTranslation('dashboard');
-
-  const handleFilter = (_next: FilterValue) => undefined;
-  const handleSort = (_next: SortValue) => undefined;
-  const handleSearch = (_next: string) => undefined;
+  const { data: profile } = useUserInfo();
+  const callerRole: UserRole = profile?.role ?? UserRole.WeddingPlanner;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-10">
       <section aria-label={t('section.myWeddings')}>
-        <StatsRow stats={ZERO_STATS} />
-        <MyWeddingsSection
-          hasWeddings={false}
-          filter="all"
-          sort="date"
-          search=""
-          filteredCount={0}
-          onFilterChange={handleFilter}
-          onSortChange={handleSort}
-          onSearchChange={handleSearch}
-        />
+        <p className="text-[12px] text-[var(--color-secondary)]">
+          (Stats row — fully wired in US-021.)
+        </p>
+        <div className="mt-2" />
+        <WeddingsListSection callerRole={callerRole} />
       </section>
     </div>
   );

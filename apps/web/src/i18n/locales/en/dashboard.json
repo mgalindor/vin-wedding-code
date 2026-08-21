@@ -28,6 +28,8 @@
   },
   "section": {
     "myWeddings": "My Weddings",
+    "allWeddings": "All Weddings",
+    "allWeddingsSubtitle": "Weddings owned by WPs in this organisation",
     "weddingsCount_one": "{{count}} wedding",
     "weddingsCount_other": "{{count}} weddings",
     "filters": {
@@ -45,6 +47,30 @@
       "filterTitle": "No weddings found",
       "filterBody": "Try a different filter or search term."
     }
+  },
+  "list": {
+    "card": {
+      "statusActive": "Active",
+      "statusDraft": "Draft",
+      "statusArchived": "Archived",
+      "coupleSeparator": " & "
+    },
+    "empty": {
+      "title": "You have no weddings yet",
+      "body": "Create your first wedding to get started.",
+      "action": "+ New Wedding"
+    },
+    "noMatches": {
+      "title": "No weddings found",
+      "body": "Try a different filter or search term."
+    },
+    "error": {
+      "title": "Could not load your weddings",
+      "body": "Something went wrong — please try again.",
+      "action": "Try again"
+    },
+    "showMore": "Show more",
+    "loading": "Loading your weddings…"
   },
   "landing": {
     "stats": {
