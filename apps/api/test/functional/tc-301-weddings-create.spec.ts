@@ -20,6 +20,7 @@
  *   - Logs `wedding.created` with the row id, tenant, owner, and actor.
  *   - ValidationError surfaces when a required field is empty after trim.
  */
+import type { WeddingDto } from '@wendy/contracts';
 import {
   afterEach,
   beforeEach,
@@ -35,22 +36,26 @@ import {
 } from '../../src/modules/weddings/application/weddings.service';
 import type { WeddingRepository } from '../../src/modules/weddings/outbound-adapters/wedding.repository';
 
+// Returns a WeddingDto (camelCase) — mirrors the production adapter,
+// which calls `toWeddingDto(row)` after every persist. The earlier
+// snake_case fake was returning a row, not a DTO, so the assertions
+// on `res.tenantId` etc. silently read undefined.
 function fakeRepo(): WeddingRepository {
   return {
-    create: vi.fn(async (input) => ({
-      id: input.id,
-      tenant_id: input.tenantId,
-      owner_user_id: input.ownerUserId,
-      partner_1_name: input.partner1Name,
-      partner_2_name: input.partner2Name,
-      event_date: input.eventDate,
-      venue_name: input.venueName,
-      venue_city: input.venueCity,
-      status: input.status,
-      created_at: input.createdAt,
-      created_by_user_id: input.createdByUserId,
-      updated_at: input.updatedAt,
-      updated_by_user_id: input.updatedByUserId,
+    insert: vi.fn(async (input): Promise<WeddingDto> => ({
+      id: input.id as WeddingDto['id'],
+      tenantId: input.tenantId as WeddingDto['tenantId'],
+      ownerUserId: input.ownerUserId as WeddingDto['ownerUserId'],
+      partner1Name: input.partner1Name,
+      partner2Name: input.partner2Name,
+      eventDate: input.eventDate.toISOString().slice(0, 10),
+      venueName: input.venueName,
+      venueCity: input.venueCity,
+      status: input.status as WeddingDto['status'],
+      createdAt: input.createdAt.toISOString(),
+      createdByUserId: input.createdByUserId as WeddingDto['createdByUserId'],
+      updatedAt: input.updatedAt.toISOString(),
+      updatedByUserId: input.updatedByUserId as WeddingDto['updatedByUserId'],
     })),
   } as unknown as WeddingRepository;
 }
@@ -92,7 +97,7 @@ describe('TC-301: WeddingsService.createWedding (US-009)', () => {
     expect(res.venueCity).toBe('CDMX');
     expect(res.eventDate).toBe('2026-08-21');
 
-    const createArgs = (repo.create as ReturnType<typeof vi.fn>).mock
+    const createArgs = (repo.insert as ReturnType<typeof vi.fn>).mock
       .calls[0]![0];
     expect(createArgs.tenantId).toBe('tenant-001');
     expect(createArgs.ownerUserId).toBe('wp-actor-001');
@@ -112,7 +117,7 @@ describe('TC-301: WeddingsService.createWedding (US-009)', () => {
 
     expect(res.eventDate).toBe('2027-12-31');
 
-    const createArgs = (repo.create as ReturnType<typeof vi.fn>).mock
+    const createArgs = (repo.insert as ReturnType<typeof vi.fn>).mock
       .calls[0]![0];
     expect(createArgs.eventDate.toISOString()).toBe('2027-12-31T00:00:00.000Z');
   });
@@ -126,7 +131,7 @@ describe('TC-301: WeddingsService.createWedding (US-009)', () => {
       venueCity: ' CDMX ',
     });
 
-    const createArgs = (repo.create as ReturnType<typeof vi.fn>).mock
+    const createArgs = (repo.insert as ReturnType<typeof vi.fn>).mock
       .calls[0]![0];
     expect(createArgs.partner1Name).toBe('Sofía   Ramírez');
     expect(createArgs.partner2Name).toBe('Andrés López');

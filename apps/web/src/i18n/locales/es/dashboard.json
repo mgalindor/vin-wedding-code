@@ -1,9 +1,9 @@
 {
   "loading": "Cargando...",
-  "greeting": "Bienvenido de vuelta, {{name}}",
   "sidebar": {
     "brand": "Wendy",
     "brandSub": "Wedding Planner",
+    "currentWedding": "Boda actual",
     "workspace": "Workspace",
     "administration": "Administración",
     "weddings": "Bodas",
@@ -11,10 +11,6 @@
     "weddingPlanners": "Wedding Planners",
     "auditLog": "Registro de auditoría",
     "logout": "Cerrar sesión"
-  },
-  "topbar": {
-    "date": "{{date}}",
-    "newWedding": "+ Nueva boda"
   },
   "stats": {
     "activeWeddings": "Bodas activas",
@@ -53,7 +49,11 @@
       "statusActive": "Activa",
       "statusDraft": "Borrador",
       "statusArchived": "Archivada",
-      "coupleSeparator": " & "
+      "coupleSeparator": " & ",
+      "openWedding": "Abrir boda",
+      "guests": "Invitados",
+      "invitation": "Invitación",
+      "actionComingSoon": "Próximamente"
     },
     "empty": {
       "title": "Aún no tienes bodas",

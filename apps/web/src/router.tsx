@@ -51,9 +51,39 @@ const NewWeddingScreen = lazy(() =>
   })),
 );
 
-const WeddingDetailPlaceholderScreen = lazy(() =>
-  import('@/features/weddings/components/wedding-detail-placeholder-screen').then((m) => ({
-    default: m.WeddingDetailPlaceholderScreen,
+const WeddingOverviewScreen = lazy(() =>
+  import('@/features/weddings/components/wedding-overview-screen').then((m) => ({
+    default: m.WeddingOverviewScreen,
+  })),
+);
+
+const WeddingDataScreen = lazy(() =>
+  import('@/features/weddings/components/wedding-data-screen').then((m) => ({
+    default: m.WeddingDataScreen,
+  })),
+);
+
+const WeddingGuestsScreen = lazy(() =>
+  import('@/features/weddings/components/wedding-disabled-tab-screen').then((m) => ({
+    default: m.WeddingDisabledTabScreen,
+  })),
+);
+
+const WeddingPhotosScreen = lazy(() =>
+  import('@/features/weddings/components/wedding-disabled-tab-screen').then((m) => ({
+    default: m.WeddingDisabledTabScreen,
+  })),
+);
+
+const WeddingInvitationScreen = lazy(() =>
+  import('@/features/weddings/components/wedding-disabled-tab-screen').then((m) => ({
+    default: m.WeddingDisabledTabScreen,
+  })),
+);
+
+const EditWeddingScreen = lazy(() =>
+  import('@/features/weddings/components/edit-wedding-screen').then((m) => ({
+    default: m.EditWeddingScreen,
   })),
 );
 
@@ -161,10 +191,49 @@ const newWeddingRoute = createRoute({
   beforeLoad: requireAuth,
 });
 
-const weddingDetailPlaceholderRoute = createRoute({
+// Wedding-detail tabs. Each tab is a sibling route — they share the
+// `WeddingDetailLayout` component (header + tab bar) but the edit
+// form lives at `/dashboard/weddings/{id}/edit` as a sibling so the
+// edit flow is independent of the tab tree.
+const weddingOverviewRoute = createRoute({
   getParentRoute: () => dashboardLayoutRoute,
   path: '/dashboard/weddings/$weddingId',
-  component: WeddingDetailPlaceholderRoute,
+  component: WeddingOverviewScreen,
+  beforeLoad: requireAuth,
+});
+
+const weddingDataRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/weddings/$weddingId/data',
+  component: WeddingDataScreen,
+  beforeLoad: requireAuth,
+});
+
+const weddingGuestsRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/weddings/$weddingId/guests',
+  component: WeddingGuestsRoute,
+  beforeLoad: requireAuth,
+});
+
+const weddingPhotosRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/weddings/$weddingId/photos',
+  component: WeddingPhotosRoute,
+  beforeLoad: requireAuth,
+});
+
+const weddingInvitationRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/weddings/$weddingId/invitation',
+  component: WeddingInvitationRoute,
+  beforeLoad: requireAuth,
+});
+
+const editWeddingRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: '/dashboard/weddings/$weddingId/edit',
+  component: EditWeddingRoute,
   beforeLoad: requireAuth,
 });
 
@@ -204,13 +273,52 @@ function NewWeddingRoute(): React.ReactElement {
 }
 
 /**
- * Wrapper route for /dashboard/weddings/$weddingId (US-009 placeholder).
- * Same auth posture as the create route. US-010 ships the dedicated
- * GET endpoint and the full read surface; until then, the placeholder
- * reads the create response from navigation state.
+ * Wrapper route for /dashboard/weddings/{weddingId}/edit (US-010).
+ * Same auth posture as the create route. The server enforces
+ * ownership via `@Roles('WeddingPlanner')` + the role-aware scope on
+ * the PATCH endpoint; the FE only checks that a token exists.
  */
-function WeddingDetailPlaceholderRoute(): React.ReactElement {
-  return <WeddingDetailPlaceholderScreen />;
+function EditWeddingRoute(): React.ReactElement {
+  return <EditWeddingScreen />;
+}
+
+/**
+ * Wrapper routes for the three disabled tabs (Guests, Photos,
+ * Invitation). Each one injects the i18n keys + tab identifier
+ * the screen needs so the route's `component` has a no-arg
+ * signature compatible with TanStack Router.
+ */
+function WeddingGuestsRoute(): React.ReactElement {
+  return (
+    <WeddingGuestsScreen
+      tab="guests"
+      titleKey="detail.guests.title"
+      comingInKey="detail.guests.comingIn"
+      descriptionKey="detail.guests.description"
+    />
+  );
+}
+
+function WeddingPhotosRoute(): React.ReactElement {
+  return (
+    <WeddingPhotosScreen
+      tab="photos"
+      titleKey="detail.photos.title"
+      comingInKey="detail.photos.comingIn"
+      descriptionKey="detail.photos.description"
+    />
+  );
+}
+
+function WeddingInvitationRoute(): React.ReactElement {
+  return (
+    <WeddingInvitationScreen
+      tab="invitation"
+      titleKey="detail.invitation.title"
+      comingInKey="detail.invitation.comingIn"
+      descriptionKey="detail.invitation.description"
+    />
+  );
 }
 
 // Index of /dashboard — placeholder content. The DashboardLayout already
@@ -235,7 +343,12 @@ const routeTree = rootRoute.addChildren([
     onboardWeddingPlannerRoute,
     credentialsConfirmationRoute,
     newWeddingRoute,
-    weddingDetailPlaceholderRoute,
+    weddingOverviewRoute,
+    weddingDataRoute,
+    weddingGuestsRoute,
+    weddingPhotosRoute,
+    weddingInvitationRoute,
+    editWeddingRoute,
   ]),
   publicInvitationRoute,
 ]);

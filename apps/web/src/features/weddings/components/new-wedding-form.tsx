@@ -10,6 +10,17 @@ interface NewWeddingFormProps {
   serverError?: { field?: string; message: string } | null;
   onSubmit: (dto: CreateWeddingDto) => void | Promise<void>;
   onCancel: () => void;
+  // US-010: when provided, the form starts pre-populated. Used by
+  // the edit screen to seed the five fields from the GET response.
+  // When undefined (create flow), the form starts blank.
+  initialValues?: Partial<CreateWeddingDto>;
+  // US-010: localized label for the submit button. Defaults to the
+  // create-flow "Save & continue →" label; the edit screen passes
+  // "Save changes".
+  submitLabel?: string;
+  // US-010: localized label shown while the request is in flight.
+  // Defaults to the create-flow "Saving…" label.
+  submittingLabel?: string;
 }
 
 const PARTNER_NAME_MAX = 120;
@@ -53,6 +64,9 @@ export function NewWeddingForm({
   serverError,
   onSubmit,
   onCancel,
+  initialValues,
+  submitLabel,
+  submittingLabel,
 }: NewWeddingFormProps): React.ReactElement {
   const { t } = useTranslation('weddings');
   const [pastDateAck, setPastDateAck] = useState(false);
@@ -65,11 +79,14 @@ export function NewWeddingForm({
   } = useForm<CreateWeddingDto>({
     mode: 'onChange',
     defaultValues: {
-      partner1Name: '',
-      partner2Name: '',
-      eventDate: '',
-      venueName: '',
-      venueCity: '',
+      partner1Name: initialValues?.partner1Name ?? '',
+      partner2Name: initialValues?.partner2Name ?? '',
+      eventDate: initialValues?.eventDate ?? '',
+      // Default to 6 PM when the WP doesn't override — matches the
+      // mockup countdown banner and keeps the wedding "feel".
+      startTime: initialValues?.startTime ?? '18:00',
+      venueName: initialValues?.venueName ?? '',
+      venueCity: initialValues?.venueCity ?? '',
     },
   });
 
@@ -187,47 +204,65 @@ export function NewWeddingForm({
         <legend className="px-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-secondary)]">
           {t('create.sections.venue')}
         </legend>
-        <div>
-          <label
-            htmlFor="eventDate"
-            className="mb-1 block text-sm font-semibold text-[var(--color-foreground)]"
-          >
-            {t('create.fields.eventDate')} *
-          </label>
-          <input
-            id="eventDate"
-            type="date"
-            disabled={isSubmitting}
-            className={inputClass}
-            {...register('eventDate', {
-              required: t('create.errors.required'),
-            })}
-          />
-          {fieldError('eventDate') && (
-            <p className="mt-1 text-xs text-[var(--color-destructive)]">
-              {fieldError('eventDate')}
-            </p>
-          )}
-          {showPastWarning && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="mt-2 flex items-center gap-3 rounded border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="eventDate"
+              className="mb-1 block text-sm font-semibold text-[var(--color-foreground)]"
             >
-              <span className="flex-1">{t('create.warnings.pastDate')}</span>
-              {!pastDateAck && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isSubmitting}
-                  onClick={() => setPastDateAck(true)}
-                  aria-label={t('create.warnings.pastDateAcknowledge')}
-                >
-                  {t('create.warnings.pastDateAcknowledge')}
-                </Button>
-              )}
-            </div>
-          )}
+              {t('create.fields.eventDate')} *
+            </label>
+            <input
+              id="eventDate"
+              type="date"
+              disabled={isSubmitting}
+              className={inputClass}
+              {...register('eventDate', {
+                required: t('create.errors.required'),
+              })}
+            />
+            {fieldError('eventDate') && (
+              <p className="mt-1 text-xs text-[var(--color-destructive)]">
+                {fieldError('eventDate')}
+              </p>
+            )}
+            {showPastWarning && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-2 flex items-center gap-3 rounded border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              >
+                <span className="flex-1">{t('create.warnings.pastDate')}</span>
+                {!pastDateAck && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSubmitting}
+                    onClick={() => setPastDateAck(true)}
+                    aria-label={t('create.warnings.pastDateAcknowledge')}
+                  >
+                    {t('create.warnings.pastDateAcknowledge')}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="startTime"
+              className="mb-1 block text-sm font-semibold text-[var(--color-foreground)]"
+            >
+              {t('create.fields.startTime')}
+            </label>
+            <input
+              id="startTime"
+              type="time"
+              disabled={isSubmitting}
+              className={inputClass}
+              {...register('startTime')}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -311,8 +346,8 @@ export function NewWeddingForm({
         </Button>
         <Button type="submit" variant="default" disabled={!canSubmit}>
           {isSubmitting
-            ? t('create.actions.submitting')
-            : t('create.actions.save')}
+            ? (submittingLabel ?? t('create.actions.submitting'))
+            : (submitLabel ?? t('create.actions.save'))}
         </Button>
       </div>
     </form>

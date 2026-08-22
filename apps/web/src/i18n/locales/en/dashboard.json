@@ -1,9 +1,9 @@
 {
   "loading": "Loading...",
-  "greeting": "Welcome back, {{name}}",
   "sidebar": {
     "brand": "Wendy",
     "brandSub": "Wedding Planner",
+    "currentWedding": "Current Wedding",
     "workspace": "Workspace",
     "administration": "Administration",
     "weddings": "Weddings",
@@ -11,10 +11,6 @@
     "weddingPlanners": "Wedding Planners",
     "auditLog": "Audit Log",
     "logout": "Log out"
-  },
-  "topbar": {
-    "date": "{{date}}",
-    "newWedding": "+ New Wedding"
   },
   "stats": {
     "activeWeddings": "Active Weddings",
@@ -53,7 +49,11 @@
       "statusActive": "Active",
       "statusDraft": "Draft",
       "statusArchived": "Archived",
-      "coupleSeparator": " & "
+      "coupleSeparator": " & ",
+      "openWedding": "Open Wedding",
+      "guests": "Guests",
+      "invitation": "Invitation",
+      "actionComingSoon": "Coming soon"
     },
     "empty": {
       "title": "You have no weddings yet",

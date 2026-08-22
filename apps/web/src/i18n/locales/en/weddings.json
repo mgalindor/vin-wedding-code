@@ -12,6 +12,7 @@
       "partner2Name": "Partner 2",
       "partner2Placeholder": "e.g. Andrés López",
       "eventDate": "Wedding date",
+      "startTime": "Start time",
       "venueName": "Venue name",
       "venuePlaceholder": "e.g. Nuestra Boda Sofía y Andrés",
       "venueCity": "City",
@@ -33,6 +34,13 @@
       "submitFailed": "We couldn't save the wedding. Please try again in a moment."
     }
   },
+  "edit": {
+    "pageTitle": "Edit wedding",
+    "subtitle": "Update the couple's names, the wedding date, or the venue details.",
+    "actions": {
+      "save": "Save changes"
+    }
+  },
   "detailPlaceholder": {
     "pageTitle": "Wedding",
     "summary": "Wedding summary",
@@ -44,9 +52,166 @@
       "venueCity": "City"
     },
     "actions": {
+      "edit": "Edit wedding",
       "configureInvitation": "Configure invitation",
       "addGuests": "Add guests"
     },
-    "comingSoon": "Coming in a future release"
+    "comingSoon": "Coming in a future release",
+    "loading": "Loading…",
+    "errors": {
+      "loadFailed": "We couldn't load this wedding. Please try again in a moment."
+    }
+  },
+  "detail": {
+    "breadcrumb": {
+      "dashboard": "My Weddings"
+    },
+    "tabs": {
+      "label": "Wedding sections",
+      "overview": "Overview",
+      "data": "Wedding Data",
+      "guests": "Guests",
+      "photos": "Photos",
+      "invitation": "Invitation",
+      "comingSoon": "Coming soon"
+    },
+    "stats": {
+      "guests": {
+        "label": "Guests",
+        "sub": "{{confirmed}} confirmed · {{declined}} declined · {{pending}} pending",
+        "seeded": "Guest metrics land in US-021"
+      },
+      "invitation": {
+        "label": "Invitation",
+        "value": "{{filled}}/{{total}}",
+        "sub": "modules filled",
+        "seeded": "Invitation progress lands in US-022"
+      },
+      "officialPhotos": {
+        "label": "Official Photos",
+        "value": "{{count}}/{{quota}}",
+        "sub": "Quality: High",
+        "seeded": "Photo quota lands in US-030"
+      },
+      "guestPhotos": {
+        "label": "Guest Photos",
+        "value": "{{count}}",
+        "sub": "{{pending}} pending moderation",
+        "seeded": "Guest albums land in US-031"
+      }
+    },
+    "overview": {
+      "summary": "Wedding summary",
+      "partner1": "Partner 1",
+      "partner2": "Partner 2",
+      "eventDate": "Wedding date",
+      "venueName": "Venue name",
+      "venueCity": "City",
+      "goToData": "Manage wedding data",
+      "countdown": {
+        "title": "Time until the wedding",
+        "days": "Days",
+        "hours": "Hours",
+        "minutes": "Minutes",
+        "happenedTitle": "Days since the wedding",
+        "today": "Today is the day"
+      },
+      "checklist": {
+        "title": "Setup checklist",
+        "basics": {
+          "label": "Wedding basics captured",
+          "detail": "Date, venue, and couple names are saved"
+        },
+        "published": {
+          "label": "Invitation published",
+          "detail": "Public invitation link is live",
+          "pending": "Invitation still in draft",
+          "pendingDetail": "Publish from the Invitation tab when ready"
+        },
+        "photos": {
+          "label": "Photo storage configured",
+          "detail": "Quality tier and storage quota set",
+          "pending": "Photo storage pending",
+          "pendingDetail": "Choose a quality tier in the Photos tab"
+        },
+        "remaining": "items remaining",
+        "remainingDetail": "Configuration tasks tracked from future stories (US-022/023)"
+      },
+      "activity": {
+        "title": "Latest activity",
+        "empty": "No activity yet — events will appear here as your team uses the wedding.",
+        "created": "Wedding created",
+        "updated": "Wedding details updated",
+        "published": "Invitation published",
+        "seeded": "Activity feed will go live in US-014"
+      },
+      "publicLinks": {
+        "title": "Public links",
+        "invitation": "Public invitation",
+        "invitationDetail": "Share with all invited guests",
+        "album": "Guest photo album",
+        "albumDetail": "Guests upload photos here after the event",
+        "upload": "Couple upload link",
+        "uploadDetail": "Private link for the couple to upload official photos",
+        "private": "Private",
+        "preview": "Preview",
+        "copy": "Copy",
+        "copied": "Copied!",
+        "comingIn": "Public links go live once US-022/023 publish the invitation"
+      }
+    },
+    "data": {
+      "basicInformation": "Basic information",
+      "editBasics": "Edit basics",
+      "partner1": "Partner 1",
+      "partner2": "Partner 2",
+      "eventDate": "Wedding date",
+      "venueName": "Venue name",
+      "venueCity": "City",
+      "chip": {
+        "complete": "✓ Complete",
+        "dirty": "Save Changes",
+        "saving": "Saving…",
+        "saved": "✓ Saved",
+        "saveError": "Save failed — try again"
+      },
+      "fields": {
+        "partner1Placeholder": "e.g. Sofía Ramírez",
+        "partner2Placeholder": "e.g. Andrés López",
+        "venuePlaceholder": "e.g. Nuestra Boda Sofía y Andrés",
+        "venueCityPlaceholder": "e.g. CDMX",
+        "ceremonyTimeLabel": "Start time"
+      },
+      "errors": {
+        "required": "This field is required",
+        "tooLong": "This value is too long",
+        "invalidDate": "Please enter a valid date",
+        "saveFailed": "We couldn't save the changes. Please try again in a moment."
+      },
+      "locations": "Locations",
+      "locationsSubtitle": "Each event can take place at a different venue, on the same or different days. Add as many locations as the wedding requires.",
+      "locationsComingIn": "Coming in US-022",
+      "eventProgram": "Event program",
+      "eventProgramSubtitle": "The macro flow of the wedding: civil → religious → reception → after party → next day. Per-venue programs will be configurable inside each Location card in a future update.",
+      "eventProgramComingIn": "Coming in US-023",
+      "contacts": "Contacts",
+      "contactsSubtitle": "Wedding planner contacts, vendors, and key people for the event.",
+      "contactsComingIn": "Coming in a future iteration"
+    },
+    "guests": {
+      "title": "Guests",
+      "comingIn": "Coming in US-015",
+      "description": "Add and manage the guest list, send invitation links, and track attendance once the stories land."
+    },
+    "photos": {
+      "title": "Photos",
+      "comingIn": "Coming in US-030",
+      "description": "Upload the official photos of the event, configure quality, and download the album once the stories land."
+    },
+    "invitation": {
+      "title": "Invitation",
+      "comingIn": "Coming in US-022",
+      "description": "Choose one of the six invitation templates, configure the per-module payload, and publish once the stories land."
+    }
   }
 }

@@ -9,6 +9,7 @@ import {
   Max,
   MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -77,15 +78,35 @@ export class CreateWeddingDto {
   @IsNotEmpty({ message: 'venueCity is required' })
   @MaxLength(120, { message: 'venueCity is too long' })
   venueCity!: string;
+
+  /**
+   * Ceremony start time as `HH:mm` (24-hour, local to the wedding
+   * venue). Optional on create — omit or pass null to leave the
+   * countdown banner's 18:00 fallback in place. Stored as a plain
+   * string on the wire to avoid timezone drift.
+   */
+  @IsOptional()
+  @IsString({ message: 'startTime must be a string' })
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, {
+    message: 'startTime must match HH:mm (24-hour)',
+  })
+  startTime?: string | null;
 }
 
 /**
- * Response shape returned by `POST /api/v1/weddings` (and reused as the
- * read response once `GET /api/v1/weddings/{id}` ships with US-010).
+ * Response shape returned by `POST /api/v1/weddings`, `GET /api/v1/weddings/{id}`,
+ * `PATCH /api/v1/weddings/{id}`, and every row inside the list response
+ * (`GET /api/v1/weddings`).
  *
- * The `tenantId`, `ownerUserId`, and `createdByUserId` are echoed from
- * the security context for traceability — the FE never sends them and
- * the BE never trusts an incoming value.
+ * The `tenantId`, `ownerUserId`, `createdByUserId`, and `updatedByUserId`
+ * are echoed from the security context / row for traceability — the FE
+ * never sends them and the BE never trusts an incoming value.
+ *
+ * `updatedAt` and `updatedByUserId` were added with US-010 (Update a
+ * wedding's basic details) so the detail screen can render the last-edited
+ * stamp without a second call. They are present on every response — on a
+ * freshly created row `updatedAt === createdAt` and `updatedByUserId ===
+ * createdByUserId` (US-009 already stamps them equal on insert).
  */
 export class WeddingDto {
   @IsString()
@@ -132,6 +153,16 @@ export class WeddingDto {
   @MaxLength(120)
   venueCity!: string;
 
+  /**
+   * Ceremony start time (HH:mm, venue-local). Echoes back whatever
+   * the create/update flow set; null when unset.
+   */
+  @IsOptional()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, {
+    message: 'startTime must match HH:mm (24-hour)',
+  })
+  startTime!: string | null;
+
   @IsEnum(WeddingStatus, {
     message: 'status must be draft, published, or archived',
   })
@@ -145,7 +176,33 @@ export class WeddingDto {
     message: 'createdByUserId must be a 6-64 char NanoId',
   })
   createdByUserId!: UserId;
+
+  @IsString()
+  updatedAt!: string;
+
+  @IsString()
+  @Matches(/^[A-Za-z0-9_-]{6,64}$/, {
+    message: 'updatedByUserId must be a 6-64 char NanoId',
+  })
+  updatedByUserId!: UserId;
 }
+
+/**
+ * Input contract for `PATCH /api/v1/weddings/{id}` (US-010).
+ *
+ * The five captured fields are all required (see functional-spec.md
+ * Rule 5 — v1.0.0). `tenantId`, `ownerUserId`, `status`, `createdAt`,
+ * `createdByUserId`, `updatedAt`, and `updatedByUserId` are deliberately
+ * NOT in this DTO: the platform reads them from the row / security
+ * context, never from the request body.
+ *
+ * The class extends `CreateWeddingDto` so the same `class-validator`
+ * decorators (and therefore the same field-level error messages) flow to
+ * both layers — single source of truth per ADR-14. No fields are added
+ * by the child class; the subclass exists so the FE and the OpenAPI
+ * generator see a distinct type that names the use case.
+ */
+export class UpdateWeddingDto extends CreateWeddingDto {}
 
 // `active` is a derived filter (status='published' AND event_date
 // >= today) — encoded in the BE service, not in the stored column.

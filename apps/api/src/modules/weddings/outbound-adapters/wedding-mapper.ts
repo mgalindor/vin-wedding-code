@@ -12,6 +12,9 @@ export interface WeddingRow {
   partner_1_name: string;
   partner_2_name: string;
   event_date: Date;
+  // Prisma maps `@db.Time` columns to JS `Date` with the date
+  // portion set to `1970-01-01` (the Postgres time-only convention).
+  start_time: Date | null;
   venue_name: string;
   venue_city: string;
   status: string;
@@ -29,6 +32,16 @@ function toIsoDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// Prisma returns TIME columns as a Date pinned to 1970-01-01; the
+// wire DTO uses `HH:mm`. Format defensively in case the column is
+// ever widened (e.g. to a timestamp).
+function toIsoTime(value: Date | null): string | null {
+  if (!value) return null;
+  const hh = String(value.getUTCHours()).padStart(2, '0');
+  const mm = String(value.getUTCMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 export function toWeddingDto(row: WeddingRow): WeddingDto {
   return {
     id: row.id as WeddingId,
@@ -37,10 +50,15 @@ export function toWeddingDto(row: WeddingRow): WeddingDto {
     partner1Name: row.partner_1_name,
     partner2Name: row.partner_2_name,
     eventDate: toIsoDate(row.event_date),
+    startTime: toIsoTime(row.start_time),
     venueName: row.venue_name,
     venueCity: row.venue_city,
     status: row.status as WeddingStatus,
     createdAt: row.created_at.toISOString(),
     createdByUserId: row.created_by_user_id as UserId,
+    // Updated on every successful PATCH (US-010). Stamped equal to
+    // createdAt/createdByUserId on insert (US-009).
+    updatedAt: row.updated_at.toISOString(),
+    updatedByUserId: row.updated_by_user_id as UserId,
   };
 }

@@ -38,12 +38,16 @@ const baseWedding: WeddingDto = {
   ownerUserId: 'wp-1' as never,
   partner1Name: 'Sofía Ramírez',
   partner2Name: 'Andrés López',
+  startTime: '18:00',
   eventDate: '2099-01-01',
   venueName: 'Hacienda San Miguel',
   venueCity: 'CDMX',
   status: 'draft' as never,
   createdAt: '2026-08-19T12:00:00.000Z',
   createdByUserId: 'wp-1' as never,
+  // US-010: added to WeddingDto with the read-by-id endpoint.
+  updatedAt: '2026-08-19T12:00:00.000Z',
+  updatedByUserId: 'wp-1' as never,
 };
 
 describe('TC-505: WeddingCard — US-011', () => {

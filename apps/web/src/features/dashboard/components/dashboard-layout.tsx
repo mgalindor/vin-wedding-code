@@ -6,7 +6,6 @@ import { useAuth, useIsAdmin } from '@/shared/auth';
 
 import { DashboardIndex } from './dashboard-index';
 import { Sidebar } from './sidebar';
-import { Topbar } from './topbar';
 
 export function DashboardLayout(): React.ReactElement {
   const { t } = useTranslation('dashboard');
@@ -35,14 +34,6 @@ export function DashboardLayout(): React.ReactElement {
     );
   }
 
-  const greetingName = state.user.fullName.split(' ')[0] ?? state.user.fullName;
-  const today = new Intl.DateTimeFormat('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date());
-
   return (
     <div
       className="flex min-h-screen"
@@ -50,16 +41,12 @@ export function DashboardLayout(): React.ReactElement {
     >
       <Sidebar isAdmin={isAdmin} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar
-          greetingName={greetingName}
-          date={today}
-        />
-
-        <main className="flex-1 px-10 py-8">
-          {isIndex ? <DashboardIndex /> : <Outlet />}
-        </main>
-      </div>
+      <main
+        className="flex min-w-0 flex-1 flex-col"
+        style={{ background: 'var(--color-surface)' }}
+      >
+        {isIndex ? <DashboardIndex /> : <Outlet />}
+      </main>
     </div>
   );
 }

@@ -53,6 +53,7 @@ export interface NewWedding {
   readonly partner1Name: string;
   readonly partner2Name: string;
   readonly eventDate: Date;
+  readonly startTime: string | null;
   readonly venueName: string;
   readonly venueCity: string;
   readonly status: 'draft' | 'published' | 'archived';
@@ -60,8 +61,44 @@ export interface NewWedding {
   readonly updatedAt: Date;
 }
 
+// US-010: read-by-id and update-by-id arguments.
+//
+// `scope` mirrors `WeddingListFilter.scope` so the same role-aware
+// boundary (WP→owner, Admin→whole tenant) flows into every read and
+// write without the application layer having to remember to apply it.
+export interface FindByIdArgs {
+  readonly scope: WeddingListScope;
+  readonly id: string;
+}
+
+// Neutral input shape for the update use case. The application stamps
+// `updatedAt` and `updatedByUserId` onto the right fields before
+// handing the argument to the port.
+export interface WeddingUpdateFields {
+  readonly partner1Name: string;
+  readonly partner2Name: string;
+  readonly eventDate: Date;
+  readonly startTime: string | null;
+  readonly venueName: string;
+  readonly venueCity: string;
+  readonly updatedByUserId: string;
+  readonly updatedAt: Date;
+}
+
+export interface UpdateByIdArgs {
+  readonly scope: WeddingListScope;
+  readonly id: string;
+  readonly fields: WeddingUpdateFields;
+}
+
 export interface WeddingListRepositoryPort {
   insert(wedding: NewWedding): Promise<WeddingDto>;
   list(args: ListArgs): Promise<WeddingDto[]>;
   count(filter: WeddingListFilter): Promise<number>;
+  // US-010: returns null when no row matches the scope (existence
+  // and authorization are collapsed into the same null — no enumeration).
+  findById(args: FindByIdArgs): Promise<WeddingDto | null>;
+  // US-010: returns null when no row matches the scope (or the row
+  // was deleted between the findById and this call — race-safe).
+  updateById(args: UpdateByIdArgs): Promise<WeddingDto | null>;
 }

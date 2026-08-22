@@ -7,9 +7,9 @@ describe('TC-204: IdentityService.listWeddingPlannersByTenant — US-008', () =>
     findSuffixByTenantId: vi.fn(),
   };
 
-  function makeService(listByTenantSpy: ReturnType<typeof vi.fn>) {
+  function makeService(listWeddingPlannersByTenantSpy: ReturnType<typeof vi.fn>) {
     const userRepository = {
-      listByTenant: listByTenantSpy,
+      listWeddingPlannersByTenant: listWeddingPlannersByTenantSpy,
     };
     return new IdentityService(
       userRepository as any,
@@ -18,7 +18,7 @@ describe('TC-204: IdentityService.listWeddingPlannersByTenant — US-008', () =>
   }
 
   it('returns the mapped list of Wedding Planners for the calling tenant', async () => {
-    const listByTenant = vi.fn().mockResolvedValue([
+    const listWeddingPlannersByTenant = vi.fn().mockResolvedValue([
       {
         id: 'wp-newer',
         tenant_id: 'default',
@@ -39,15 +39,15 @@ describe('TC-204: IdentityService.listWeddingPlannersByTenant — US-008', () =>
       },
     ]);
 
-    const service = makeService(listByTenant);
+    const service = makeService(listWeddingPlannersByTenant);
 
     const result = await service.listWeddingPlannersByTenant({
       actorId: 'admin-1',
       tenantId: 'default',
     });
 
-    expect(listByTenant).toHaveBeenCalledTimes(1);
-    expect(listByTenant).toHaveBeenCalledWith('default');
+    expect(listWeddingPlannersByTenant).toHaveBeenCalledTimes(1);
+    expect(listWeddingPlannersByTenant).toHaveBeenCalledWith('default');
 
     expect(result).toEqual([
       {
@@ -70,9 +70,9 @@ describe('TC-204: IdentityService.listWeddingPlannersByTenant — US-008', () =>
   });
 
   it('returns an empty array when the tenant has no Wedding Planners', async () => {
-    const listByTenant = vi.fn().mockResolvedValue([]);
+    const listWeddingPlannersByTenant = vi.fn().mockResolvedValue([]);
 
-    const service = makeService(listByTenant);
+    const service = makeService(listWeddingPlannersByTenant);
 
     const result = await service.listWeddingPlannersByTenant({
       actorId: 'admin-1',
@@ -83,20 +83,20 @@ describe('TC-204: IdentityService.listWeddingPlannersByTenant — US-008', () =>
   });
 
   it('scopes the query to the calling tenant only', async () => {
-    const listByTenant = vi.fn().mockResolvedValue([]);
+    const listWeddingPlannersByTenant = vi.fn().mockResolvedValue([]);
 
-    const service = makeService(listByTenant);
+    const service = makeService(listWeddingPlannersByTenant);
 
     await service.listWeddingPlannersByTenant({
       actorId: 'admin-1',
       tenantId: 'tenant-acme',
     });
 
-    expect(listByTenant).toHaveBeenCalledWith('tenant-acme');
+    expect(listWeddingPlannersByTenant).toHaveBeenCalledWith('tenant-acme');
   });
 
   it('never returns password material', async () => {
-    const listByTenant = vi.fn().mockResolvedValue([
+    const listWeddingPlannersByTenant = vi.fn().mockResolvedValue([
       {
         id: 'wp-1',
         tenant_id: 'default',
@@ -108,7 +108,7 @@ describe('TC-204: IdentityService.listWeddingPlannersByTenant — US-008', () =>
       },
     ]);
 
-    const service = makeService(listByTenant);
+    const service = makeService(listWeddingPlannersByTenant);
 
     const result = await service.listWeddingPlannersByTenant({
       actorId: 'admin-1',
@@ -122,10 +122,10 @@ describe('TC-204: IdentityService.listWeddingPlannersByTenant — US-008', () =>
   });
 
   it('does not mutate any row', async () => {
-    const listByTenant = vi.fn().mockResolvedValue([]);
+    const listWeddingPlannersByTenant = vi.fn().mockResolvedValue([]);
     const createSpy = vi.fn();
     const userRepository = {
-      listByTenant,
+      listWeddingPlannersByTenant,
       createWeddingPlanner: createSpy,
     };
 
@@ -140,6 +140,6 @@ describe('TC-204: IdentityService.listWeddingPlannersByTenant — US-008', () =>
     });
 
     expect(createSpy).not.toHaveBeenCalled();
-    expect(listByTenant).toHaveBeenCalledTimes(1);
+    expect(listWeddingPlannersByTenant).toHaveBeenCalledTimes(1);
   });
 });

@@ -77,6 +77,11 @@ model weddings {
   partner_1_name String
   partner_2_name String
   event_date     DateTime @db.Date
+  // Ceremony start time (HH:mm:ss, venue-local — second precision is
+  // overkill for an MVP but matches Postgres `time` natively).
+  // Nullable for rows that existed before the field was added and for
+  // create flows that omit it. The wire DTO trims the `:ss` suffix.
+  start_time     DateTime? @db.Time
 
   venue_name String
   venue_city String

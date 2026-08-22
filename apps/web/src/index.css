@@ -7,7 +7,7 @@
 
 @theme {
   /* Brand palette (DESIGN.md — Antique Gold primary, M3 surfaces) */
-  --color-background: #f9f8f7;
+  --color-background: #ffffff;
   --color-foreground: #1c1b1a;
 
   --color-primary: #735c00;
@@ -37,10 +37,21 @@
   --color-on-surface-variant: #4d4635;
   --color-outline-variant: #d0c5af;
 
+  --color-primary-fixed: #ffe088;
+  --color-primary-fixed-dim: #e9c349;
+  --color-on-primary-fixed-variant: #574500;
+  --color-primary-container: #d4af37;
+
+  --color-tertiary-fixed: #d1e4fb;
+  --color-tertiary-fixed-dim: #b5c8df;
+  --color-on-tertiary-fixed-variant: #36485b;
+
   --color-status-confirmed-bg: #dcf5e8;
   --color-status-confirmed-text: #1a5c35;
   --color-status-pending-bg: #fff4e0;
   --color-status-pending-text: #7c4f00;
+
+  --shadow-card: 0 2px 12px rgb(18 30 31 / 6%);
 
   --font-display: 'Playfair Display', serif;
   --font-sans: 'Inter', sans-serif;

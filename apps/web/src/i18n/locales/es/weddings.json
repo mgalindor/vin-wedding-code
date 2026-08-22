@@ -12,6 +12,7 @@
       "partner2Name": "Pareja 2",
       "partner2Placeholder": "ej. Andrés López",
       "eventDate": "Fecha de la boda",
+      "startTime": "Hora de inicio",
       "venueName": "Nombre del lugar",
       "venuePlaceholder": "ej. Nuestra Boda Sofía y Andrés",
       "venueCity": "Ciudad",
@@ -33,6 +34,13 @@
       "submitFailed": "No pudimos guardar la boda. Por favor intenta de nuevo en un momento."
     }
   },
+  "edit": {
+    "pageTitle": "Editar boda",
+    "subtitle": "Actualiza los nombres de los novios, la fecha o los datos del lugar.",
+    "actions": {
+      "save": "Guardar cambios"
+    }
+  },
   "detailPlaceholder": {
     "pageTitle": "Boda",
     "summary": "Resumen de la boda",
@@ -44,9 +52,166 @@
       "venueCity": "Ciudad"
     },
     "actions": {
+      "edit": "Editar boda",
       "configureInvitation": "Configurar invitación",
       "addGuests": "Agregar invitados"
     },
-    "comingSoon": "Próximamente en una versión futura"
+    "comingSoon": "Próximamente en una versión futura",
+    "loading": "Cargando…",
+    "errors": {
+      "loadFailed": "No pudimos cargar esta boda. Por favor intenta de nuevo en un momento."
+    }
+  },
+  "detail": {
+    "breadcrumb": {
+      "dashboard": "Mis bodas"
+    },
+    "tabs": {
+      "label": "Secciones de la boda",
+      "overview": "Resumen",
+      "data": "Datos de la boda",
+      "guests": "Invitados",
+      "photos": "Fotos",
+      "invitation": "Invitación",
+      "comingSoon": "Próximamente"
+    },
+    "stats": {
+      "guests": {
+        "label": "Invitados",
+        "sub": "{{confirmed}} confirmados · {{declined}} rechazados · {{pending}} pendientes",
+        "seeded": "Las métricas de invitados llegan en US-021"
+      },
+      "invitation": {
+        "label": "Invitación",
+        "value": "{{filled}}/{{total}}",
+        "sub": "módulos completados",
+        "seeded": "El progreso de la invitación llega en US-022"
+      },
+      "officialPhotos": {
+        "label": "Fotos oficiales",
+        "value": "{{count}}/{{quota}}",
+        "sub": "Calidad: Alta",
+        "seeded": "La cuota de fotos llega en US-030"
+      },
+      "guestPhotos": {
+        "label": "Fotos de invitados",
+        "value": "{{count}}",
+        "sub": "{{pending}} pendientes de moderación",
+        "seeded": "Los álbumes de invitados llegan en US-031"
+      }
+    },
+    "overview": {
+      "summary": "Resumen de la boda",
+      "partner1": "Pareja 1",
+      "partner2": "Pareja 2",
+      "eventDate": "Fecha de la boda",
+      "venueName": "Nombre del lugar",
+      "venueCity": "Ciudad",
+      "goToData": "Administrar datos de la boda",
+      "countdown": {
+        "title": "Tiempo hasta la boda",
+        "days": "Días",
+        "hours": "Horas",
+        "minutes": "Minutos",
+        "happenedTitle": "Días desde la boda",
+        "today": "¡Hoy es el gran día!"
+      },
+      "checklist": {
+        "title": "Lista de preparación",
+        "basics": {
+          "label": "Datos básicos capturados",
+          "detail": "Fecha, lugar y nombres de la pareja están guardados"
+        },
+        "published": {
+          "label": "Invitación publicada",
+          "detail": "El enlace público de la invitación está activo",
+          "pending": "Invitación aún en borrador",
+          "pendingDetail": "Publícala desde la pestaña Invitación cuando esté lista"
+        },
+        "photos": {
+          "label": "Almacenamiento de fotos configurado",
+          "detail": "Nivel de calidad y cuota de almacenamiento definidos",
+          "pending": "Almacenamiento de fotos pendiente",
+          "pendingDetail": "Elige un nivel de calidad en la pestaña Fotos"
+        },
+        "remaining": "ítems restantes",
+        "remainingDetail": "Tareas de configuración desde historias futuras (US-022/023)"
+      },
+      "activity": {
+        "title": "Actividad reciente",
+        "empty": "Aún no hay actividad — los eventos aparecerán aquí a medida que tu equipo use la boda.",
+        "created": "Boda creada",
+        "updated": "Datos de la boda actualizados",
+        "published": "Invitación publicada",
+        "seeded": "El feed de actividad se activará en US-014"
+      },
+      "publicLinks": {
+        "title": "Enlaces públicos",
+        "invitation": "Invitación pública",
+        "invitationDetail": "Comparte con todos los invitados",
+        "album": "Álbum de fotos de invitados",
+        "albumDetail": "Los invitados suben fotos aquí después del evento",
+        "upload": "Enlace de carga de la pareja",
+        "uploadDetail": "Enlace privado para que la pareja suba las fotos oficiales",
+        "private": "Privado",
+        "preview": "Vista previa",
+        "copy": "Copiar",
+        "copied": "¡Copiado!",
+        "comingIn": "Los enlaces públicos se activarán cuando US-022/023 publiquen la invitación"
+      }
+    },
+    "data": {
+      "basicInformation": "Información básica",
+      "editBasics": "Editar básicos",
+      "partner1": "Pareja 1",
+      "partner2": "Pareja 2",
+      "eventDate": "Fecha de la boda",
+      "venueName": "Nombre del lugar",
+      "venueCity": "Ciudad",
+      "chip": {
+        "complete": "✓ Completo",
+        "dirty": "Guardar cambios",
+        "saving": "Guardando…",
+        "saved": "✓ Guardado",
+        "saveError": "Error al guardar — intenta de nuevo"
+      },
+      "fields": {
+        "partner1Placeholder": "ej. Sofía Ramírez",
+        "partner2Placeholder": "ej. Andrés López",
+        "venuePlaceholder": "ej. Nuestra Boda Sofía y Andrés",
+        "venueCityPlaceholder": "ej. CDMX",
+        "ceremonyTimeLabel": "Hora de inicio"
+      },
+      "errors": {
+        "required": "Este campo es obligatorio",
+        "tooLong": "Este valor es demasiado largo",
+        "invalidDate": "Ingresa una fecha válida",
+        "saveFailed": "No pudimos guardar los cambios. Por favor intenta de nuevo en un momento."
+      },
+      "locations": "Lugares",
+      "locationsSubtitle": "Cada evento puede tener lugar en un lugar diferente, el mismo día o en días distintos. Agrega tantos lugares como requiera la boda.",
+      "locationsComingIn": "Próximamente en US-022",
+      "eventProgram": "Programa del evento",
+      "eventProgramSubtitle": "El flujo general de la boda: civil → religiosa → recepción → after party → día siguiente. Los programas por lugar se podrán configurar dentro de cada tarjeta de Lugar en una futura actualización.",
+      "eventProgramComingIn": "Próximamente en US-023",
+      "contacts": "Contactos",
+      "contactsSubtitle": "Contactos del wedding planner, proveedores y personas clave del evento.",
+      "contactsComingIn": "Próximamente en una iteración futura"
+    },
+    "guests": {
+      "title": "Invitados",
+      "comingIn": "Próximamente en US-015",
+      "description": "Agrega y administra la lista de invitados, envía enlaces de invitación y haz seguimiento de la asistencia cuando lleguen las historias."
+    },
+    "photos": {
+      "title": "Fotos",
+      "comingIn": "Próximamente en US-030",
+      "description": "Sube las fotos oficiales del evento, configura la calidad y descarga el álbum cuando lleguen las historias."
+    },
+    "invitation": {
+      "title": "Invitación",
+      "comingIn": "Próximamente en US-022",
+      "description": "Elige una de las seis plantillas de invitación, configura el contenido por módulo y publica cuando lleguen las historias."
+    }
   }
 }

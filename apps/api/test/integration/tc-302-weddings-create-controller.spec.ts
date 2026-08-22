@@ -151,13 +151,15 @@ describe('TC-302: POST /api/v1/weddings — Register a new wedding (US-009)', ()
         createdByUserId: 'attacker',
         status: 'published',
       })
-      .expect(201);
+      .expect(400);
 
-    // The DTO is whitelisted by ValidationPipe, so extra fields are
-    // rejected with 400 before the controller runs. That's the actual
-    // behaviour we want — the BE never reads these from the body.
-    expect(res.body.status).toBeUndefined();
-    expect([400, 201]).toContain(res.status);
+    // The DTO is whitelisted by ValidationPipe (`forbidNonWhitelisted:
+    // true` in main.ts), so extra fields are rejected with 400 before
+    // the controller runs. That's the actual behaviour we want — the
+    // BE never reads these from the body, and an attacker who tries to
+    // smuggle in `status='published'` is refused at the validation
+    // boundary instead of being silently ignored.
+    expect(res.body.message).toBeDefined();
   });
 
   it('rejects the request when any required field is missing (400)', async () => {

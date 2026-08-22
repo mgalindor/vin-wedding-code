@@ -1,7 +1,11 @@
-import { Link, useLocation } from '@tanstack/react-router';
+import { Link, useLocation, useParams } from '@tanstack/react-router';
+import type { WeddingDto } from '@wendy/contracts';
 import { LogOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { LocaleSwitcher } from '@/features/locale-switcher/locale-switcher';
+import { useWeddingsService } from '@/features/weddings/weddings.service';
 import { useAuth, useLogout } from '@/shared/auth';
 import { cn } from '@/shared/lib/utils';
 
@@ -89,6 +93,21 @@ function isPathActive(currentPath: string, targetPath: string): boolean {
   return currentPath.startsWith(targetPath);
 }
 
+function formatDateShort(iso: string): string {
+  // DTO carries YYYY-MM-DD; parse as local-midnight to avoid TZ drift.
+  const [year, month, day] = iso.split('-').map(Number);
+  if (!year || !month || !day) return iso;
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(year, month - 1, day));
+  } catch {
+    return iso;
+  }
+}
+
 export function Sidebar({
   isAdmin,
 }: {
@@ -98,6 +117,33 @@ export function Sidebar({
   const { state } = useAuth();
   const { logout } = useLogout();
   const location = useLocation();
+  const params = useParams({ strict: false }) as { weddingId?: string };
+  const weddingId = params.weddingId ?? '';
+  const service = useWeddingsService();
+
+  // Read the "current wedding" when the URL is inside a wedding route
+  // tree (`/dashboard/weddings/{id}` and its tabs). The GET runs
+  // once per weddingId change — `service` is memoised so the effect
+  // does not loop (TC-301 regression).
+  const [currentWedding, setCurrentWedding] = useState<WeddingDto | null>(null);
+  useEffect(() => {
+    if (!weddingId) {
+      setCurrentWedding(null);
+      return;
+    }
+    let cancelled = false;
+    service
+      .getWedding(weddingId)
+      .then((data) => {
+        if (!cancelled) setCurrentWedding(data);
+      })
+      .catch(() => {
+        if (!cancelled) setCurrentWedding(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [weddingId, service]);
 
   const user = state.user;
   const initials = user ? getInitials(user.fullName) : '?';
@@ -126,6 +172,33 @@ export function Sidebar({
         </span>
       </div>
 
+      {currentWedding && (
+        <div
+          data-testid="sidebar-current-wedding"
+          className="mx-3 mt-4 rounded-md border p-3"
+          style={{
+            background: 'var(--color-surface-container-low)',
+            borderColor: 'var(--color-outline-variant)',
+          }}
+        >
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--color-secondary)]">
+            {t('sidebar.currentWedding')}
+          </div>
+          <div
+            className="text-[15px] font-semibold leading-tight"
+            style={{
+              fontFamily: 'var(--font-display)',
+              color: 'var(--color-on-surface)',
+            }}
+          >
+            {currentWedding.partner1Name} &amp; {currentWedding.partner2Name}
+          </div>
+          <div className="mt-0.5 text-[12px] text-[var(--color-secondary)]">
+            {formatDateShort(currentWedding.eventDate)}
+          </div>
+        </div>
+      )}
+
       <nav className="flex flex-1 flex-col pt-4">
         <NavSection
           label={t('sidebar.workspace')}
@@ -146,6 +219,9 @@ export function Sidebar({
         className="mt-auto border-t px-5 py-4"
         style={{ borderColor: 'var(--color-outline-variant)' }}
       >
+        <div className="mb-3 flex justify-center">
+          <LocaleSwitcher />
+        </div>
         <div className="group/user flex items-center gap-2.5 px-2 py-2">
           <div
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
@@ -222,3 +298,5 @@ function NavSection({
     </div>
   );
 }
+
+

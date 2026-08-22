@@ -14,7 +14,7 @@ export function DashboardIndex(): React.ReactElement {
   const callerRole: UserRole = profile?.role ?? UserRole.WeddingPlanner;
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-10">
+    <div className="mx-auto w-full max-w-6xl space-y-10 px-10 py-8">
       <section aria-label={t('section.myWeddings')}>
         <p className="text-[12px] text-[var(--color-secondary)]">
           (Stats row — fully wired in US-021.)

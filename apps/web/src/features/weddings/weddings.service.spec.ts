@@ -8,6 +8,10 @@
  * `GET /weddings` with the canonical query string, returns the
  * paged response shape, and respects the optional inputs (search,
  * status, sort, limit, offset).
+ *
+ * US-010 — verifies the `getWedding` call delegates to
+ * `GET /weddings/{id}` and the `updateWedding` call delegates to
+ * `PATCH /weddings/{id}` with the `UpdateWeddingDto` body.
  */
 // @vitest-environment jsdom
 import { renderHook } from '@testing-library/react';
@@ -24,11 +28,13 @@ vi.mock('@/shared/api-client', () => ({ useApiClient: vi.fn() }));
 function buildClient() {
   const post = vi.fn();
   const get = vi.fn();
+  const patch = vi.fn();
   return {
     request: vi.fn(),
     get,
     post,
     put: vi.fn(),
+    patch,
     delete: vi.fn(),
   };
 }
@@ -174,5 +180,79 @@ describe('TC-503: useWeddingsService.listWeddings — US-011', () => {
     expect(client.get).toHaveBeenCalledWith(
       '/weddings?limit=50&offset=0',
     );
+  });
+});
+
+describe('TC-305b: useWeddingsService.getWedding / updateWedding — US-010', () => {
+  it('calls GET /weddings/{id} for getWedding', async () => {
+    const client = buildClient();
+    client.get.mockResolvedValue({
+      id: 'abcd1234ef',
+      tenantId: 'default',
+      ownerUserId: 'wp-1',
+      partner1Name: 'Sofía Ramírez',
+      partner2Name: 'Andrés López',
+      eventDate: '2026-08-21',
+      venueName: 'Hacienda',
+      venueCity: 'CDMX',
+      status: 'draft',
+      createdAt: '2026-08-19T12:00:00.000Z',
+      createdByUserId: 'wp-1',
+      updatedAt: '2026-08-19T12:00:00.000Z',
+      updatedByUserId: 'wp-1',
+    });
+
+    vi.mocked(useAuth).mockReturnValue(baseAuth());
+    vi.mocked(useApiClient).mockReturnValue(
+      client as unknown as ReturnType<typeof useApiClient>,
+    );
+
+    const { result } = renderHook(() => useWeddingsService());
+
+    const response = await result.current.getWedding('abcd1234ef');
+
+    expect(client.get).toHaveBeenCalledWith('/weddings/abcd1234ef');
+    expect(response.id).toBe('abcd1234ef');
+    expect(response.status).toBe('draft');
+  });
+
+  it('calls PATCH /weddings/{id} with the UpdateWeddingDto body', async () => {
+    const client = buildClient();
+    client.patch.mockResolvedValue({
+      id: 'abcd1234ef',
+      tenantId: 'default',
+      ownerUserId: 'wp-1',
+      partner1Name: 'María Sánchez',
+      partner2Name: 'Carlos Ruiz',
+      eventDate: '2027-03-15',
+      venueName: 'Nuevo Venue',
+      venueCity: 'Guadalajara',
+      status: 'draft',
+      createdAt: '2026-08-19T12:00:00.000Z',
+      createdByUserId: 'wp-1',
+      updatedAt: '2026-08-21T18:00:00.000Z',
+      updatedByUserId: 'wp-1',
+    });
+
+    vi.mocked(useAuth).mockReturnValue(baseAuth());
+    vi.mocked(useApiClient).mockReturnValue(
+      client as unknown as ReturnType<typeof useApiClient>,
+    );
+
+    const { result } = renderHook(() => useWeddingsService());
+
+    const dto = {
+      partner1Name: 'María Sánchez',
+      partner2Name: 'Carlos Ruiz',
+      eventDate: '2027-03-15',
+      venueName: 'Nuevo Venue',
+      venueCity: 'Guadalajara',
+    };
+
+    const response = await result.current.updateWedding('abcd1234ef', dto);
+
+    expect(client.patch).toHaveBeenCalledWith('/weddings/abcd1234ef', dto);
+    expect(response.partner1Name).toBe('María Sánchez');
+    expect(response.partner1Name).not.toBe('Sofía Ramírez');
   });
 });
