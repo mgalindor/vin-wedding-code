@@ -44,8 +44,8 @@ function renderAt(
     createdAt: '2026-08-19T12:00:00.000Z',
     createdByUserId: 'wp-1' as WeddingDto['createdByUserId'],
     updatedAt: '2026-08-19T12:00:00.000Z',
-    updatedByUserId: 'wp-1' as WeddingDto['createdByUserId'],
-    ...weddingOverrides,
+    updatedByUserId: 'wp-1' as WeddingDto['createdByUserId'],  // US-014a: empty locations list by default; tests can override.
+  locations: [],    ...weddingOverrides,
   };
   vi.mocked(useParams).mockReturnValue({ weddingId: wedding.id });
   vi.mocked(useLocation).mockReturnValue({

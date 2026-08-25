@@ -68,6 +68,9 @@ const sampleWedding: WeddingDto = {
   createdByUserId: 'wp-1' as WeddingDto['createdByUserId'],
   updatedAt: '2026-08-19T12:00:00.000Z',
   updatedByUserId: 'wp-1' as WeddingDto['createdByUserId'],
+  // US-014a: empty locations list (the live editor handles the empty
+  // state explicitly).
+  locations: [],
 };
 
 function renderSidebar({ isAdmin }: { isAdmin: boolean }) {

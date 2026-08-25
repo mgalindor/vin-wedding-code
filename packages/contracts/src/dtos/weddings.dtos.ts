@@ -1,4 +1,6 @@
 import {
+  ArrayMaxSize,
+  IsArray,
   IsDateString,
   IsEnum,
   IsInt,
@@ -9,11 +11,12 @@ import {
   Max,
   MaxLength,
   Min,
-  MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 import type { TenantId, UserId, WeddingId } from '../ids.js';
+import { WeddingLocationDto } from './wedding-location.dto.js';
 
 /**
  * Wedding lifecycle status (per ARC-019).
@@ -185,6 +188,24 @@ export class WeddingDto {
     message: 'updatedByUserId must be a 6-64 char NanoId',
   })
   updatedByUserId!: UserId;
+
+  /**
+   * US-014a — list of locations for this wedding.
+   *
+   * The wire shape is a typed array of {@link WeddingLocationDto}
+   * objects — never a stringified JSON blob (v1.1.0 storage
+   * correction). Empty array when no locations have been captured
+   * yet (Rule 13).
+   *
+   * The same DTO class runs on the FE (via `classValidatorResolver`)
+   * and on the BE (via the global `ValidationPipe`) so the wire
+   * contract has a single source of truth (ADR-14).
+   */
+  @IsArray({ message: 'locations must be an array' })
+  @ArrayMaxSize(200, { message: 'locations can have at most 200 rows' })
+  @ValidateNested({ each: true })
+  @Type(() => WeddingLocationDto)
+  locations!: WeddingLocationDto[];
 }
 
 /**

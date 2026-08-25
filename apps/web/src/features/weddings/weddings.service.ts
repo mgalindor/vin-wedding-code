@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
 import {
   type CreateWeddingDto,
   type ListWeddingsResponseDto,
+  type PutWeddingLocationsDto,
   type UpdateWeddingDto,
   type WeddingDto,
   type WeddingListSort,
   type WeddingListStatus,
 } from '@wendy/contracts';
+import { useMemo } from 'react';
 
 import { useApiClient } from '@/shared/api-client';
 
@@ -70,6 +71,20 @@ export function useWeddingsService() {
       // shape.
       updateWedding(id: string, dto: UpdateWeddingDto): Promise<WeddingDto> {
         return api.patch<WeddingDto>(`/weddings/${id}`, dto);
+      },
+
+      // US-014a: replace the wedding's locations array. PUT is the
+      // right verb here because the contract is "replace the whole
+      // array" — adding / removing / reordering happens through the
+      // editor's local state and the single PUT (Rule 15). Empty
+      // array is a valid payload (Rule 23). The server mints the
+      // per-row `id` server-side; the FE never sends an `id` field
+      // in the request body (ADR-13 server-minted IDs).
+      putLocations(
+        id: string,
+        dto: PutWeddingLocationsDto,
+      ): Promise<WeddingDto> {
+        return api.put<WeddingDto>(`/weddings/${id}/locations`, dto);
       },
     };
   }, [api]);

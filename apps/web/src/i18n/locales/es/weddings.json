@@ -198,6 +198,57 @@
       "contactsSubtitle": "Contactos del wedding planner, proveedores y personas clave del evento.",
       "contactsComingIn": "Próximamente en una iteración futura"
     },
+    "locationsEditor": {
+      "cardTitle": "Lugares",
+      "subtitle": "Cada evento puede tener lugar en un lugar diferente, el mismo día o en días distintos. Agrega tantos lugares como requiera la boda.",
+      "emptyHint": "Agrega el primer lugar para completar la sección \"Dónde y Cuándo\" de la invitación.",
+      "addButton": "Agregar lugar",
+      "fields": {
+        "type": "Tipo",
+        "venueName": "Nombre del lugar",
+        "venueNamePlaceholder": "ej. Parroquia de San Francisco",
+        "address": "Dirección",
+        "addressPlaceholder": "Calle y número",
+        "city": "Ciudad",
+        "cityPlaceholder": "ej. CDMX",
+        "eventDate": "Fecha",
+        "startTime": "Hora de inicio",
+        "startTimePlaceholder": "HH:mm",
+        "mapLink": "Enlace a Google Maps",
+        "mapLinkPlaceholder": "https://maps.google.com/?q=…",
+        "notes": "Notas (opcional)",
+        "notesPlaceholder": "Cualquier detalle que deban saber los invitados (estacionamiento, dress code, etc.)"
+      },
+      "typeOptions": {
+        "civil_ceremony": "Ceremonia civil",
+        "religious_ceremony": "Ceremonia religiosa",
+        "reception": "Recepción",
+        "after_party": "After party",
+        "next_day_brunch": "Brunch del día siguiente",
+        "other": "Otro"
+      },
+      "actions": {
+        "save": "Guardar lugares",
+        "saving": "Guardando…",
+        "remove": "Eliminar lugar",
+        "moveUp": "Mover lugar arriba",
+        "moveDown": "Mover lugar abajo"
+      },
+      "status": {
+        "saving": "Guardando…",
+        "saved": "✓ Guardado",
+        "savedN_one": "✓ 1 lugar",
+        "savedN_other": "✓ {{count}} lugares",
+        "inProgress": "⚠ Cambios sin guardar",
+        "saveFailed": "Error al guardar — intenta de nuevo"
+      },
+      "errors": {
+        "requiredRow": "Lugar {{index}}: completa todos los campos obligatorios.",
+        "maxLength": "Este valor es demasiado largo",
+        "invalidUrl": "Usa una URL http(s) válida",
+        "saveFailed": "No pudimos guardar los lugares. Por favor intenta de nuevo en un momento."
+      }
+    },
     "guests": {
       "title": "Invitados",
       "comingIn": "Próximamente en US-015",

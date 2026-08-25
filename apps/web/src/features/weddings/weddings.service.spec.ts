@@ -12,9 +12,14 @@
  * US-010 — verifies the `getWedding` call delegates to
  * `GET /weddings/{id}` and the `updateWedding` call delegates to
  * `PATCH /weddings/{id}` with the `UpdateWeddingDto` body.
+ *
+ * US-014a — verifies the `putLocations` call delegates to
+ * `PUT /weddings/{id}/locations` with a body that excludes an
+ * `id` field per row (the server mints ids server-side).
  */
 // @vitest-environment jsdom
 import { renderHook } from '@testing-library/react';
+import { WeddingLocationType } from '@wendy/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
 import { useApiClient } from '@/shared/api-client';
@@ -254,5 +259,79 @@ describe('TC-305b: useWeddingsService.getWedding / updateWedding — US-010', ()
     expect(client.patch).toHaveBeenCalledWith('/weddings/abcd1234ef', dto);
     expect(response.partner1Name).toBe('María Sánchez');
     expect(response.partner1Name).not.toBe('Sofía Ramírez');
+  });
+});
+
+describe('TC-305c: useWeddingsService.putLocations — US-014a', () => {
+  it('calls PUT /weddings/{id}/locations with the body that excludes an id field per row', async () => {
+    const client = buildClient();
+    const serverEcho = {
+      id: 'abcd1234ef',
+      tenantId: 'default',
+      ownerUserId: 'wp-1',
+      partner1Name: 'Sofía',
+      partner2Name: 'Andrés',
+      eventDate: '2027-03-15',
+      venueName: 'Hacienda',
+      venueCity: 'CDMX',
+      status: 'draft',
+      createdAt: '2026-08-19T12:00:00.000Z',
+      createdByUserId: 'wp-1',
+      updatedAt: '2026-08-21T18:00:00.000Z',
+      updatedByUserId: 'wp-1',
+      locations: [
+        {
+          id: 'server-fresh-1',
+          type: 'reception',
+          venueName: 'Hacienda',
+          address: 'Av. Principal 123',
+          city: 'CDMX',
+          eventDate: '2027-03-15',
+          startTime: '20:00',
+          googleMapsLink: null,
+          notes: null,
+        },
+      ],
+    };
+    client.put.mockResolvedValue(serverEcho);
+
+    vi.mocked(useAuth).mockReturnValue(baseAuth());
+    vi.mocked(useApiClient).mockReturnValue(
+      client as unknown as ReturnType<typeof useApiClient>,
+    );
+
+    const { result } = renderHook(() => useWeddingsService());
+
+    const dto = {
+      locations: [
+        {
+          type: WeddingLocationType.Reception,
+          venueName: 'Hacienda',
+          address: 'Av. Principal 123',
+          city: 'CDMX',
+          eventDate: '2027-03-15',
+          startTime: '20:00',
+          googleMapsLink: null,
+          notes: null,
+        },
+      ],
+    };
+
+    const response = await result.current.putLocations('abcd1234ef', dto);
+
+    expect(client.put).toHaveBeenCalledWith(
+      '/weddings/abcd1234ef/locations',
+      dto,
+    );
+    // Verify the body the FE sends has no id field per row.
+    const sentBody = client.put.mock.calls[0]![1] as {
+      locations: Array<Record<string, unknown>>;
+    };
+    for (const row of sentBody.locations) {
+      expect(row).not.toHaveProperty('id');
+    }
+    // Verify the response carries the server-minted id.
+    expect(response.locations).toHaveLength(1);
+    expect(response.locations[0]!.id).toBe('server-fresh-1');
   });
 });

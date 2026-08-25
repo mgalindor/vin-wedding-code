@@ -43,18 +43,23 @@ export class AuthController {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    const accessToken = this.jwtService.signAccessToken({
+    const claims = {
       sub: user.id as any,
       role: user.role as any,
       tenantId: user.tenant_id as any,
       fullName: user.full_name,
       email: user.email,
-    });
+    };
+
+    const accessToken = this.jwtService.signAccessToken(claims);
+    const refreshToken = this.jwtService.signRefreshToken(claims);
 
     return {
       access_token: accessToken,
       token_type: 'Bearer',
       expires_in: 3600,
+      refresh_token: refreshToken,
+      refresh_expires_in: 259200,
     };
   }
 

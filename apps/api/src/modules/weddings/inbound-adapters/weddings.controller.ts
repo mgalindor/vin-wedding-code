@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 // Value-import (not `import type`) — @Body() / @Query() types are
@@ -19,6 +20,7 @@ import {
   CreateWeddingDto,
   ListWeddingsQueryDto,
   type ListWeddingsResponseDto,
+  PutWeddingLocationsDto,
   UpdateWeddingDto,
   WeddingDto,
 } from '@wendy/contracts';
@@ -126,6 +128,40 @@ export class WeddingsController {
   ): Promise<WeddingDto> {
     try {
       return await this.weddingsService.updateWedding(
+        { actorId: caller.id, tenantId: caller.tenantId },
+        id,
+        dto,
+      );
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        throw new BadRequestException({
+          message: err.message,
+          field: err.field,
+        });
+      }
+      if (err instanceof WeddingNotFoundError) {
+        throw new NotFoundException('Wedding not found');
+      }
+      throw err;
+    }
+  }
+
+  // US-014a: replace the wedding's locations array. Full-array PUT —
+  // adding / removing / reordering happens through the editor's
+  // local state and the single PUT (Rule 15). Empty array is a
+  // valid payload (Rule 23). The endpoint applies the same role-
+  // aware scope `updateWedding` uses (tenant + owner for WP) and
+  // refuses archived weddings with the same generalized envelope
+  // every unauthorized / missing case surfaces.
+  @Put(':id/locations')
+  @Roles('WeddingPlanner')
+  async putLocations(
+    @CurrentUser() caller: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: PutWeddingLocationsDto,
+  ): Promise<WeddingDto> {
+    try {
+      return await this.weddingsService.putLocations(
         { actorId: caller.id, tenantId: caller.tenantId },
         id,
         dto,

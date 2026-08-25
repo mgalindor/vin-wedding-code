@@ -93,6 +93,15 @@ model weddings {
   updated_at         DateTime @updatedAt
   updated_by_user_id String
 
+  // US-014a: list of event locations (ceremony, reception, etc.).
+  // Stored as a JSONB array of typed WeddingLocationDto objects —
+  // the wire shape is a typed array, never a stringified JSON blob.
+  // The column is NOT NULL with a JSON default so every existing row
+  // is backfilled to an empty array in the migration transaction; the
+  // mapper validates the parsed JSON through `WeddingLocationDto`
+  // (class-validator) before returning it to the controller.
+  locations Json @default("[]")
+
   @@index([tenant_id, owner_user_id, status], name: "idx_weddings_tenant_owner_status")
   @@index([tenant_id, owner_user_id, event_date], name: "idx_weddings_tenant_owner_date")
   @@map("weddings")

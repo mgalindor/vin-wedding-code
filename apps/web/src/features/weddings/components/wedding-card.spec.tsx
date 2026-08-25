@@ -48,6 +48,8 @@ const baseWedding: WeddingDto = {
   // US-010: added to WeddingDto with the read-by-id endpoint.
   updatedAt: '2026-08-19T12:00:00.000Z',
   updatedByUserId: 'wp-1' as never,
+  // US-014a: empty locations list.
+  locations: [],
 };
 
 describe('TC-505: WeddingCard — US-011', () => {

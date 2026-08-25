@@ -1,9 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { newId, WeddingStatus } from '@wendy/contracts';
-import type {
-  CreateWeddingDto,
-  UpdateWeddingDto,
-  WeddingDto,
+import {
+  newId,
+  WeddingStatus,
+  type CreateWeddingDto,
+  type PutWeddingLocationsDto,
+  type UpdateWeddingDto,
+  type WeddingDto,
+  type WeddingLocationDto,
+  type WeddingLocationId,
+  type WeddingLocationInputDto,
 } from '@wendy/contracts';
 import type { WeddingId } from '@wendy/contracts';
 
@@ -209,6 +214,97 @@ export class WeddingsService {
 
     return updated;
   }
+
+  // US-014a: replace the locations array on an existing wedding.
+  // Reuses the role-aware scope `updateWedding` uses (tenant +
+  // owner for WP — controller enforces `@Roles('WeddingPlanner')`).
+  // Archived weddings refuse with the same generalized envelope
+  // (Rule 28). The full ordered array is accepted; the service
+  // trims the text fields per row (matching create / update) and
+  // hands the array to the repository verbatim (no auto-sort —
+  // Rule 16).
+  async putLocations(
+    principal: WeddingPlannerPrincipal,
+    id: string,
+    dto: PutWeddingLocationsDto,
+  ): Promise<WeddingDto> {
+    const scope = {
+      tenantId: principal.tenantId,
+      ownerUserId: principal.actorId,
+    };
+
+    // Verify the row exists AND is owned by the caller BEFORE the
+    // update — the update port cannot tell us "archived vs missing",
+    // and we want the same envelope for both refusals.
+    const existing = await this.repository.findById({ scope, id });
+    if (!existing || existing.status === WeddingStatus.Archived) {
+      throw new WeddingNotFoundError(id);
+    }
+
+    const normalised = normaliseLocations(dto.locations);
+    const stamped = mintIds(normalised);
+
+    const now = new Date();
+    const updated = await this.repository.updateLocations({
+      scope,
+      id,
+      locations: stamped,
+      updatedByUserId: principal.actorId,
+      updatedAt: now,
+    });
+    if (!updated) {
+      // Race: the row was deleted between findById and updateLocations.
+      // Same defensive branch as `updateWedding` — surface the same
+      // envelope.
+      throw new WeddingNotFoundError(id);
+    }
+
+    this.logger.log({
+      event: 'wedding.locationsUpdated',
+      weddingId: updated.id,
+      tenantId: updated.tenantId,
+      ownerUserId: updated.ownerUserId,
+      actorId: principal.actorId,
+      // Useful for spotting runaway edits in the audit story (ARC-037).
+      count: stamped.length,
+      timestamp: now.toISOString(),
+    });
+
+    return updated;
+  }
+}
+
+// US-014a: trim the three free-text fields per row (mirrors the
+// create / update use cases). Empty / whitespace-only rows are
+// already rejected by the DTO's class-validator decorators; the trim
+// here is the belt-and-suspenders layer that the service owns.
+function normaliseLocations(
+  locations: WeddingLocationInputDto[],
+): WeddingLocationInputDto[] {
+  return locations.map((loc) => ({
+    ...loc,
+    venueName: (loc.venueName ?? '').trim(),
+    address: (loc.address ?? '').trim(),
+    city: (loc.city ?? '').trim(),
+    // googleMapsLink / startTime / notes may be empty strings; the
+    // DTO decorators accept empty + null on the wire.
+    googleMapsLink: loc.googleMapsLink ?? null,
+    startTime: loc.startTime ?? null,
+    notes: loc.notes ?? null,
+  }));
+}
+
+// US-014a: the platform (not the client) mints IDs — every row gets
+// a fresh 10-char WeddingLocationId NanoId before persisting. The
+// service owns this so the FE never invents an id and the server is
+// the single source of truth for row identity.
+function mintIds(
+  locations: WeddingLocationInputDto[],
+): WeddingLocationDto[] {
+  return locations.map((loc) => ({
+    ...loc,
+    id: newId<WeddingLocationId>(),
+  }));
 }
 
 export interface ListWeddingsQuery {

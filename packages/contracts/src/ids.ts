@@ -24,6 +24,9 @@ export type TenantId = Brand<'TenantId'>;
 
 // Wedding Management
 export type WeddingId = Brand<'WeddingId'>;
+// US-014a: stable per-row id minted client-side so the editor's
+// local state matches the server's view across saves (Rule 17).
+export type WeddingLocationId = Brand<'WeddingLocationId'>;
 
 // Guest Management
 export type GuestGroupId = Brand<'GuestGroupId'>;

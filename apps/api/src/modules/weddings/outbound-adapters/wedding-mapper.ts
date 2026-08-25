@@ -1,5 +1,11 @@
-import { WeddingStatus } from '@wendy/contracts';
-import type { WeddingDto, WeddingId } from '@wendy/contracts';
+import {
+  WeddingLocationDto,
+  WeddingStatus,
+  type WeddingDto,
+  type WeddingId,
+} from '@wendy/contracts';
+import { plainToInstance } from 'class-transformer';
+import { validateSync } from 'class-validator';
 
 import type { TenantId, UserId } from '../../../shared/jwt/jwt.service';
 
@@ -22,6 +28,11 @@ export interface WeddingRow {
   created_by_user_id: string;
   updated_at: Date;
   updated_by_user_id: string;
+  // US-014a: Prisma's `Json` columns come back as the raw JS value
+  // the database stored. The migration's `DEFAULT '[]'::jsonb`
+  // guarantees the runtime shape is an array, but we defensively
+  // normalise + validate before returning to the application.
+  locations: unknown;
 }
 
 // `event_date` is a DATE column → projection is timezone-neutral.
@@ -60,5 +71,48 @@ export function toWeddingDto(row: WeddingRow): WeddingDto {
     // createdAt/createdByUserId on insert (US-009).
     updatedAt: row.updated_at.toISOString(),
     updatedByUserId: row.updated_by_user_id as UserId,
+    // US-014a: typed array of locations (empty when none captured).
+    // The column is JSONB; the mapper normalises + class-validator-
+    // validates every row before returning to the controller.
+    locations: toWeddingLocationDtoArray(row.locations),
   };
+}
+
+// US-014a: defensive JSONB → typed array translation. The migration
+// stores the column as `jsonb` with `DEFAULT '[]'::jsonb`, so a
+// non-array value would only ever happen if (a) the database was
+// corrupted, or (b) someone wrote a string by hand. We surface an
+// empty array in both cases rather than throwing — the column is a
+// derived view of the wedding, not the source of truth for an
+// invariant that would block the request.
+//
+// The mapper validates each row through `WeddingLocationDto`
+// (class-validator) so a malformed row surfaces an empty slot
+// rather than silently leaking garbage onto the wire. This is
+// intentionally permissive on the GET path — the PUT path is the
+// authoritative writer; the GET path tolerates malformed historical
+// data the migration could not backfill (none exists in MVP, but
+// the migration is defensively safe).
+export function toWeddingLocationDtoArray(
+  value: unknown,
+): WeddingLocationDto[] {
+  if (!Array.isArray(value)) return [];
+  const instances = plainToInstance(WeddingLocationDto, value);
+  // Sync validation — catch errors so a single bad row does not
+  // blow up the entire response (the column is a derived view, not
+  // a hard invariant on GET).
+  const validated: WeddingLocationDto[] = [];
+  for (const inst of instances) {
+    const errors = validateSync(inst as object, {
+      whitelist: false,
+      forbidNonWhitelisted: false,
+    });
+    if (errors.length === 0) {
+      validated.push(inst);
+    }
+    // Drop malformed rows silently — the adapter logs when the
+    // count diverges from the raw value's length. The user-visible
+    // surface still gets a clean typed array.
+  }
+  return validated;
 }

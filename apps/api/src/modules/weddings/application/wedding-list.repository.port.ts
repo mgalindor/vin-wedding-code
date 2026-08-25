@@ -6,7 +6,7 @@
  * in its own implementation of the port — the application never
  * imports `@prisma/client`.
  */
-import type { WeddingDto } from '@wendy/contracts';
+import type { WeddingDto, WeddingLocationDto } from '@wendy/contracts';
 
 export const WEDDING_REPOSITORY_PORT = Symbol('WeddingRepositoryPort');
 
@@ -91,6 +91,18 @@ export interface UpdateByIdArgs {
   readonly fields: WeddingUpdateFields;
 }
 
+// US-014a: locations replace the whole array on save (Rule 15) —
+// the application stamps `updatedAt` / `updatedByUserId` onto the
+// fields before handing the argument to the port. The mapper
+// validates the array via class-validator before it lands here.
+export interface UpdateLocationsArgs {
+  readonly scope: WeddingListScope;
+  readonly id: string;
+  readonly locations: WeddingLocationDto[];
+  readonly updatedByUserId: string;
+  readonly updatedAt: Date;
+}
+
 export interface WeddingListRepositoryPort {
   insert(wedding: NewWedding): Promise<WeddingDto>;
   list(args: ListArgs): Promise<WeddingDto[]>;
@@ -101,4 +113,8 @@ export interface WeddingListRepositoryPort {
   // US-010: returns null when no row matches the scope (or the row
   // was deleted between the findById and this call — race-safe).
   updateById(args: UpdateByIdArgs): Promise<WeddingDto | null>;
+  // US-014a: replaces the `locations` JSONB column on a wedding the
+  // caller owns in their tenant. Returns null when no row matches
+  // the scope (same envelope a 404 would use — no enumeration).
+  updateLocations(args: UpdateLocationsArgs): Promise<WeddingDto | null>;
 }

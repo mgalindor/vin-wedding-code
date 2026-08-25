@@ -1,0 +1,21 @@
+-- Migration: add_wedding_locations (US-014a).
+--
+-- Adds the `weddings.locations` JSONB column. The column stores an
+-- array of typed WeddingLocationDto objects (ceremony, reception,
+-- after-party, etc.) so the public invitation's "Where & When"
+-- section can render per venue.
+--
+-- Design choices (per the v1.1.0 functional spec):
+--   - NOT NULL with a JSON default so every existing row is backfilled
+--     to an empty array in this single transaction — forward-compatible
+--     with the existing GET response shape.
+--   - No new index — locations are written/read as one unit on a single
+--     row by primary key (id). The MVP scale (~100 weddings per WP per
+--     year) does not justify a JSONB GIN index.
+--   - No new table — ARC-020 (per-template payload) is intentionally
+--     NOT created here; it owns its own migration when US-022 lands.
+--
+-- Per ADR-11, exactly one migration per sprint-bounded-context change.
+-- Forward-only. No automatic rollback.
+
+ALTER TABLE "weddings" ADD COLUMN "locations" JSONB NOT NULL DEFAULT '[]'::jsonb;

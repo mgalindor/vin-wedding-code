@@ -24,6 +24,7 @@ import { I18nextProvider } from 'react-i18next';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import i18n from '@/i18n/config';
+import { useUserInfo } from '@/shared/auth';
 
 import { useWeddingsService } from '../weddings.service';
 import { WeddingDataScreen } from './wedding-data-screen';
@@ -41,6 +42,9 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('../weddings.service', () => ({
   useWeddingsService: vi.fn(),
 }));
+vi.mock('@/shared/auth', () => ({
+  useUserInfo: vi.fn(),
+}));
 
 const sampleWedding: WeddingDto = {
   id: 'abcd1234ef' as WeddingDto['id'],
@@ -57,6 +61,9 @@ const sampleWedding: WeddingDto = {
   createdByUserId: 'wp-1' as WeddingDto['createdByUserId'],
   updatedAt: '2026-08-19T12:00:00.000Z',
   updatedByUserId: 'wp-1' as WeddingDto['createdByUserId'],
+  // US-014a: empty locations list (the live editor handles the empty
+  // state explicitly).
+  locations: [],
 };
 
 function buildService(): ReturnType<typeof useWeddingsService> {
@@ -68,6 +75,7 @@ function buildService(): ReturnType<typeof useWeddingsService> {
       ...sampleWedding,
       partner2Name: 'James Williams',
     }),
+    putLocations: vi.fn().mockResolvedValue(sampleWedding),
   } as unknown as ReturnType<typeof useWeddingsService>;
 }
 
@@ -80,6 +88,12 @@ function renderAt(
     pathname: `/dashboard/weddings/${sampleWedding.id}/data`,
   } as unknown as ReturnType<typeof useLocation>);
   vi.mocked(useWeddingsService).mockReturnValue(service);
+  // US-014a: the LocationsCard reads the caller's role via
+  // useUserInfo() to decide read-only vs editable. Default to a
+  // Wedding Planner session so the editor renders normally.
+  vi.mocked(useUserInfo).mockReturnValue({
+    data: { role: 'WeddingPlanner' as never },
+  } as unknown as ReturnType<typeof useUserInfo>);
   render(
     <I18nextProvider i18n={i18n}>
       <WeddingDataScreen />
@@ -106,10 +120,12 @@ describe('TC-309: WeddingDataScreen — US-010', () => {
     expect(within(card).getByDisplayValue('CDMX')).toBeInTheDocument();
   });
 
-  it('renders the three placeholder sections (Locations, Program, Contacts)', async () => {
+  it('renders the two remaining placeholder sections (Program, Contacts) and the live LocationsCard', async () => {
     renderAt();
     await waitFor(() => {
-      expect(screen.getByTestId('wedding-data-locations')).toBeInTheDocument();
+      expect(
+        screen.getByTestId('wedding-data-locations-card'),
+      ).toBeInTheDocument();
     });
     expect(screen.getByTestId('wedding-data-program')).toBeInTheDocument();
     expect(screen.getByTestId('wedding-data-contacts')).toBeInTheDocument();

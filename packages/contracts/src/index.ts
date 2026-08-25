@@ -5,3 +5,4 @@ export * from './dtos/auth.dtos.js';
 export * from './dtos/wedding-planners.dtos.js';
 export * from './dtos/wedding-planner-summary.dto.js';
 export * from './dtos/weddings.dtos.js';
+export * from './dtos/wedding-location.dto.js';

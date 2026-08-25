@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -87,6 +88,18 @@ export class UserProfileDto {
  *  §5.1). The user's fullName, email, role and tenantId are encoded as
  *  JWT claims — decode the access_token on the client to hydrate the
  *  profile, no separate /me call needed.
+ *
+ *  The refresh token is delivered in two places — both are valid for
+ *  the client:
+ *    1. As an `HttpOnly` cookie (`__wendy_rt__`) so the browser sends
+ *       it automatically on `POST /oauth/refresh`. The FE never reads
+ *       this cookie from JS.
+ *    2. As `refresh_token` in this response body so non-browser
+ *       clients (CLI, integration tests, future mobile) can use the
+ *       refresh flow without a cookie jar.
+ *  Production clients should prefer the cookie (it is HttpOnly, so JS
+ *  cannot exfiltrate it). The body value exists for parity with
+ *  RFC 6749 §5.1 and for headless consumers.
  */
 export class AuthenticateUserResponseDto {
   @IsString()
@@ -100,6 +113,62 @@ export class AuthenticateUserResponseDto {
   @IsInt()
   @Min(1)
   expires_in!: number;
+
+  /** Opaque refresh token (3-day TTL). Also stamped as an HttpOnly cookie. */
+  @IsString()
+  @IsNotEmpty()
+  refresh_token!: string;
+
+  /** Refresh-token lifetime in seconds (3 days = 259200). */
+  @IsInt()
+  @Min(1)
+  refresh_expires_in!: number;
+}
+
+/**
+ * Request body for `POST /oauth/refresh`.
+ *
+ * The FE normally uses the HttpOnly cookie (sent automatically by the
+ * browser on the `/oauth` path). A non-browser client can pass the
+ * refresh token in the body instead. The two are equivalent — the
+ * service honours whichever is present and prefers the cookie.
+ *
+ * Both fields are optional at the DTO level because the cookie path
+ * requires no body at all. The controller enforces the "at least
+ * one source" rule in code.
+ */
+export class RefreshTokenDto {
+  @IsOptional()
+  @IsString({ message: 'refresh_token must be a string' })
+  @IsNotEmpty({ message: 'refresh_token cannot be empty' })
+  refresh_token?: string;
+}
+
+/**
+ * Response shape for `POST /oauth/refresh` — mirrors
+ * {@link AuthenticateUserResponseDto} but the body is the authoritative
+ * source for non-browser clients (the cookie is set as a side effect).
+ */
+export class RefreshTokenResponseDto {
+  @IsString()
+  @IsNotEmpty()
+  access_token!: string;
+
+  @IsEnum(['Bearer'], { message: 'token_type must be Bearer' })
+  token_type!: 'Bearer';
+
+  @IsInt()
+  @Min(1)
+  expires_in!: number;
+
+  /** Rotated refresh token (a new value is issued on every refresh). */
+  @IsString()
+  @IsNotEmpty()
+  refresh_token!: string;
+
+  @IsInt()
+  @Min(1)
+  refresh_expires_in!: number;
 }
 
 export type UserRoleType = keyof typeof UserRole;

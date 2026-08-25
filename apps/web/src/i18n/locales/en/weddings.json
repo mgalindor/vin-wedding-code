@@ -198,6 +198,57 @@
       "contactsSubtitle": "Wedding planner contacts, vendors, and key people for the event.",
       "contactsComingIn": "Coming in a future iteration"
     },
+    "locationsEditor": {
+      "cardTitle": "Locations",
+      "subtitle": "Each event can take place at a different venue, on the same or different days. Add as many locations as the wedding requires.",
+      "emptyHint": "Add the first venue to populate the \"Where & When\" section on the invitation.",
+      "addButton": "Add Location",
+      "fields": {
+        "type": "Type",
+        "venueName": "Venue name",
+        "venueNamePlaceholder": "e.g. Parroquia de San Francisco",
+        "address": "Address",
+        "addressPlaceholder": "Street and number",
+        "city": "City",
+        "cityPlaceholder": "e.g. CDMX",
+        "eventDate": "Date",
+        "startTime": "Start time",
+        "startTimePlaceholder": "HH:mm",
+        "mapLink": "Google Maps Link",
+        "mapLinkPlaceholder": "https://maps.google.com/?q=…",
+        "notes": "Notes (optional)",
+        "notesPlaceholder": "Any detail the guests should know (parking, dress code, etc.)"
+      },
+      "typeOptions": {
+        "civil_ceremony": "Civil Ceremony",
+        "religious_ceremony": "Religious Ceremony",
+        "reception": "Reception",
+        "after_party": "After Party",
+        "next_day_brunch": "Next Day Brunch",
+        "other": "Other"
+      },
+      "actions": {
+        "save": "Save locations",
+        "saving": "Saving…",
+        "remove": "Remove location",
+        "moveUp": "Move location up",
+        "moveDown": "Move location down"
+      },
+      "status": {
+        "saving": "Saving…",
+        "saved": "✓ Saved",
+        "savedN_one": "✓ 1 location",
+        "savedN_other": "✓ {{count}} locations",
+        "inProgress": "⚠ Unsaved changes",
+        "saveFailed": "Save failed — try again"
+      },
+      "errors": {
+        "requiredRow": "Location {{index}}: please fill in every required field.",
+        "maxLength": "This value is too long",
+        "invalidUrl": "Use a valid http(s) URL",
+        "saveFailed": "We couldn't save the locations. Please try again in a moment."
+      }
+    },
     "guests": {
       "title": "Guests",
       "comingIn": "Coming in US-015",

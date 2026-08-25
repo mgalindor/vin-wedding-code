@@ -8,6 +8,7 @@ import { useWeddingsService } from '../weddings.service';
 import { useWeddingForTab } from '../hooks/use-wedding-for-tab';
 
 import { DetailScreenShell } from './detail-screen-shell';
+import { LocationsCard } from './locations-card';
 import { WeddingDetailLayout } from './wedding-detail-layout';
 
 /**
@@ -113,12 +114,12 @@ export function WeddingDataScreen(): React.ReactElement {
               weddingId={weddingId}
             />
 
-            <PlaceholderSection
-              testId="wedding-data-locations"
-              title={t('detail.data.locations')}
-              subtitle={t('detail.data.locationsSubtitle')}
-              comingIn={t('detail.data.locationsComingIn')}
-            />
+            {/* US-014a: live locations editor replaces the
+                "Coming in US-022" placeholder. The card hides its
+                editing affordances when `status === 'archived'` (or
+                when the calling user's role is Administrator — the
+                FE mirrors the BE's read-only posture). */}
+            <LocationsCard wedding={w} />
 
             <PlaceholderSection
               testId="wedding-data-program"

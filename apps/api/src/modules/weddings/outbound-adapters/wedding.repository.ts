@@ -9,6 +9,7 @@ import {
   type NewWedding,
   type StatusFilter,
   type UpdateByIdArgs,
+  type UpdateLocationsArgs,
   type WeddingListFilter,
   type WeddingListOrderBy,
   type WeddingListRepositoryPort,
@@ -37,6 +38,10 @@ export class WeddingRepository implements WeddingListRepositoryPort {
         status: input.status,
         created_by_user_id: input.createdByUserId,
         updated_by_user_id: input.updatedByUserId,
+        // US-014a: the column defaults to `'[]'::jsonb` on the DB so
+        // this field is optional on insert — explicit empty array
+        // keeps the row projection consistent with the mapper.
+        locations: [],
       },
     });
     return toWeddingDto(row);
@@ -150,6 +155,31 @@ export class WeddingRepository implements WeddingListRepositoryPort {
     return row ? toWeddingDto(row) : null;
   }
 
+  // US-014a: replace the `locations` JSONB column with the full
+  // ordered array the caller submitted. Uses the same
+  // updateMany → findUnique dance as `updateById` so the scope
+  // collapses existence + authorization into the same null return.
+  async updateLocations(args: UpdateLocationsArgs): Promise<WeddingDto | null> {
+    const result = await this.prisma.weddings.updateMany({
+      where: {
+        id: args.id,
+        ...toScopeWhere(args.scope),
+      },
+      data: {
+        locations: args.locations as unknown as Prisma.InputJsonValue,
+        updated_by_user_id: args.updatedByUserId,
+        updated_at: args.updatedAt,
+      },
+    });
+    if (result.count === 0) return null;
+
+    const row = await this.prisma.weddings.findUnique({
+      where: { id: args.id },
+      select: this.rowFields,
+    });
+    return row ? toWeddingDto(row) : null;
+  }
+
   private readonly rowFields = {
     id: true,
     tenant_id: true,
@@ -165,6 +195,9 @@ export class WeddingRepository implements WeddingListRepositoryPort {
     created_by_user_id: true,
     updated_at: true,
     updated_by_user_id: true,
+    // US-014a: the JSONB column projected into the mapper. The
+    // mapper defensively validates the array via class-validator.
+    locations: true,
   } as const;
 }
 

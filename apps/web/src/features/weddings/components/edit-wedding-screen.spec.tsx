@@ -57,6 +57,8 @@ const sampleWedding: WeddingDto = {
   createdByUserId: 'wp-1' as WeddingDto['createdByUserId'],
   updatedAt: '2026-08-19T12:00:00.000Z',
   updatedByUserId: 'wp-1' as WeddingDto['createdByUserId'],
+  // US-014a: empty locations list.
+  locations: [],
 };
 
 function buildService(overrides: Partial<{
