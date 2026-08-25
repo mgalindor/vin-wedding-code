@@ -21,11 +21,49 @@ export type AuthAction =
       type: 'LOGOUT';
     };
 
-const initialState: AuthState = {
+const emptyState: AuthState = {
   isAuthenticated: false,
   accessToken: null,
   user: null,
 };
+
+/** Hydrate from localStorage so a page refresh doesn't clear the session. */
+function hydrateFromStorage(): AuthState {
+  if (typeof window === 'undefined') return emptyState;
+  try {
+    const token = window.localStorage.getItem('__wendy_jwt__');
+    if (!token) return emptyState;
+
+    const parts = token.split('.');
+    if (parts.length !== 3) return emptyState;
+    const payload = parts[1]!.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+    const claims = JSON.parse(atob(padded)) as Record<string, unknown>;
+
+    const { sub, role, tenantId, fullName, email, exp } = claims;
+    if (!sub || !role || !tenantId || !fullName || !email) return emptyState;
+
+    // Discard expired tokens
+    if (exp && typeof exp === 'number' && Date.now() / 1000 > exp) {
+      window.localStorage.removeItem('__wendy_jwt__');
+      return emptyState;
+    }
+
+    return {
+      isAuthenticated: true,
+      accessToken: token,
+      user: {
+        id: sub as UserProfileDto['id'],
+        fullName: fullName as string,
+        email: email as string,
+        role: role as UserProfileDto['role'],
+        tenantId: tenantId as UserProfileDto['tenantId'],
+      },
+    };
+  } catch {
+    return emptyState;
+  }
+}
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
@@ -36,7 +74,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         user: action.payload.user,
       };
     case 'LOGOUT':
-      return initialState;
+      return emptyState;
     default:
       return state;
   }
@@ -56,7 +94,7 @@ export const AuthContext = createContext<{
 } | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(authReducer, initialState);
+  const [state, dispatch] = useReducer(authReducer, undefined, hydrateFromStorage);
 
   return (
     <AuthContext.Provider value={{ state, dispatch }}>
