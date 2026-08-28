@@ -1,7 +1,7 @@
 package com.vineyards.deerPlanner.invitation.inbound;
 
-import com.vineyards.deerPlanner.events.facade.EventApi;
-import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
+import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigFacade;
 import com.vineyards.deerPlanner.invitation.facade.dto.EventInvitationConfigDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.UpdateInvitationConfigDto;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticator;
@@ -42,8 +42,8 @@ class Ctrl006EventInvitationConfigControllerSliceTest {
 
     @Autowired MockMvc mvc;
 
-    @MockitoBean EventInvitationConfigApi configApi;
-    @MockitoBean EventApi eventApi;
+    @MockitoBean EventInvitationConfigFacade configApi;
+    @MockitoBean EventFacade eventApi;
     @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
     @MockitoBean JwtAuthenticator jwtAuthenticator;
     @MockitoBean JwtDecoder jwtDecoder;
@@ -136,7 +136,7 @@ class Ctrl006EventInvitationConfigControllerSliceTest {
     @Test
     void getInvitationConfig_returns404ProblemDetail_whenEventMissing() throws Exception {
         when(configApi.getInvitationConfig(eq("missing"), eq(ORGANIZER_ID)))
-            .thenThrow(new com.vineyards.deerPlanner.events.domain.EventNotFoundException("missing"));
+            .thenThrow(new com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError("event_not_found", "Event missing not found"));
 
         mvc.perform(get("/api/v1/events/{id}/invitation-config", "missing")
                 .with(authorizedUser()))

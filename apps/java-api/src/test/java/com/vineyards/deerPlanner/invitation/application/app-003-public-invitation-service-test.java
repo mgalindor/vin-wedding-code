@@ -1,13 +1,13 @@
 package com.vineyards.deerPlanner.invitation.application;
 
 import com.vineyards.deerPlanner.events.domain.EventStatus;
-import com.vineyards.deerPlanner.events.facade.EventApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.domain.EventType;
 import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigRepository;
 import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateRepository;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
-import com.vineyards.deerPlanner.invitation.domain.InvitationNotFoundException;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.invitation.domain.InvitationTemplate;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicInvitationDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpRequestDto;
@@ -34,7 +34,7 @@ class App003PublicInvitationServiceTest {
 
     @Mock EventInvitationConfigRepository configRepository;
     @Mock InvitationTemplateRepository templateRepository;
-    @Mock EventApi eventApi;
+    @Mock EventFacade eventApi;
 
     @InjectMocks PublicInvitationService service;
 
@@ -87,7 +87,7 @@ class App003PublicInvitationServiceTest {
         when(configRepository.findBySlug(SLUG)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.getBySlug(SLUG))
-            .isInstanceOf(InvitationNotFoundException.class)
+            .isInstanceOf(ResourceNotFoundError.class)
             .hasMessageContaining(SLUG);
     }
 

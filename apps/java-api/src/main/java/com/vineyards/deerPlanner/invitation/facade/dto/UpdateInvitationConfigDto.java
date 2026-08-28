@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 /**
- * Anything null is left untouched (blueprint §5 partial updates).
+ * Anything null is left untouched.
  *
  * <p>The {@code slug} field is what becomes the public URL identifier ({@code /invitations/{slug}}).
  * It must be lowercase kebab-case and unique across the platform — uniqueness is enforced

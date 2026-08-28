@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vineyards.deerPlanner.events.application.port.EventRepository;
 import com.vineyards.deerPlanner.events.domain.Event;
-import com.vineyards.deerPlanner.events.domain.EventNotFoundException;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
@@ -126,7 +126,7 @@ class App002EventServiceTest {
             when(repository.findById(EVENT_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.getEvent(EVENT_ID, ORGANIZER_ID))
-                .isInstanceOf(EventNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundError.class)
                 .hasMessageContaining(EVENT_ID);
         }
 

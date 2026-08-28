@@ -1,8 +1,8 @@
 package com.vineyards.deerPlanner.guests.inbound;
 
-import com.vineyards.deerPlanner.events.facade.EventApi;
-import com.vineyards.deerPlanner.guests.domain.GuestNotFoundException;
-import com.vineyards.deerPlanner.guests.facade.GuestApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
+import com.vineyards.deerPlanner.guests.facade.GuestFacade;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
@@ -50,8 +50,8 @@ class Ctrl008GuestsControllerSliceTest {
 
     @Autowired MockMvc mvc;
 
-    @MockitoBean GuestApi guestApi;
-    @MockitoBean EventApi eventApi;
+    @MockitoBean GuestFacade guestApi;
+    @MockitoBean EventFacade eventApi;
     @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
     @MockitoBean JwtAuthenticator jwtAuthenticator;
     @MockitoBean JwtDecoder jwtDecoder;
@@ -103,7 +103,7 @@ class Ctrl008GuestsControllerSliceTest {
     @Test
     void getGuest_returns404_whenGuestMissing() throws Exception {
         when(guestApi.getGuest(eq("missing"), eq(ORGANIZER_ID)))
-            .thenThrow(new GuestNotFoundException("missing"));
+            .thenThrow(new ResourceNotFoundError("guest_not_found", "Guest missing not found"));
 
         mvc.perform(get("/api/v1/events/{eid}/guests/{gid}", EVENT_ID, "missing")
                 .with(authorizedUser()))

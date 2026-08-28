@@ -2,7 +2,7 @@ package com.vineyards.deerPlanner.invitation.application;
 
 import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateRepository;
 import com.vineyards.deerPlanner.invitation.domain.InvitationTemplate;
-import com.vineyards.deerPlanner.invitation.facade.InvitationTemplateApi;
+import com.vineyards.deerPlanner.invitation.facade.InvitationTemplateFacade;
 import com.vineyards.deerPlanner.invitation.facade.dto.InvitationTemplateDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.ListInvitationTemplatesResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class InvitationTemplateService implements InvitationTemplateApi {
+public class InvitationTemplateService implements InvitationTemplateFacade {
 
     private final InvitationTemplateRepository repository;
 

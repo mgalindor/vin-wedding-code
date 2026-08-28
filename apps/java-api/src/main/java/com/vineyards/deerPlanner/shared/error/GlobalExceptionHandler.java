@@ -161,9 +161,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundError.class)
     protected ProblemDetail onResourceNotFound(ResourceNotFoundError ex, WebRequest request) {
-        return createProblemDetail(
-            ex, HttpStatus.NOT_FOUND, ex.getMessage(), ex.getMessage(),
-            ex.getDetailMessageArguments(), request);
+        ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        body.setTitle("Resource not found");
+        body.setProperty("code", ex.getCode());
+        return body;
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)

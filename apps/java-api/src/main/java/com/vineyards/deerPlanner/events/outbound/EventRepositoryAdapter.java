@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * Adapts the {@link EventRepository} port to PostgreSQL via two JPA repositories:
  * {@code events} (shared columns) and {@code wedding_events} (1:1 detail). The 1:1 read
- * is composed in Java (no Hibernate relationships) per blueprint §8 — keeps the entity model
+ * is composed in Java (no Hibernate relationships) to keep the entity model
  * explicit and avoids lazy-init traps on the secondary side.
  */
 @Component

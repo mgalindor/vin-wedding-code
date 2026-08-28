@@ -15,7 +15,7 @@ import org.jmolecules.architecture.hexagonal.PrimaryPort;
  * com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigRepository#existsBySlug}).
  */
 @PrimaryPort
-public interface PublicInvitationApi {
+public interface PublicInvitationFacade {
 
     PublicInvitationDto getBySlug(String slug);
 

@@ -6,8 +6,8 @@ import com.vineyards.deerPlanner.events.application.port.EventRepository;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
-import com.vineyards.deerPlanner.events.domain.EventNotFoundException;
-import com.vineyards.deerPlanner.events.facade.EventApi;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
@@ -49,7 +49,7 @@ import java.util.UUID;
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class EventService implements EventApi {
+public class EventService implements EventFacade {
 
     private final EventRepository repository;
     private final ObjectMapper objectMapper;
@@ -242,7 +242,7 @@ public class EventService implements EventApi {
 
     private Event loadOwnedEvent(String eventId, String actorUserId) {
         Event event = repository.findById(eventId)
-            .orElseThrow(() -> new EventNotFoundException(eventId));
+            .orElseThrow(() -> new ResourceNotFoundError("event_not_found", "Event " + eventId + " not found"));
         if (!event.organizerId().equals(actorUserId)) {
             throw new BusinessError("not_event_owner",
                 "Actor " + actorUserId + " is not the organiser of event " + eventId);

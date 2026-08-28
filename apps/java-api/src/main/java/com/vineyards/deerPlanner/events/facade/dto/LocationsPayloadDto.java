@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 /**
- * {@code locations_payload} (target-data-model §4.9). Always wrapped at the root.
+ * {@code locations_payload}. Always wrapped at the root.
  */
 public record LocationsPayloadDto(
     @NotNull

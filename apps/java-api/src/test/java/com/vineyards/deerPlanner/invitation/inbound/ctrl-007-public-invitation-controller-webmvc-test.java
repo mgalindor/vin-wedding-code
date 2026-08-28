@@ -1,8 +1,8 @@
 package com.vineyards.deerPlanner.invitation.inbound;
 
-import com.vineyards.deerPlanner.events.facade.EventApi;
-import com.vineyards.deerPlanner.invitation.domain.InvitationNotFoundException;
-import com.vineyards.deerPlanner.invitation.facade.PublicInvitationApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
+import com.vineyards.deerPlanner.invitation.facade.PublicInvitationFacade;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicInvitationDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpRequestDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpResponseDto;
@@ -33,9 +33,9 @@ class Ctrl007PublicInvitationControllerSliceTest {
 
     @Autowired MockMvc mvc;
 
-    @MockitoBean PublicInvitationApi publicInvitationApi;
+    @MockitoBean PublicInvitationFacade publicInvitationApi;
     // Required by the web slice so the controller's declared dependencies resolve.
-    @MockitoBean EventApi eventApi;
+    @MockitoBean EventFacade eventApi;
     // Neutralise the shared security beans so the context can load without the full
     // JWT stack. PublicInvitationController is permitAll() in production; the slice
     // mirrors that by skipping the filter chain.
@@ -60,7 +60,7 @@ class Ctrl007PublicInvitationControllerSliceTest {
     @Test
     void getPublicInvitation_returns404_whenSlugUnknown() throws Exception {
         when(publicInvitationApi.getBySlug(eq("missing-slug")))
-            .thenThrow(new InvitationNotFoundException("missing-slug"));
+            .thenThrow(new ResourceNotFoundError("invitation_not_found", "Invitation missing-slug not found"));
 
         mvc.perform(get("/api/v1/public/invitations/{slug}", "missing-slug"))
             .andExpect(status().isNotFound())

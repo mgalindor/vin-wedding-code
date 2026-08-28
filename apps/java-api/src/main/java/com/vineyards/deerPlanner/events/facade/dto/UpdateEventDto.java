@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 /**
- * Anything null is left untouched. Use this for partial updates (blueprint §5).
+ * Anything null is left untouched. Use this for partial updates.
  */
 public record UpdateEventDto(
     @Size(max = 180)

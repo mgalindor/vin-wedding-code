@@ -1,9 +1,9 @@
 package com.vineyards.deerPlanner.events.inbound;
 
-import com.vineyards.deerPlanner.events.domain.EventNotFoundException;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
-import com.vineyards.deerPlanner.events.facade.EventApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
@@ -54,7 +54,7 @@ class Ctrl004EventControllerSliceTest {
 
     @Autowired MockMvc mvc;
 
-    @MockitoBean EventApi eventApi;
+    @MockitoBean EventFacade eventApi;
     @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
     @MockitoBean JwtAuthenticator jwtAuthenticator;
     @MockitoBean JwtDecoder jwtDecoder;
@@ -134,7 +134,7 @@ class Ctrl004EventControllerSliceTest {
     @Test
     void getEventById_returns404ProblemDetail_whenEventMissing() throws Exception {
         when(eventApi.getEvent(eq("missing"), eq(ORGANIZER_ID)))
-            .thenThrow(new EventNotFoundException("missing"));
+            .thenThrow(new ResourceNotFoundError("event_not_found", "Event missing not found"));
 
         mvc.perform(get("/api/v1/events/{id}", "missing").with(authorizedUser()))
             .andExpect(status().isNotFound())

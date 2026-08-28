@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * Anything null is left untouched (blueprint §5 partial updates).
+ * Anything null is left untouched.
  */
 public record UpdateGuestGroupDto(
     @Size(max = 180) String name,

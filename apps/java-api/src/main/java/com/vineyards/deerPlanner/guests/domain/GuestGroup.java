@@ -5,7 +5,7 @@ import java.util.Optional;
 
 /**
  * A group of guests within an event. The {@code invitationToken} is the per-group link
- * the Organizer shares (target-data-model GL-004). Each group fans out to N {@link Guest}
+ * the Organizer shares. Each group fans out to N {@link Guest}
  * rows that hold the individual RSVP status.
  */
 public record GuestGroup(

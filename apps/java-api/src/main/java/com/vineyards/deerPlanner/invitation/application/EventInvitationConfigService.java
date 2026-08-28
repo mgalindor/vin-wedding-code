@@ -1,9 +1,9 @@
 package com.vineyards.deerPlanner.invitation.application;
 
-import com.vineyards.deerPlanner.events.facade.EventApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigRepository;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
-import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigApi;
+import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigFacade;
 import com.vineyards.deerPlanner.invitation.facade.dto.EventInvitationConfigDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.UpdateInvitationConfigDto;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
@@ -21,10 +21,10 @@ import java.util.Optional;
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class EventInvitationConfigService implements EventInvitationConfigApi {
+public class EventInvitationConfigService implements EventInvitationConfigFacade {
 
     private final EventInvitationConfigRepository repository;
-    private final EventApi eventApi;
+    private final EventFacade eventApi;
 
     @Override
     @Transactional(readOnly = true)

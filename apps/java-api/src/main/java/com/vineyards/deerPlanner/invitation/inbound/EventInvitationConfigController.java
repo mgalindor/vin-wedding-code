@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.invitation.inbound;
 
-import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigApi;
+import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigFacade;
 import com.vineyards.deerPlanner.invitation.facade.dto.EventInvitationConfigDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.UpdateInvitationConfigDto;
 import jakarta.validation.Valid;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EventInvitationConfigController {
 
-    private final EventInvitationConfigApi configApi;
+    private final EventInvitationConfigFacade configApi;
 
     @GetMapping
     public EventInvitationConfigDto get(

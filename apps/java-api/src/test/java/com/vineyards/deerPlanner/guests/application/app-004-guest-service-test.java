@@ -1,16 +1,14 @@
 package com.vineyards.deerPlanner.guests.application;
 
-import com.vineyards.deerPlanner.events.facade.EventApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
-import com.vineyards.deerPlanner.events.domain.EventNotFoundException;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
 import com.vineyards.deerPlanner.guests.application.port.GuestGroupRepository;
 import com.vineyards.deerPlanner.guests.application.port.GuestRepository;
 import com.vineyards.deerPlanner.guests.domain.Guest;
 import com.vineyards.deerPlanner.guests.domain.GuestGroup;
-import com.vineyards.deerPlanner.guests.domain.GuestGroupNotFoundException;
-import com.vineyards.deerPlanner.guests.domain.GuestNotFoundException;
 import com.vineyards.deerPlanner.guests.domain.GuestRelationship;
 import com.vineyards.deerPlanner.guests.domain.RsvpStatus;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
@@ -49,7 +47,7 @@ class App004GuestServiceTest {
 
     @Mock GuestGroupRepository groupRepository;
     @Mock GuestRepository guestRepository;
-    @Mock EventApi eventApi;
+    @Mock EventFacade eventApi;
 
     @InjectMocks GuestService service;
 
@@ -178,7 +176,7 @@ class App004GuestServiceTest {
             );
 
             assertThatThrownBy(() -> service.createGuest(EVENT_ID, dto, ORGANIZER_ID))
-                .isInstanceOf(GuestGroupNotFoundException.class);
+                .isInstanceOf(ResourceNotFoundError.class);
         }
 
         @Test
@@ -206,7 +204,7 @@ class App004GuestServiceTest {
             when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.getGuest(GUEST_ID, ORGANIZER_ID))
-                .isInstanceOf(GuestNotFoundException.class);
+                .isInstanceOf(ResourceNotFoundError.class);
         }
 
         @Test
@@ -228,10 +226,10 @@ class App004GuestServiceTest {
         @Test
         void listGuests_throwsEventNotFound_whenEventDoesNotExist() {
             when(eventApi.getEvent(eq(EVENT_ID), any(String.class)))
-                .thenThrow(new EventNotFoundException(EVENT_ID));
+                .thenThrow(new ResourceNotFoundError("event_not_found", "Event " + EVENT_ID + " not found"));
 
             assertThatThrownBy(() -> service.listGuests(EVENT_ID, ORGANIZER_ID))
-                .isInstanceOf(EventNotFoundException.class);
+                .isInstanceOf(ResourceNotFoundError.class);
         }
 
         @Test

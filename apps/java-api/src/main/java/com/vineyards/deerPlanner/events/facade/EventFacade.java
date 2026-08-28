@@ -30,11 +30,11 @@ import java.util.Optional;
  *       (EventOrganizer for owned events, Administrator for any event).</li>
  *   <li>Each method that depends on a caller identity receives the {@code actorUserId}
  *       explicitly so the application layer can verify ownership independent of HTTP
- *       context (always documented per blueprint §8).</li>
+ *       context (always passed explicitly for traceability).</li>
  * </ol>
  */
 @PrimaryPort
-public interface EventApi {
+public interface EventFacade {
 
     EventDto createEvent(CreateEventDto dto, String actorUserId);
 

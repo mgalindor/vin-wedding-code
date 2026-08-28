@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.invitation.inbound;
 
-import com.vineyards.deerPlanner.invitation.facade.InvitationTemplateApi;
+import com.vineyards.deerPlanner.invitation.facade.InvitationTemplateFacade;
 import com.vineyards.deerPlanner.invitation.facade.dto.ListInvitationTemplatesResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class InvitationTemplatesController {
 
-    private final InvitationTemplateApi templateApi;
+    private final InvitationTemplateFacade templateApi;
 
     @GetMapping
     public ListInvitationTemplatesResponse list(

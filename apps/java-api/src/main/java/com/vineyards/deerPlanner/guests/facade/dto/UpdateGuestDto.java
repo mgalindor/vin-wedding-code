@@ -3,7 +3,7 @@ package com.vineyards.deerPlanner.guests.facade.dto;
 import jakarta.validation.constraints.Size;
 
 /**
- * Anything null is left untouched (blueprint §5 partial updates).
+ * Anything null is left untouched.
  */
 public record UpdateGuestDto(
     @Size(max = 120) String firstName,

@@ -20,7 +20,7 @@ import java.util.List;
  * RSVP flow).
  */
 @PrimaryPort
-public interface GuestApi {
+public interface GuestFacade {
 
     // ----- Group operations -----
 

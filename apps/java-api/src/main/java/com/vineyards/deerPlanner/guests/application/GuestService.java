@@ -1,15 +1,14 @@
 package com.vineyards.deerPlanner.guests.application;
 
-import com.vineyards.deerPlanner.events.facade.EventApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.guests.application.port.GuestGroupRepository;
 import com.vineyards.deerPlanner.guests.application.port.GuestRepository;
 import com.vineyards.deerPlanner.guests.domain.Guest;
 import com.vineyards.deerPlanner.guests.domain.GuestGroup;
-import com.vineyards.deerPlanner.guests.domain.GuestGroupNotFoundException;
-import com.vineyards.deerPlanner.guests.domain.GuestNotFoundException;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.guests.domain.GuestRelationship;
 import com.vineyards.deerPlanner.guests.domain.RsvpStatus;
-import com.vineyards.deerPlanner.guests.facade.GuestApi;
+import com.vineyards.deerPlanner.guests.facade.GuestFacade;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
@@ -34,11 +33,11 @@ import java.util.UUID;
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class GuestService implements GuestApi {
+public class GuestService implements GuestFacade {
 
     private final GuestGroupRepository groupRepository;
     private final GuestRepository guestRepository;
-    private final EventApi eventApi;
+    private final EventFacade eventApi;
 
     // ============== Groups ==============
 
@@ -55,7 +54,7 @@ public class GuestService implements GuestApi {
     @Transactional(readOnly = true)
     public GuestGroupDto getGroup(String groupId, String actorUserId) {
         GuestGroup group = groupRepository.findById(groupId)
-            .orElseThrow(() -> new GuestGroupNotFoundException(groupId));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_group_not_found", "Guest group " + groupId + " not found"));
         eventApi.getEvent(group.eventId(), actorUserId);
         return toDto(group);
     }
@@ -86,7 +85,7 @@ public class GuestService implements GuestApi {
     @Transactional
     public GuestGroupDto updateGroup(String groupId, UpdateGuestGroupDto dto, String actorUserId) {
         GuestGroup current = groupRepository.findById(groupId)
-            .orElseThrow(() -> new GuestGroupNotFoundException(groupId));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_group_not_found", "Guest group " + groupId + " not found"));
         eventApi.getEvent(current.eventId(), actorUserId);
         GuestGroup updated = applyGroupPatch(current, dto);
         return toDto(groupRepository.save(updated));
@@ -96,7 +95,7 @@ public class GuestService implements GuestApi {
     @Transactional
     public void deleteGroup(String groupId, String actorUserId) {
         GuestGroup current = groupRepository.findById(groupId)
-            .orElseThrow(() -> new GuestGroupNotFoundException(groupId));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_group_not_found", "Guest group " + groupId + " not found"));
         eventApi.getEvent(current.eventId(), actorUserId);
         // guests FK has deleteCascade — group children go with it.
         groupRepository.deleteById(groupId);
@@ -107,7 +106,7 @@ public class GuestService implements GuestApi {
     @Transactional
     public GuestGroupDto regenerateGroupToken(String groupId, String actorUserId) {
         GuestGroup current = groupRepository.findById(groupId)
-            .orElseThrow(() -> new GuestGroupNotFoundException(groupId));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_group_not_found", "Guest group " + groupId + " not found"));
         eventApi.getEvent(current.eventId(), actorUserId);
         String newToken = UUID.randomUUID().toString();
         GuestGroup saved = groupRepository.save(current.withToken(newToken));
@@ -135,7 +134,7 @@ public class GuestService implements GuestApi {
     @Transactional(readOnly = true)
     public GuestDto getGuest(String guestId, String actorUserId) {
         Guest guest = guestRepository.findById(guestId)
-            .orElseThrow(() -> new GuestNotFoundException(guestId));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_not_found", "Guest " + guestId + " not found"));
         verifyGuestOwnership(guest.groupId(), actorUserId);
         return toDto(guest);
     }
@@ -145,7 +144,7 @@ public class GuestService implements GuestApi {
     public GuestDto createGuest(String eventId, CreateGuestDto dto, String actorUserId) {
         eventApi.getEvent(eventId, actorUserId);
         groupRepository.findById(dto.groupId())
-            .orElseThrow(() -> new GuestGroupNotFoundException(dto.groupId()));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_group_not_found", "Guest group " + dto.groupId() + " not found"));
         String newId = UUID.randomUUID().toString();
         String token = UUID.randomUUID().toString();
         boolean primary = Boolean.TRUE.equals(dto.primary());
@@ -167,7 +166,7 @@ public class GuestService implements GuestApi {
     @Transactional
     public GuestDto updateGuest(String guestId, UpdateGuestDto dto, String actorUserId) {
         Guest current = guestRepository.findById(guestId)
-            .orElseThrow(() -> new GuestNotFoundException(guestId));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_not_found", "Guest " + guestId + " not found"));
         verifyGuestOwnership(current.groupId(), actorUserId);
         Guest updated = applyGuestPatch(current, dto);
         return toDto(guestRepository.save(updated));
@@ -177,7 +176,7 @@ public class GuestService implements GuestApi {
     @Transactional
     public void deleteGuest(String guestId, String actorUserId) {
         Guest current = guestRepository.findById(guestId)
-            .orElseThrow(() -> new GuestNotFoundException(guestId));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_not_found", "Guest " + guestId + " not found"));
         verifyGuestOwnership(current.groupId(), actorUserId);
         guestRepository.deleteById(guestId);
         log.info("guest.deleted guestId={} actorUserId={}", guestId, actorUserId);
@@ -200,7 +199,7 @@ public class GuestService implements GuestApi {
 
     private void verifyGuestOwnership(String groupId, String actorUserId) {
         GuestGroup group = groupRepository.findById(groupId)
-            .orElseThrow(() -> new GuestGroupNotFoundException(groupId));
+            .orElseThrow(() -> new ResourceNotFoundError("guest_group_not_found", "Guest group " + groupId + " not found"));
         eventApi.getEvent(group.eventId(), actorUserId);
     }
 

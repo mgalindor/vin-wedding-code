@@ -2,7 +2,7 @@ package com.vineyards.deerPlanner.events.inbound;
 
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
-import com.vineyards.deerPlanner.events.facade.EventApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
@@ -49,7 +49,7 @@ class Ctrl005EventPayloadControllerSliceTest {
 
     @Autowired MockMvc mvc;
 
-    @MockitoBean EventApi eventApi;
+    @MockitoBean EventFacade eventApi;
     @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
     @MockitoBean JwtAuthenticator jwtAuthenticator;
     @MockitoBean JwtDecoder jwtDecoder;
@@ -88,7 +88,7 @@ class Ctrl005EventPayloadControllerSliceTest {
     }
 
     @Test
-    void putLocations_returns200_andPassesPayloadToEventApi() throws Exception {
+    void putLocations_returns200_andPassesPayloadToEventFacade() throws Exception {
         when(eventApi.updateLocations(eq("evt-1"), any(LocationsPayloadDto.class), eq(ORGANIZER_ID)))
             .thenReturn(minimalDto());
 

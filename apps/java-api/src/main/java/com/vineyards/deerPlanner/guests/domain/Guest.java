@@ -6,7 +6,7 @@ import java.util.Optional;
 /**
  * Individual guest. The {@code rsvpStatus} starts as {@code pending} and updates when the
  * guest (or the Organizer on their behalf) confirms attendance. The {@code invitationToken}
- * is a per-guest link used by the partial-RSVP path (target-data-model GL-006).
+ * is a per-guest link used by the partial-RSVP path.
  */
 public record Guest(
     String id,

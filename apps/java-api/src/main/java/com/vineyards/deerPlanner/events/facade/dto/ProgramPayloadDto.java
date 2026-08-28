@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * {@code program_payload} (target-data-model §4.8). One day for single-day events, multiple
+ * {@code program_payload}. One day for single-day events, multiple
  * for multi-day.
  */
 public record ProgramPayloadDto(

@@ -1,8 +1,8 @@
 package com.vineyards.deerPlanner.guests.inbound;
 
-import com.vineyards.deerPlanner.events.facade.EventApi;
-import com.vineyards.deerPlanner.guests.domain.GuestGroupNotFoundException;
-import com.vineyards.deerPlanner.guests.facade.GuestApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
+import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
+import com.vineyards.deerPlanner.guests.facade.GuestFacade;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestGroupsResponse;
@@ -52,8 +52,8 @@ class Ctrl008GuestGroupsControllerSliceTest {
 
     @Autowired MockMvc mvc;
 
-    @MockitoBean GuestApi guestApi;
-    @MockitoBean EventApi eventApi;
+    @MockitoBean GuestFacade guestApi;
+    @MockitoBean EventFacade eventApi;
     @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
     @MockitoBean JwtAuthenticator jwtAuthenticator;
     @MockitoBean JwtDecoder jwtDecoder;
@@ -104,7 +104,7 @@ class Ctrl008GuestGroupsControllerSliceTest {
     @Test
     void getGroup_returns404_whenGroupMissing() throws Exception {
         when(guestApi.getGroup(eq("missing"), eq(ORGANIZER_ID)))
-            .thenThrow(new GuestGroupNotFoundException("missing"));
+            .thenThrow(new ResourceNotFoundError("guest_group_not_found", "Guest group missing not found"));
 
         mvc.perform(get("/api/v1/events/{eid}/guest-groups/{gid}", EVENT_ID, "missing")
                 .with(authorizedUser()))

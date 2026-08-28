@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.invitation.inbound;
 
-import com.vineyards.deerPlanner.invitation.facade.PublicInvitationApi;
+import com.vineyards.deerPlanner.invitation.facade.PublicInvitationFacade;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicInvitationDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpRequestDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpResponseDto;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class PublicInvitationController {
 
-    private final PublicInvitationApi publicInvitationApi;
+    private final PublicInvitationFacade publicInvitationApi;
 
     @GetMapping("/{slug}")
     public PublicInvitationDto getBySlug(@PathVariable String slug) {

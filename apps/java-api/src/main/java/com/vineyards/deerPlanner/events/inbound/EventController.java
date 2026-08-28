@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.events.inbound;
 
-import com.vineyards.deerPlanner.events.facade.EventApi;
+import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.ListEventsResponse;
@@ -33,7 +33,7 @@ import java.net.URI;
  *
  * <p>Authorization: {@code EventOrganizer} role required (enforced via {@code @PreAuthorize}).
  * Ownership is checked inside the application layer by comparing the actor's userId against
- * the event's {@code organizerId}. This double check makes it safe to call {@link EventApi}
+ * the event's {@code organizerId}. This double check makes it safe to call {@link EventFacade}
  * from cross-module code paths that have already authenticated via Spring Security.
  */
 @RestController
@@ -44,7 +44,7 @@ import java.net.URI;
 @Slf4j
 public class EventController {
 
-    private final EventApi eventApi;
+    private final EventFacade eventApi;
 
     @PostMapping(consumes = "application/json")
     public ResponseEntity<EventDto> createEvent(

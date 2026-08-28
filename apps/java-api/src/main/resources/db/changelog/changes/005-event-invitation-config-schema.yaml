@@ -72,7 +72,7 @@ databaseChangeLog:
                     uniqueConstraintName: uk_event_invitation_config_slug
                   remarks: >
                     Slug legible para la URL pública. Ej: emma-james-2026. Acts as the
-                    public-access token (see PublicTokenFilter and PublicInvitationApi).
+                    public-access token (see PublicTokenFilter and PublicInvitationFacade).
                     The MVP holds at most one active slug per event; rotating it invalidates
                     any previously-shared link — a deliberate feature.
               - column:
