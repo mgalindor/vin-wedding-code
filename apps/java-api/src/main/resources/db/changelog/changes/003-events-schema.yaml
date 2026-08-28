@@ -1,0 +1,176 @@
+databaseChangeLog:
+  - comment: >
+      Events schema (target data model v2.1.0).
+      Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Event Management.
+      Creates events + wedding_events (1:1 inheritance) + the JSONB payloads partitioned by domain.
+      IDs stay UUID v4 (ADR-19 §Decision) — varchar(36), not varchar(21) like the target model declares.
+  - changeSet:
+      id: 003-events-create-events
+      author: deer-planner
+      labels: events, schema
+      changes:
+        - createTable:
+            tableName: events
+            remarks: >
+              Aggregate root for any event type. The discriminator column (event_type) picks the
+              1:1 detail table (wedding_events for now; birthday_events / anniversary_events /
+              other_events land in a follow-up changelog).
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: UUID v4 minted by the application.
+              - column:
+                  name: organizer_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_events_organizer
+                    references: users(id)
+                  remarks: Single organizer per event in MVP (ADR-07 simplified).
+              - column:
+                  name: event_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: 'Application-level enum: wedding | birthday | anniversary | other.'
+              - column:
+                  name: title
+                  type: varchar(180)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: 'Application-level enum: draft | published | archived.'
+              - column:
+                  name: locations_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: program_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: contacts_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: events
+            constraintName: ck_events_event_type
+            checkConstraint: "event_type IN ('wedding','birthday','anniversary','other')"
+        - addCheckConstraint:
+            tableName: events
+            constraintName: ck_events_status
+            checkConstraint: "status IN ('draft','published','archived')"
+        - createIndex:
+            tableName: events
+            indexName: idx_events_organizer_id
+            columns:
+              - column:
+                  name: organizer_id
+  - changeSet:
+      id: 003-events-create-wedding-events
+      author: deer-planner
+      labels: events, schema, wedding
+      changes:
+        - createTable:
+            tableName: wedding_events
+            remarks: >
+              Wedding-specific detail row. 1:1 with events via PK / FK on event_id.
+              Columns specific to wedding (partner1_name, partner2_name, countdown_enabled)
+              live here. Wedding-only payloads (landing, story, dress_code, gift_registry,
+              parents, accommodation) live here too.
+            columns:
+              - column:
+                  name: event_id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    foreignKeyName: fk_wedding_events_event
+                    references: events(id)
+                    deleteCascade: true
+              - column:
+                  name: partner1_name
+                  type: varchar(180)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: partner2_name
+                  type: varchar(180)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: countdown_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: landing_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: story_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: dress_code_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: gift_registry_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: parents_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: accommodation_payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+  - changeSet:
+      id: 003-events-ensure-updated-at-trigger
+      author: deer-planner
+      labels: events, schema, trigger
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              CREATE TRIGGER trg_events_set_updated_at
+              BEFORE UPDATE ON events
+              FOR EACH ROW
+              EXECUTE FUNCTION set_updated_at();

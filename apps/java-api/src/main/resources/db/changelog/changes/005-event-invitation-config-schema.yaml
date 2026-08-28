@@ -1,0 +1,101 @@
+databaseChangeLog:
+  - comment: >
+      Event invitation configuration (target data model v2.1.0).
+      Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Invitation Config.
+      One row per event (1:1 with events.id). The slug is the public URL identifier for
+      the invitation; it must be globally unique (the guest list introduces per-guest tokens
+      later, but the slug always identifies the event-level public view).
+  - changeSet:
+      id: 005-invitation-create-event-config
+      author: deer-planner
+      labels: invitation, schema
+      changes:
+        - createTable:
+            tableName: event_invitation_config
+            remarks: >
+              Per-event invitation configuration. Pre-publish defaults: is_active=false,
+              template_id=null (Organizer must pick a template before going live).
+            columns:
+              - column:
+                  name: event_id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    foreignKeyName: fk_event_invitation_config_event
+                    references: events(id)
+                    deleteCascade: true
+              - column:
+                  name: template_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_event_invitation_config_template
+                    references: invitation_templates(id)
+                  remarks: >
+                    Nullable until the Organizer picks a template. The MVC layer
+                    surfaces the catalogue via GET /invitation-templates.
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+                  remarks: Whether the invitation is reachable at /api/v1/public/invitations/{slug}.
+              - column:
+                  name: published_at
+                  type: timestamptz
+                  constraints:
+                    nullable: true
+              - column:
+                  name: deadline
+                  type: date
+                  constraints:
+                    nullable: true
+              - column:
+                  name: rsvp_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rsvp_deadline
+                  type: date
+                  constraints:
+                    nullable: true
+              - column:
+                  name: slug
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_event_invitation_config_slug
+                  remarks: >
+                    Slug legible para la URL pública. Ej: emma-james-2026. Acts as the
+                    public-access token (see PublicTokenFilter and PublicInvitationApi).
+                    The MVP holds at most one active slug per event; rotating it invalidates
+                    any previously-shared link — a deliberate feature.
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: event_invitation_config
+            indexName: idx_event_invitation_config_template
+            columns:
+              - column:
+                  name: template_id
+  - changeSet:
+      id: 005-invitation-ensure-updated-at-trigger
+      author: deer-planner
+      labels: invitation, schema, trigger
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              CREATE TRIGGER trg_event_invitation_config_set_updated_at
+              BEFORE UPDATE ON event_invitation_config
+              FOR EACH ROW
+              EXECUTE FUNCTION set_updated_at();

@@ -1,0 +1,170 @@
+databaseChangeLog:
+  - comment: >
+      Identity & Access schema (target data model v2.1.0).
+      Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Identity & Access.
+      Creates users and user_roles.
+      Multi-tenancy is OUT of MVP (simplification v2.1.0); no tenants table in this changelog.
+  - changeSet:
+      id: 001-identity-create-users
+      author: deer-planner
+      labels: identity, schema
+      changes:
+        - createTable:
+            tableName: users
+            remarks: >
+              Application users (Administrators and EventOrganizers).
+              Username format is enforced in the application: <slug>@deer
+              (e.g. admin@deer, miguel@deer). The DB only stores the string.
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: UUID v4 minted by the application. Target data model declared varchar(21); widened to varchar(36) per ADR-19 §Decision.
+              - column:
+                  name: username
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_users_username
+              - column:
+                  name: display_name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(254)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: phone
+                  type: varchar(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: password_hash
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: BCrypt cost 12 (ADR-05, ADR-19). 72 bytes is BCrypt's truncation limit.
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_login_at
+                  type: timestamptz
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: users
+            indexName: idx_users_is_active
+            columns:
+              - column:
+                  name: is_active
+        - createIndex:
+            tableName: users
+            indexName: idx_users_username_lower
+            columns:
+              - column:
+                  name: username
+                  remarks: Username lookups are case-insensitive in the application; this index supports the lower(username) lookup if the app decides to query that way.
+  - changeSet:
+      id: 001-identity-create-user-roles
+      author: deer-planner
+      labels: identity, schema
+      changes:
+        - createTable:
+            tableName: user_roles
+            remarks: >
+              Role assignments per user. A user can hold both Administrator and EventOrganizer
+              (mirrors the dual-role rule in the target data model).
+            columns:
+              - column:
+                  name: user_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_roles_user
+                    references: users(id)
+                    deleteCascade: true
+              - column:
+                  name: role
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+                  remarks: 'Application-level enum: Administrator | EventOrganizer. Stored as varchar to keep migrations vendor-neutral.'
+              - column:
+                  name: granted_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: user_roles
+            columnNames: user_id, role
+            constraintName: pk_user_roles
+        - createIndex:
+            tableName: user_roles
+            indexName: idx_user_roles_user_id
+            columns:
+              - column:
+                  name: user_id
+  - changeSet:
+      id: 001-identity-ensure-updated-at-trigger
+      author: deer-planner
+      labels: identity, schema
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              CREATE OR REPLACE FUNCTION set_updated_at()
+              RETURNS trigger AS $$
+              BEGIN
+                NEW.updated_at = now();
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+        - sql:
+            splitStatements: false
+            sql: >
+              CREATE TRIGGER trg_users_set_updated_at
+              BEFORE UPDATE ON users
+              FOR EACH ROW
+              EXECUTE FUNCTION set_updated_at();
+            remarks: >
+              Trigger keeps updated_at in sync without requiring the application to remember to set it.
+              Application-level @PreUpdate hooks remain the primary mechanism; this is a belt-and-suspenders safeguard.
+  - changeSet:
+      id: 001-identity-roles-check-constraint
+      author: deer-planner
+      labels: identity, schema
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              ALTER TABLE user_roles
+              ADD CONSTRAINT ck_user_roles_role
+              CHECK (role IN ('Administrator', 'EventOrganizer'));
+            remarks: >
+              Defense-in-depth check constraint at the DB layer. The application's enum
+              is the source of truth, but this prevents corrupt rows from an accidental
+              bulk insert during ops work.

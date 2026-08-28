@@ -1,0 +1,139 @@
+databaseChangeLog:
+  - comment: >
+      Guests schema (target data model v2.1.0).
+      Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Guest List.
+      Creates guests (1 group -> N guests). The rsvp_status is stored as a varchar for
+      future extensions (a partial RSVP would need finer-grained states per guest).
+  - changeSet:
+      id: 007-guests-create-guests
+      author: deer-planner
+      labels: guests, schema
+      changes:
+        - createTable:
+            tableName: guests
+            remarks: >
+              Individual guests within a group. Owns the per-guest RSVP status so the
+              invitation module can surface per-guest confirmation when the family
+              partial-RSVP endpoint lands.
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: group_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_guests_group
+                    references: guest_groups(id)
+                    deleteCascade: true
+              - column:
+                  name: first_name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(254)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: phone
+                  type: varchar(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: dietary_notes
+                  type: text
+                  constraints:
+                    nullable: true
+              - column:
+                  name: is_primary
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: invitation_token
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_guests_invitation_token
+              - column:
+                  name: rsvp_status
+                  type: varchar(20)
+                  defaultValueString: pending
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rsvp_confirmed_at
+                  type: timestamptz
+                  constraints:
+                    nullable: true
+              - column:
+                  name: rsvp_message
+                  type: text
+                  constraints:
+                    nullable: true
+              - column:
+                  name: rsvp_dietary_choice
+                  type: varchar(80)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: guests
+            constraintName: ck_guests_rsvp_status
+            checkConstraint: "rsvp_status IN ('pending','confirmed','declined')"
+        - createIndex:
+            tableName: guests
+            indexName: idx_guests_group_id
+            columns:
+              - column:
+                  name: group_id
+        - createIndex:
+            tableName: guests
+            indexName: idx_guests_rsvp_status
+            columns:
+              - column:
+                  name: rsvp_status
+        - createIndex:
+            tableName: guests
+            indexName: idx_guests_last_first
+            columns:
+              - column:
+                  name: last_name
+              - column:
+                  name: first_name
+  - changeSet:
+      id: 007-guests-ensure-updated-at-trigger
+      author: deer-planner
+      labels: guests, schema, trigger
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              CREATE TRIGGER trg_guests_set_updated_at
+              BEFORE UPDATE ON guests
+              FOR EACH ROW
+              EXECUTE FUNCTION set_updated_at();

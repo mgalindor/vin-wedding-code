@@ -1,0 +1,127 @@
+databaseChangeLog:
+  - comment: >
+      Guest groups schema (target data model v2.1.0).
+      Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Guest List.
+      Creates guest_groups (1 event -> N groups) with shared per-group contact info,
+      a unique invitation_token, and an optional FK to the primary guest (set lazily
+      after the guest row exists to break the cycle at insert time).
+  - changeSet:
+      id: 006-guests-create-guest-groups
+      author: deer-planner
+      labels: guests, schema
+      changes:
+        - createTable:
+            tableName: guest_groups
+            remarks: >
+              One row per group. The Organizer fills the group metadata (name, side,
+              relationship, shared email/phone) and guests fan out from this row.
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: event_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_guest_groups_event
+                    references: events(id)
+                    deleteCascade: true
+              - column:
+                  name: name
+                  type: varchar(180)
+                  constraints:
+                    nullable: false
+                  remarks: 'Header row in the UI. Ej: Familia Morales, Frank & Laura.'
+              - column:
+                  name: side
+                  type: varchar(80)
+                  constraints:
+                    nullable: true
+                  remarks: 'Etiqueta libre del lado/grupo. NULL permitido.'
+              - column:
+                  name: relationship
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: 'Application-level enum: family | friends | other.'
+              - column:
+                  name: shared_email
+                  type: varchar(254)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: shared_phone
+                  type: varchar(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: primary_guest_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_guest_groups_primary_guest
+                    references: guests(id)
+              - column:
+                  name: invitation_token
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_guest_groups_invitation_token
+                  remarks: UUID v4 minted by the application. Path: /i/{token}.
+              - column:
+                  name: display_order
+                  type: smallint
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: guest_groups
+            constraintName: ck_guest_groups_relationship
+            checkConstraint: "relationship IN ('family','friends','other')"
+        - createIndex:
+            tableName: guest_groups
+            indexName: idx_guest_groups_event_id
+            columns:
+              - column:
+                  name: event_id
+              - column:
+                  name: display_order
+        - createIndex:
+            tableName: guest_groups
+            indexName: idx_guest_groups_event_relationship
+            columns:
+              - column:
+                  name: event_id
+              - column:
+                  name: side
+              - column:
+                  name: relationship
+  - changeSet:
+      id: 006-guests-ensure-updated-at-trigger
+      author: deer-planner
+      labels: guests, schema, trigger
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              CREATE TRIGGER trg_guest_groups_set_updated_at
+              BEFORE UPDATE ON guest_groups
+              FOR EACH ROW
+              EXECUTE FUNCTION set_updated_at();

@@ -1,0 +1,135 @@
+databaseChangeLog:
+  - comment: >
+      Invitation templates catalogue (target data model v2.1.0).
+      Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Invitation Templates.
+      Stores the static catalogue of templates the Organizer picks when configuring
+      an event's invitation. The MVP seed must include at least 4 wedding + 3 birthday
+      + 2 corporate + 1 anniversary templates (ARC-024). Codes are stable identifiers so the
+      catalogue can be migrated without FK cascades.
+  - changeSet:
+      id: 004-invitation-create-templates
+      author: deer-planner
+      labels: invitation, schema
+      changes:
+        - createTable:
+            tableName: invitation_templates
+            remarks: >
+              Catalogue of invitation templates the Organizer picks per eventType.
+              Visibility (active/archived) is controlled by the is_active flag, not by
+              physical deletion — historical references must always resolve to a row.
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: UUID v4 minted by the application.
+              - column:
+                  name: code
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_invitation_templates_code
+              - column:
+                  name: event_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: display_order
+                  type: smallint
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: invitation_templates
+            constraintName: ck_invitation_templates_event_type
+            checkConstraint: "event_type IN ('wedding','birthday','anniversary','corporate','other')"
+        - createIndex:
+            tableName: invitation_templates
+            indexName: idx_invitation_templates_active
+            columns:
+              - column:
+                  name: event_type
+              - column:
+                  name: is_active
+              - column:
+                  name: display_order
+  - changeSet:
+      id: 004-invitation-templates-seed-mvp
+      author: deer-planner
+      labels: invitation, schema, seed
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              INSERT INTO invitation_templates
+                (id, code, event_type, name, description, is_active, display_order, created_at, updated_at)
+              VALUES
+                ('tpl-wedding-romantic-v1',   'wedding-romantic-v1',   'wedding',
+                 'Romantic Garden', 'Elegant garden wedding template with blush palette and serif headings.',
+                 true, 1, now(), now()),
+                ('tpl-wedding-classic-v1',    'wedding-classic-v1',    'wedding',
+                 'Classic Hall',    'Traditional church-and-hall wedding template with gold accents.',
+                 true, 2, now(), now()),
+                ('tpl-wedding-modern-v1',     'wedding-modern-v1',     'wedding',
+                 'Modern Minimal',  'Contemporary minimalist template with monospace headings.',
+                 true, 3, now(), now()),
+                ('tpl-wedding-beach-v1',      'wedding-beach-v1',      'wedding',
+                 'Beachside',       'Airy coastal template with sand-and-sea palette.',
+                 true, 4, now(), now()),
+                ('tpl-birthday-colorful-v1',  'birthday-colorful-v1',  'birthday',
+                 'Colorful Fiesta', 'Vibrant birthday template with balloons and confetti.',
+                 true, 1, now(), now()),
+                ('tpl-birthday-elegant-v1',   'birthday-elegant-v1',   'birthday',
+                 'Tea Party',       'Refined birthday template for an afternoon tea.',
+                 true, 2, now(), now()),
+                ('tpl-birthday-kid-v1',      'birthday-kid-v1',      'birthday',
+                 'Kids Carnival',   'Bright playful template for a children birthday.',
+                 true, 3, now(), now()),
+                ('tpl-anniversary-gold-v1',   'anniversary-gold-v1',   'anniversary',
+                 'Gold Jubilee',    'Golden-themed anniversary template.',
+                 true, 1, now(), now()),
+                ('tpl-corporate-conf-v1',    'corporate-conf-v1',    'corporate',
+                 'Conference',      'Professional conference invitation template.',
+                 true, 1, now(), now()),
+                ('tpl-corporate-launch-v1',  'corporate-launch-v1',  'corporate',
+                 'Product Launch',  'Sleek launch event template.',
+                 true, 2, now(), now()),
+                ('tpl-other-generic-v1',     'other-generic-v1',     'other',
+                 'Generic Event',   'Neutral template for any non-cataloged event type.',
+                 true, 1, now(), now());
+            remarks: >
+              ARC-024 minimum viable template catalogue (4 wedding + 3 birthday + 1 anniversary
+              + 2 corporate + 1 other). UUIDs are stable identifiers — they survive future
+              catalog migrations because application references are by `code`, not by `id`.
