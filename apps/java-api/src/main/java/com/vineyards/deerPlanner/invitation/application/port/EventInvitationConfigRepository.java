@@ -1,18 +1,17 @@
 package com.vineyards.deerPlanner.invitation.application.port;
 
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
-import org.jmolecules.architecture.hexagonal.SecondaryPort;
-
 import java.util.Optional;
+import org.jmolecules.architecture.hexagonal.SecondaryPort;
 
 @SecondaryPort
 public interface EventInvitationConfigRepository {
 
-    Optional<EventInvitationConfig> findByEventId(String eventId);
+  Optional<EventInvitationConfig> findByEventId(String eventId);
 
-    Optional<EventInvitationConfig> findBySlug(String slug);
+  Optional<EventInvitationConfig> findBySlug(String slug);
 
-    EventInvitationConfig save(EventInvitationConfig config);
+  EventInvitationConfig save(EventInvitationConfig config);
 
-    boolean existsBySlug(String slug);
+  boolean existsBySlug(String slug);
 }

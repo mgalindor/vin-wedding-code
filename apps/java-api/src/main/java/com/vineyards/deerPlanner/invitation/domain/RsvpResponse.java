@@ -1,19 +1,22 @@
 package com.vineyards.deerPlanner.invitation.domain;
 
-/**
- * Distinct from the model-level {@code rsvp_status} on guests. The public invitation endpoint
- * normalises to a small fixed response vocabulary ({@link #thankYou} or {@link #failed}) — the
- * detailed per-guest status lives in the {@code guests} bounded context and is not surfaced.
- */
-public record RsvpResponse(
-    String status,
-    String message
-) {
-    public static RsvpResponse thankYou() {
-        return new RsvpResponse("thankYou", "Gracias por confirmar tu asistencia.");
-    }
+import lombok.Builder;
+import lombok.Data;
 
-    public static RsvpResponse failed(String message) {
-        return new RsvpResponse("failed", message);
-    }
+@Data
+@Builder(toBuilder = true)
+public class RsvpResponse {
+  private String status;
+  private String message;
+
+  public static RsvpResponse thankYou() {
+    return RsvpResponse.builder()
+        .status("thankYou")
+        .message("Gracias por confirmar tu asistencia.")
+        .build();
+  }
+
+  public static RsvpResponse failed(String message) {
+    return RsvpResponse.builder().status("failed").message(message).build();
+  }
 }

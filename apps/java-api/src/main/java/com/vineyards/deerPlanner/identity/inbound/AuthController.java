@@ -21,23 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AuthController {
 
-    private final IdentityApi identityApi;
+  private final IdentityApi identityApi;
 
-    @PostMapping(path = "/token", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AuthenticateResponse> token(@Valid @RequestBody TokenBody body) {
-        AuthenticateResponse response = identityApi.authenticate(body.username(), body.password());
-        return ResponseEntity.ok(response);
-    }
+  @PostMapping(path = "/token", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<AuthenticateResponse> token(@Valid @RequestBody TokenBody body) {
+    AuthenticateResponse response = identityApi.authenticate(body.username(), body.password());
+    return ResponseEntity.ok(response);
+  }
 
-    public record TokenBody(
-        @NotBlank(message = "Only grant_type=password is supported")
-        String grantType,
-
-        @NotBlank(message = "Username is required")
-        String username,
-
-        @NotBlank(message = "Password is required")
-        String password
-    ) {
-    }
+  public record TokenBody(
+      @NotBlank(message = "Only grant_type=password is supported") String grantType,
+      @NotBlank(message = "Username is required") String username,
+      @NotBlank(message = "Password is required") String password) {}
 }

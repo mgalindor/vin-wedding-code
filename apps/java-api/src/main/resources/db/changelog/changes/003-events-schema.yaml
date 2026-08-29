@@ -3,7 +3,7 @@ databaseChangeLog:
       Events schema (target data model v2.1.0).
       Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Event Management.
       Creates events + wedding_events (1:1 inheritance) + the JSONB payloads partitioned by domain.
-      IDs stay UUID v4 (ADR-19 §Decision) — varchar(36), not varchar(21) like the target model declares.
+      IDs are XIDs (20 chars) from com.github.shamil:java-xid. No adapter-side defaults; the JPA entities mint them via @PrePersist when the domain object arrives without an id.
   - changeSet:
       id: 003-events-create-events
       author: deer-planner
@@ -18,14 +18,14 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     primaryKey: true
                     nullable: false
                   remarks: UUID v4 minted by the application.
               - column:
                   name: organizer_id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     nullable: false
                     foreignKeyName: fk_events_organizer
@@ -109,7 +109,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: event_id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     primaryKey: true
                     nullable: false

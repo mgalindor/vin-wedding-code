@@ -1,21 +1,20 @@
 package com.vineyards.deerPlanner.guests.application.port;
 
 import com.vineyards.deerPlanner.guests.domain.GuestGroup;
-import org.jmolecules.architecture.hexagonal.SecondaryPort;
-
 import java.util.List;
 import java.util.Optional;
+import org.jmolecules.architecture.hexagonal.SecondaryPort;
 
 @SecondaryPort
 public interface GuestGroupRepository {
 
-    GuestGroup save(GuestGroup group);
+  GuestGroup save(GuestGroup group);
 
-    Optional<GuestGroup> findById(String id);
+  Optional<GuestGroup> findById(String id);
 
-    List<GuestGroup> findByEventId(String eventId);
+  List<GuestGroup> findByEventId(String eventId);
 
-    void deleteById(String id);
+  void deleteById(String id);
 
-    boolean existsByInvitationToken(String token);
+  boolean existsByInvitationToken(String token);
 }

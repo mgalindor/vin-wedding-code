@@ -8,10 +8,9 @@ import org.jmolecules.archunit.JMoleculesArchitectureRules;
 
 @AnalyzeClasses(
     packages = "com.vineyards.deerPlanner",
-    importOptions = ImportOption.DoNotIncludeTests.class
-)
+    importOptions = ImportOption.DoNotIncludeTests.class)
 class Arch003HexagonalBoundariesTest {
 
-    @ArchTest
-    static final ArchRule hexagonalArchitecture = JMoleculesArchitectureRules.ensureHexagonal();
+  @ArchTest
+  static final ArchRule hexagonalArchitecture = JMoleculesArchitectureRules.ensureHexagonal();
 }

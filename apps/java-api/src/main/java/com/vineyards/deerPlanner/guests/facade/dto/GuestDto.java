@@ -17,6 +17,4 @@ public record GuestDto(
     String rsvpMessage,
     String rsvpDietaryChoice,
     OffsetDateTime createdAt,
-    OffsetDateTime updatedAt
-) {
-}
+    OffsetDateTime updatedAt) {}

@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Public invitation surface. No JWT — the {@code slug} IS the access token. The
- * {@code PublicTokenFilter} (in {@code shared/security/}) already validated the slug and
- * stored the resolved {@code eventId} in the request attributes if needed; this controller
- * reads the slug path variable directly and delegates validation to
- * {@link com.vineyards.deerPlanner.invitation.application.PublicInvitationService}.
+ * Public invitation surface. No JWT — the {@code slug} IS the access token. The {@code
+ * PublicTokenFilter} (in {@code shared/security/}) already validated the slug and stored the
+ * resolved {@code eventId} in the request attributes if needed; this controller reads the slug path
+ * variable directly and delegates validation to {@link
+ * com.vineyards.deerPlanner.invitation.application.PublicInvitationService}.
  */
 @RestController
 @RequestMapping(path = "/api/v1/public/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -30,18 +30,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class PublicInvitationController {
 
-    private final PublicInvitationFacade publicInvitationApi;
+  private final PublicInvitationFacade publicInvitationApi;
 
-    @GetMapping("/{slug}")
-    public PublicInvitationDto getBySlug(@PathVariable String slug) {
-        return publicInvitationApi.getBySlug(slug);
-    }
+  @GetMapping("/{slug}")
+  public PublicInvitationDto getBySlug(@PathVariable String slug) {
+    return publicInvitationApi.getBySlug(slug);
+  }
 
-    @PostMapping(path = "/{slug}/rsvp", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public PublicRsvpResponseDto submitRsvp(
-        @PathVariable String slug,
-        @Valid @RequestBody PublicRsvpRequestDto body
-    ) {
-        return publicInvitationApi.submitRsvp(slug, body);
-    }
+  @PostMapping(path = "/{slug}/rsvp", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public PublicRsvpResponseDto submitRsvp(
+      @PathVariable String slug, @Valid @RequestBody PublicRsvpRequestDto body) {
+    return publicInvitationApi.submitRsvp(slug, body);
+  }
 }

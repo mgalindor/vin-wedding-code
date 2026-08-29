@@ -5,5 +5,4 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(com.vineyards.deerPlanner.shared.config.JwtProperties.class)
-public class SharedConfig {
-}
+public class SharedConfig {}

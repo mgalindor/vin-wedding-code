@@ -10,18 +10,18 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class BcryptPasswordEncoderAdapter implements PasswordEncoderPort {
 
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+  private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-    @Override
-    public boolean matches(String rawPassword, String storedHash) {
-        if (rawPassword == null || storedHash == null) {
-            return false;
-        }
-        return encoder.matches(rawPassword, storedHash);
+  @Override
+  public boolean matches(String rawPassword, String storedHash) {
+    if (rawPassword == null || storedHash == null) {
+      return false;
     }
+    return encoder.matches(rawPassword, storedHash);
+  }
 
-    @Override
-    public String hash(String rawPassword) {
-        return encoder.encode(rawPassword);
-    }
+  @Override
+  public String hash(String rawPassword) {
+    return encoder.encode(rawPassword);
+  }
 }

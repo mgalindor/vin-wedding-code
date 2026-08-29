@@ -20,7 +20,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     primaryKey: true
                     nullable: false

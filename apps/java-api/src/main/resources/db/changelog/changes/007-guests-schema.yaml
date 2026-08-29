@@ -18,13 +18,13 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: group_id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     nullable: false
                     foreignKeyName: fk_guests_group
@@ -63,7 +63,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: invitation_token
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     nullable: false
                     unique: true

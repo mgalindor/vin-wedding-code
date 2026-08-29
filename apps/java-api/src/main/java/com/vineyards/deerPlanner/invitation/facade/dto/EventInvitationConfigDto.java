@@ -12,6 +12,4 @@ public record EventInvitationConfigDto(
     boolean rsvpEnabled,
     LocalDate rsvpDeadline,
     String slug,
-    OffsetDateTime updatedAt
-) {
-}
+    OffsetDateTime updatedAt) {}

@@ -1,12 +1,11 @@
 package com.vineyards.deerPlanner.identity.outbound;
 
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
-public interface UserRoleJpaRepository extends JpaRepository<UserRoleEntity, UserRoleEntity.UserRoleId> {
+public interface UserRoleJpaRepository extends JpaRepository<UserRoleEntity, UserRoleId> {
 
-    List<UserRoleEntity> findByUserId(String userId);
+  List<UserRoleEntity> findByIdUserId(String userId);
 }

@@ -18,7 +18,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: event_id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -27,7 +27,7 @@ databaseChangeLog:
                     deleteCascade: true
               - column:
                   name: template_id
-                  type: varchar(36)
+                  type: varchar(30)
                   constraints:
                     nullable: true
                     foreignKeyName: fk_event_invitation_config_template

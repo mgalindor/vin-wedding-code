@@ -18,11 +18,11 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     primaryKey: true
                     nullable: false
-                  remarks: UUID v4 minted by the application. Target data model declared varchar(21); widened to varchar(36) per ADR-19 §Decision.
+                  remarks: XID minted by the application. XIDs are 20 chars (varchar(20)) — short URL-safe ids from com.github.shamil:java-xid.
               - column:
                   name: username
                   type: varchar(120)
@@ -100,7 +100,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: user_id
-                  type: varchar(36)
+                  type: varchar(20)
                   constraints:
                     nullable: false
                     foreignKeyName: fk_user_roles_user

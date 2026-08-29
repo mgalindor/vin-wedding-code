@@ -19,29 +19,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = "/api/v1/events/{eventId}/invitation-config", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(
+    path = "/api/v1/events/{eventId}/invitation-config",
+    produces = MediaType.APPLICATION_JSON_VALUE)
 @PrimaryAdapter
 @PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @RequiredArgsConstructor
 @Slf4j
 public class EventInvitationConfigController {
 
-    private final EventInvitationConfigFacade configApi;
+  private final EventInvitationConfigFacade configApi;
 
-    @GetMapping
-    public EventInvitationConfigDto get(
-        @PathVariable String eventId,
-        @AuthenticationPrincipal Jwt jwt
-    ) {
-        return configApi.getInvitationConfig(eventId, jwt.getSubject());
-    }
+  @GetMapping
+  public EventInvitationConfigDto get(
+      @PathVariable String eventId, @AuthenticationPrincipal Jwt jwt) {
+    return configApi.getInvitationConfig(eventId, jwt.getSubject());
+  }
 
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public EventInvitationConfigDto update(
-        @PathVariable String eventId,
-        @Valid @RequestBody UpdateInvitationConfigDto body,
-        @AuthenticationPrincipal Jwt jwt
-    ) {
-        return configApi.updateInvitationConfig(eventId, body, jwt.getSubject());
-    }
+  @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  public EventInvitationConfigDto update(
+      @PathVariable String eventId,
+      @Valid @RequestBody UpdateInvitationConfigDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return configApi.updateInvitationConfig(eventId, body, jwt.getSubject());
+  }
 }

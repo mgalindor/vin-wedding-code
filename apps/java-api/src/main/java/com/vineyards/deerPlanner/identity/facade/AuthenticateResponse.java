@@ -5,14 +5,10 @@ public record AuthenticateResponse(
     String tokenType,
     long expiresIn,
     String refreshToken,
-    long refreshExpiresIn
-) {
-    public static AuthenticateResponse bearer(
-        String accessToken,
-        long expiresIn,
-        String refreshToken,
-        long refreshExpiresIn
-    ) {
-        return new AuthenticateResponse(accessToken, "Bearer", expiresIn, refreshToken, refreshExpiresIn);
-    }
+    long refreshExpiresIn) {
+  public static AuthenticateResponse bearer(
+      String accessToken, long expiresIn, String refreshToken, long refreshExpiresIn) {
+    return new AuthenticateResponse(
+        accessToken, "Bearer", expiresIn, refreshToken, refreshExpiresIn);
+  }
 }

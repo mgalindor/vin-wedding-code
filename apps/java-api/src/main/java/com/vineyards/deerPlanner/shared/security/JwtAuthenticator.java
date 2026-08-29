@@ -8,7 +8,7 @@ import org.springframework.modulith.NamedInterface;
 @NamedInterface
 public interface JwtAuthenticator {
 
-    JWTClaimsSet verifyAccessToken(String token);
+  JWTClaimsSet verifyAccessToken(String token);
 
-    String getJwksJson();
+  String getJwksJson();
 }

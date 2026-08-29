@@ -6,6 +6,7 @@ import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import jakarta.validation.Valid;
+import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
@@ -26,66 +27,60 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
-
 @RestController
-@RequestMapping(path = "/api/v1/events/{eventId}/guests", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(
+    path = "/api/v1/events/{eventId}/guests",
+    produces = MediaType.APPLICATION_JSON_VALUE)
 @PrimaryAdapter
 @PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @RequiredArgsConstructor
 @Slf4j
 public class GuestsController {
 
-    private final GuestFacade guestApi;
+  private final GuestFacade guestApi;
 
-    @GetMapping
-    public ListGuestsResponse list(
-        @PathVariable String eventId,
-        @AuthenticationPrincipal Jwt jwt
-    ) {
-        return guestApi.listGuests(eventId, jwt.getSubject());
-    }
+  @GetMapping
+  public ListGuestsResponse list(@PathVariable String eventId, @AuthenticationPrincipal Jwt jwt) {
+    return guestApi.listGuests(eventId, jwt.getSubject());
+  }
 
-    @GetMapping("/{guestId}")
-    public GuestDto get(
-        @PathVariable String eventId,
-        @PathVariable String guestId,
-        @AuthenticationPrincipal Jwt jwt
-    ) {
-        return guestApi.getGuest(guestId, jwt.getSubject());
-    }
+  @GetMapping("/{guestId}")
+  public GuestDto get(
+      @PathVariable String eventId,
+      @PathVariable String guestId,
+      @AuthenticationPrincipal Jwt jwt) {
+    return guestApi.getGuest(guestId, jwt.getSubject());
+  }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GuestDto> create(
-        @PathVariable String eventId,
-        @Valid @RequestBody CreateGuestDto body,
-        @AuthenticationPrincipal Jwt jwt
-    ) {
-        GuestDto created = guestApi.createGuest(eventId, body, jwt.getSubject());
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<GuestDto> create(
+      @PathVariable String eventId,
+      @Valid @RequestBody CreateGuestDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    GuestDto created = guestApi.createGuest(eventId, body, jwt.getSubject());
+    URI location =
+        ServletUriComponentsBuilder.fromCurrentRequest()
             .path("/{id}")
             .buildAndExpand(created.id())
             .toUri();
-        return ResponseEntity.created(location).body(created);
-    }
+    return ResponseEntity.created(location).body(created);
+  }
 
-    @PatchMapping(path = "/{guestId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public GuestDto update(
-        @PathVariable String eventId,
-        @PathVariable String guestId,
-        @Valid @RequestBody UpdateGuestDto body,
-        @AuthenticationPrincipal Jwt jwt
-    ) {
-        return guestApi.updateGuest(guestId, body, jwt.getSubject());
-    }
+  @PatchMapping(path = "/{guestId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public GuestDto update(
+      @PathVariable String eventId,
+      @PathVariable String guestId,
+      @Valid @RequestBody UpdateGuestDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return guestApi.updateGuest(guestId, body, jwt.getSubject());
+  }
 
-    @DeleteMapping("/{guestId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(
-        @PathVariable String eventId,
-        @PathVariable String guestId,
-        @AuthenticationPrincipal Jwt jwt
-    ) {
-        guestApi.deleteGuest(guestId, jwt.getSubject());
-    }
+  @DeleteMapping("/{guestId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(
+      @PathVariable String eventId,
+      @PathVariable String guestId,
+      @AuthenticationPrincipal Jwt jwt) {
+    guestApi.deleteGuest(guestId, jwt.getSubject());
+  }
 }

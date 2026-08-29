@@ -21,20 +21,22 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class InvitationTemplatesController {
 
-    private final InvitationTemplateFacade templateApi;
+  private final InvitationTemplateFacade templateApi;
 
-    @GetMapping
-    public ListInvitationTemplatesResponse list(
-        @RequestParam("eventType") String eventType,
-        @RequestParam(value = "onlyActive", defaultValue = "true") boolean onlyActive
-    ) {
-        return templateApi.listByEventType(eventType, onlyActive);
-    }
+  @GetMapping
+  public ListInvitationTemplatesResponse list(
+      @RequestParam("eventType") String eventType,
+      @RequestParam(value = "onlyActive", defaultValue = "true") boolean onlyActive) {
+    return templateApi.listByEventType(eventType, onlyActive);
+  }
 
-    @GetMapping("/{templateId}")
-    public Object get(@PathVariable String templateId) {
-        return templateApi.findById(templateId)
-            .orElseThrow(() -> new com.vineyards.deerPlanner.shared.exceptions.BusinessError(
-                "template_not_found", "Template " + templateId + " not found"));
-    }
+  @GetMapping("/{templateId}")
+  public Object get(@PathVariable String templateId) {
+    return templateApi
+        .findById(templateId)
+        .orElseThrow(
+            () ->
+                new com.vineyards.deerPlanner.shared.exceptions.BusinessError(
+                    "template_not_found", "Template " + templateId + " not found"));
+  }
 }

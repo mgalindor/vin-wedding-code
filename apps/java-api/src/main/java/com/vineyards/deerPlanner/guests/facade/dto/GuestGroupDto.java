@@ -14,6 +14,4 @@ public record GuestGroupDto(
     String invitationToken,
     int displayOrder,
     OffsetDateTime createdAt,
-    OffsetDateTime updatedAt
-) {
-}
+    OffsetDateTime updatedAt) {}

@@ -5,7 +5,7 @@ import org.jmolecules.architecture.hexagonal.PrimaryPort;
 @PrimaryPort
 public interface IdentityApi {
 
-    AuthenticateResponse authenticate(String username, String password);
+  AuthenticateResponse authenticate(String username, String password);
 
-    UserProfileResponse getProfile(String userId);
+  UserProfileResponse getProfile(String userId);
 }

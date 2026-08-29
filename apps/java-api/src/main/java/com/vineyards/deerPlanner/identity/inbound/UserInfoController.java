@@ -20,12 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class UserInfoController {
 
-    private final IdentityApi identityApi;
+  private final IdentityApi identityApi;
 
-    @GetMapping("/userinfo")
-    public ResponseEntity<UserProfileResponse> userinfo(@AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getSubject();
-        UserProfileResponse profile = identityApi.getProfile(userId);
-        return ResponseEntity.ok(profile);
-    }
+  @GetMapping("/userinfo")
+  public ResponseEntity<UserProfileResponse> userinfo(@AuthenticationPrincipal Jwt jwt) {
+    String userId = jwt.getSubject();
+    UserProfileResponse profile = identityApi.getProfile(userId);
+    return ResponseEntity.ok(profile);
+  }
 }

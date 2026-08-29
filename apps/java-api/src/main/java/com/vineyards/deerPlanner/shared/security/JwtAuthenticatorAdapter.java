@@ -10,15 +10,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtAuthenticatorAdapter implements JwtAuthenticator {
 
-    private final JwtService jwtService;
+  private final JwtService jwtService;
 
-    @Override
-    public JWTClaimsSet verifyAccessToken(String token) {
-        return jwtService.verifyAccessToken(token);
-    }
+  @Override
+  public JWTClaimsSet verifyAccessToken(String token) {
+    return jwtService.verifyAccessToken(token);
+  }
 
-    @Override
-    public String getJwksJson() {
-        return jwtService.getJwksJson();
-    }
+  @Override
+  public String getJwksJson() {
+    return jwtService.getJwksJson();
+  }
 }

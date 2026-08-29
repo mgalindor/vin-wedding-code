@@ -1,6 +1,7 @@
 package com.vineyards.deerPlanner.shared.web;
 
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticator;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
@@ -11,8 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.concurrent.TimeUnit;
-
 @RestController
 @RequestMapping("/.well-known")
 @PrimaryAdapter
@@ -20,13 +19,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class JwksController {
 
-    private final JwtAuthenticator jwtAuthenticator;
+  private final JwtAuthenticator jwtAuthenticator;
 
-    @GetMapping(path = "/jwks.json", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> jwks() {
-        return ResponseEntity.ok()
-            .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(jwtAuthenticator.getJwksJson());
-    }
+  @GetMapping(path = "/jwks.json", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> jwks() {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(jwtAuthenticator.getJwksJson());
+  }
 }

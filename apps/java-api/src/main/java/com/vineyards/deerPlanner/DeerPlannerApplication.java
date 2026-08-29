@@ -5,10 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.modulith.Modulith;
 
 @SpringBootApplication
-@Modulith(  sharedModules = "shared" )
+@Modulith(sharedModules = "shared")
 public class DeerPlannerApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(DeerPlannerApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(DeerPlannerApplication.class, args);
+  }
 }

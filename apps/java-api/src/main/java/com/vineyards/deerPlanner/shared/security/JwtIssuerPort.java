@@ -7,11 +7,12 @@ import org.springframework.modulith.NamedInterface;
 @NamedInterface
 public interface JwtIssuerPort {
 
-    String issueAccessToken(String userId, String username, String displayName, String email, String role);
+  String issueAccessToken(
+      String userId, String username, String displayName, String email, String role);
 
-    String issueRefreshToken(String userId, String username, String role);
+  String issueRefreshToken(String userId, String username, String role);
 
-    long accessTokenTtlSeconds();
+  long accessTokenTtlSeconds();
 
-    long refreshTokenTtlSeconds();
+  long refreshTokenTtlSeconds();
 }

@@ -10,13 +10,12 @@ import com.vineyards.deerPlanner.shared.exceptions.InvalidCredentialsException;
 import com.vineyards.deerPlanner.shared.exceptions.UserNotFoundException;
 import com.vineyards.deerPlanner.shared.security.JwtIssuerPort;
 import com.vineyards.deerPlanner.shared.security.PasswordEncoderPort;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Set;
 
 @Service
 @Slf4j
@@ -24,77 +23,76 @@ import java.util.Set;
 @Application
 public class IdentityService implements IdentityApi {
 
-    // Constant-time dummy BCrypt hash used when the user does not exist. Generated once with
-    // cost 12 against a random password; the value is irrelevant — only the cost matters.
-    private static final String DUMMY_BCRYPT_HASH =
-        "$2a$12$CwTycUXWue0Thq9StjUM0uJ8G8e1xJ8Z5Z2Z2Z2Z2Z2Z2Z2Z2Z2Z2Z";
+  // Constant-time dummy BCrypt hash used when the user does not exist. Generated once with
+  // cost 12 against a random password; the value is irrelevant — only the cost matters.
+  private static final String DUMMY_BCRYPT_HASH =
+      "$2a$12$CwTycUXWue0Thq9StjUM0uJ8G8e1xJ8Z5Z2Z2Z2Z2Z2Z2Z2Z2Z2Z2Z";
 
-    private final UserRepository userRepository;
-    private final PasswordEncoderPort passwordEncoder;
-    private final JwtIssuerPort jwtIssuer;
+  private final UserRepository userRepository;
+  private final PasswordEncoderPort passwordEncoder;
+  private final JwtIssuerPort jwtIssuer;
 
-    @Override
-    @Transactional
-    public AuthenticateResponse authenticate(String rawUsername, String rawPassword) {
-        String username = normalize(rawUsername);
+  @Override
+  @Transactional
+  public AuthenticateResponse authenticate(String rawUsername, String rawPassword) {
+    String username = normalize(rawUsername);
 
-        User user = userRepository.findByUsername(username).orElse(null);
+    User user = userRepository.findByUsername(username).orElse(null);
 
-        // Constant-time comparison even when the user is missing, to avoid timing-based enumeration.
-        String hashToCompare = user != null ? user.passwordHash() : DUMMY_BCRYPT_HASH;
-        boolean passwordOk = passwordEncoder.matches(rawPassword != null ? rawPassword : "", hashToCompare);
+    // Constant-time comparison even when the user is missing, to avoid timing-based enumeration.
+    String hashToCompare = user != null ? user.getPasswordHash() : DUMMY_BCRYPT_HASH;
+    boolean passwordOk =
+        passwordEncoder.matches(rawPassword != null ? rawPassword : "", hashToCompare);
 
-        if (user == null || !passwordOk || !user.isActive()) {
-            log.debug("Authentication failed for username={}", username);
-            throw new InvalidCredentialsException();
-        }
-
-        userRepository.recordLogin(user.id());
-
-        Role primaryRole = pickPrimaryRole(user.roles());
-        String accessToken = jwtIssuer.issueAccessToken(
-            user.id(),
-            user.username(),
-            user.displayName(),
-            user.email(),
-            primaryRole.name()
-        );
-        String refreshToken = jwtIssuer.issueRefreshToken(
-            user.id(),
-            user.username(),
-            primaryRole.name()
-        );
-
-        log.info("user.login userId={} username={} role={}", user.id(), user.username(), primaryRole);
-
-        return AuthenticateResponse.bearer(
-            accessToken,
-            jwtIssuer.accessTokenTtlSeconds(),
-            refreshToken,
-            jwtIssuer.refreshTokenTtlSeconds()
-        );
+    if (user == null || !passwordOk || !user.isActive()) {
+      log.debug("Authentication failed for username={}", username);
+      throw new InvalidCredentialsException();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public UserProfileResponse getProfile(String userId) {
-        return userRepository.findActiveById(userId)
-            .map(UserProfileResponse::from)
-            .orElseThrow(() -> new UserNotFoundException(userId));
-    }
+    userRepository.recordLogin(user.getId());
 
-    private static String normalize(String value) {
-        return value == null ? "" : value.trim().toLowerCase();
-    }
+    Role primaryRole = pickPrimaryRole(user.getRoles());
+    String accessToken =
+        jwtIssuer.issueAccessToken(
+            user.getId(),
+            user.getUsername(),
+            user.getDisplayName(),
+            user.getEmail(),
+            primaryRole.name());
+    String refreshToken =
+        jwtIssuer.issueRefreshToken(user.getId(), user.getUsername(), primaryRole.name());
 
-    // Picks a single role to embed in the JWT. Administrators also acting as EventOrganizers get
-    // Administrator as the primary; pure EventOrganizers get EventOrganizer. The full set is
-    // still consulted at the route guard — a user with both roles can call any role-restricted
-    // endpoint as long as one of their roles is allowed.
-    private static Role pickPrimaryRole(Set<Role> roles) {
-        if (roles.contains(Role.Administrator)) {
-            return Role.Administrator;
-        }
-        return roles.iterator().next();
+    log.info(
+        "user.login userId={} username={} role={}", user.getId(), user.getUsername(), primaryRole);
+
+    return AuthenticateResponse.bearer(
+        accessToken,
+        jwtIssuer.accessTokenTtlSeconds(),
+        refreshToken,
+        jwtIssuer.refreshTokenTtlSeconds());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public UserProfileResponse getProfile(String userId) {
+    return userRepository
+        .findActiveById(userId)
+        .map(UserProfileResponse::from)
+        .orElseThrow(() -> new UserNotFoundException(userId));
+  }
+
+  private static String normalize(String value) {
+    return value == null ? "" : value.trim().toLowerCase();
+  }
+
+  // Picks a single role to embed in the JWT. Administrators also acting as EventOrganizers get
+  // Administrator as the primary; pure EventOrganizers get EventOrganizer. The full set is
+  // still consulted at the route guard — a user with both roles can call any role-restricted
+  // endpoint as long as one of their roles is allowed.
+  private static Role pickPrimaryRole(Set<Role> roles) {
+    if (roles.contains(Role.Administrator)) {
+      return Role.Administrator;
     }
+    return roles.iterator().next();
+  }
 }

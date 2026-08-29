@@ -7,7 +7,7 @@ import org.springframework.modulith.NamedInterface;
 @NamedInterface
 public interface PasswordEncoderPort {
 
-    boolean matches(String rawPassword, String storedHash);
+  boolean matches(String rawPassword, String storedHash);
 
-    String hash(String rawPassword);
+  String hash(String rawPassword);
 }

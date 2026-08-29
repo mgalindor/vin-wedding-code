@@ -15,20 +15,17 @@ import org.springframework.validation.annotation.Validated;
 @Slf4j
 public class JwtProperties {
 
-    @NotBlank
-    private String issuer = "deer-planner";
+  @NotBlank private String issuer = "deer-planner";
 
-    @NotBlank
-    private String audience = "deer";
+  @NotBlank private String audience = "deer";
 
-    @NotBlank
-    private String keyId = "deer-planner-key-1";
+  @NotBlank private String keyId = "deer-planner-key-1";
 
-    @Min(60)
-    private long accessTokenTtlSeconds = 3600;
+  @Min(60)
+  private long accessTokenTtlSeconds = 3600;
 
-    @Min(3600)
-    private long refreshTokenTtlSeconds = 259200;
+  @Min(3600)
+  private long refreshTokenTtlSeconds = 259200;
 
-    private String privateKey = "";
+  private String privateKey = "";
 }
