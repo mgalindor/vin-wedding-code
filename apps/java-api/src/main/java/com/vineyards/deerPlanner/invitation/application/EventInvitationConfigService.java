@@ -1,9 +1,9 @@
 package com.vineyards.deerPlanner.invitation.application;
 
-import com.vineyards.deerPlanner.events.facade.EventFacade;
-import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigRepository;
+import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigOutPort;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
-import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigFacade;
+import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigInPort;
 import com.vineyards.deerPlanner.invitation.facade.dto.EventInvitationConfigDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.UpdateInvitationConfigDto;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class EventInvitationConfigService implements EventInvitationConfigFacade {
+public class EventInvitationConfigService implements EventInvitationConfigInPort {
 
-  private final EventInvitationConfigRepository repository;
-  private final EventFacade eventApi;
+  private final EventInvitationConfigOutPort repository;
+  private final EventInPort eventApi;
 
   @Override
   @Transactional(readOnly = true)

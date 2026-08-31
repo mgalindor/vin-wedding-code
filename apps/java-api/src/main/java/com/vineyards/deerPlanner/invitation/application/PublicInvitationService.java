@@ -1,10 +1,10 @@
 package com.vineyards.deerPlanner.invitation.application;
 
-import com.vineyards.deerPlanner.events.facade.EventFacade;
-import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigRepository;
-import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateRepository;
+import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigOutPort;
+import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateOutPort;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
-import com.vineyards.deerPlanner.invitation.facade.PublicInvitationFacade;
+import com.vineyards.deerPlanner.invitation.facade.PublicInvitationInPort;
 import com.vineyards.deerPlanner.invitation.facade.dto.InvitationTemplateDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicInvitationDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpRequestDto;
@@ -20,18 +20,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Public invitation surface. No caller identity — the {@code slug} is the token. The service is
+ * Public invitation surface. No caller identity â€” the {@code slug} is the token. The service is
  * consumed exclusively by {@code invitation/inbound/PublicInvitationController}.
  */
 @Service
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class PublicInvitationService implements PublicInvitationFacade {
+public class PublicInvitationService implements PublicInvitationInPort {
 
-  private final EventInvitationConfigRepository configRepository;
-  private final InvitationTemplateRepository templateRepository;
-  private final EventFacade eventApi;
+  private final EventInvitationConfigOutPort configRepository;
+  private final InvitationTemplateOutPort templateRepository;
+  private final EventInPort eventApi;
 
   @Override
   @Transactional(readOnly = true)

@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.guests.inbound;
 
-import com.vineyards.deerPlanner.guests.facade.GuestFacade;
+import com.vineyards.deerPlanner.guests.facade.GuestInPort;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestGroupsResponse;
@@ -34,7 +34,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @Slf4j
 public class GuestGroupsController {
 
-  private final GuestFacade guestApi;
+  private final GuestInPort guestApi;
 
   @GetMapping
   public ListGuestGroupsResponse list(

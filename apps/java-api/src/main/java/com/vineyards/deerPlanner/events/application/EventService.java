@@ -1,11 +1,11 @@
 package com.vineyards.deerPlanner.events.application;
 
-import com.vineyards.deerPlanner.events.application.port.EventRepository;
+import com.vineyards.deerPlanner.events.application.port.EventOutPort;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
 import com.vineyards.deerPlanner.events.domain.WeddingDetail;
-import com.vineyards.deerPlanner.events.facade.EventFacade;
+import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
@@ -45,9 +45,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class EventService implements EventFacade {
+public class EventService implements EventInPort {
 
-  private final EventRepository repository;
+  private final EventOutPort repository;
   private final EventPayloadMapper payloadMapper;
 
   @Override
@@ -226,7 +226,7 @@ public class EventService implements EventFacade {
   @Override
   @Transactional(readOnly = true)
   public List<EventDto> findByOrganizer(String organizerUserId) {
-    // Used only by other modules — not exposed as HTTP. RBAC at the inbound layer doesn't
+    // Used only by other modules â€” not exposed as HTTP. RBAC at the inbound layer doesn't
     // apply (the calling module has already authenticated with Spring Security). The
     // repository scopes results to the organiser; we still assert the boundary here.
     return repository.findByOrganizerId(organizerUserId).stream().map(this::toDto).toList();
@@ -236,7 +236,7 @@ public class EventService implements EventFacade {
   @Transactional(readOnly = true)
   public Optional<EventDto> findByEventId(String eventId) {
     // Cross-context read used by invitation (rendering the public page) and later by
-    // guests. No ownership check here — the caller is responsible for verifying that
+    // guests. No ownership check here â€” the caller is responsible for verifying that
     // the event is reachable in the caller's context before invoking this method.
     return repository.findById(eventId).map(this::toDto);
   }

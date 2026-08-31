@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.identity.inbound;
 
-import com.vineyards.deerPlanner.identity.facade.IdentityApi;
+import com.vineyards.deerPlanner.identity.facade.IdentityInPort;
 import com.vineyards.deerPlanner.identity.facade.UserProfileResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class UserInfoController {
 
-  private final IdentityApi identityApi;
+  private final IdentityInPort identityApi;
 
   @GetMapping("/userinfo")
   public ResponseEntity<UserProfileResponse> userinfo(@AuthenticationPrincipal Jwt jwt) {

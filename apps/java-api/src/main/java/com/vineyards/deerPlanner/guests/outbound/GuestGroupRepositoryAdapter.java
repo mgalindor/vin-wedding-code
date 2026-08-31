@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.guests.outbound;
 
-import com.vineyards.deerPlanner.guests.application.port.GuestGroupRepository;
+import com.vineyards.deerPlanner.guests.application.port.GuestGroupOutPort;
 import com.vineyards.deerPlanner.guests.domain.GuestGroup;
 import com.vineyards.deerPlanner.guests.domain.GuestRelationship;
 import java.util.List;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @SecondaryAdapter
 @RequiredArgsConstructor
 @Slf4j
-public class GuestGroupRepositoryAdapter implements GuestGroupRepository {
+public class GuestGroupRepositoryAdapter implements GuestGroupOutPort {
 
   private final GuestGroupJpaRepository jpa;
 

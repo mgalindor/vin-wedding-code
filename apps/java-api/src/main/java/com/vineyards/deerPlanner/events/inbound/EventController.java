@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.events.inbound;
 
-import com.vineyards.deerPlanner.events.facade.EventFacade;
+import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.ListEventsResponse;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasRole('EventOrganizer')")
 public class EventController {
 
-  private final EventFacade eventApi;
+  private final EventInPort eventApi;
 
   @PostMapping
   public ResponseEntity<EventDto> createEvent(

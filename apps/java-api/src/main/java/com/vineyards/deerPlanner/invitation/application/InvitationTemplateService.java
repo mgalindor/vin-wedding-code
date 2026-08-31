@@ -1,8 +1,8 @@
 package com.vineyards.deerPlanner.invitation.application;
 
-import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateRepository;
+import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateOutPort;
 import com.vineyards.deerPlanner.invitation.domain.InvitationTemplate;
-import com.vineyards.deerPlanner.invitation.facade.InvitationTemplateFacade;
+import com.vineyards.deerPlanner.invitation.facade.InvitationTemplateInPort;
 import com.vineyards.deerPlanner.invitation.facade.dto.InvitationTemplateDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.ListInvitationTemplatesResponse;
 import java.util.List;
@@ -17,9 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class InvitationTemplateService implements InvitationTemplateFacade {
+public class InvitationTemplateService implements InvitationTemplateInPort {
 
-  private final InvitationTemplateRepository repository;
+  private final InvitationTemplateOutPort repository;
 
   @Override
   @Transactional(readOnly = true)

@@ -1,13 +1,13 @@
 package com.vineyards.deerPlanner.guests.application;
 
-import com.vineyards.deerPlanner.events.facade.EventFacade;
-import com.vineyards.deerPlanner.guests.application.port.GuestGroupRepository;
-import com.vineyards.deerPlanner.guests.application.port.GuestRepository;
+import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.guests.application.port.GuestGroupOutPort;
+import com.vineyards.deerPlanner.guests.application.port.GuestOutPort;
 import com.vineyards.deerPlanner.guests.domain.Guest;
 import com.vineyards.deerPlanner.guests.domain.GuestGroup;
 import com.vineyards.deerPlanner.guests.domain.GuestRelationship;
 import com.vineyards.deerPlanner.guests.domain.RsvpStatus;
-import com.vineyards.deerPlanner.guests.facade.GuestFacade;
+import com.vineyards.deerPlanner.guests.facade.GuestInPort;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
@@ -30,11 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Application
 @RequiredArgsConstructor
 @Slf4j
-public class GuestService implements GuestFacade {
+public class GuestService implements GuestInPort {
 
-  private final GuestGroupRepository groupRepository;
-  private final GuestRepository guestRepository;
-  private final EventFacade eventApi;
+  private final GuestGroupOutPort groupRepository;
+  private final GuestOutPort guestRepository;
+  private final EventInPort eventApi;
 
   // ============== Groups ==============
 
@@ -119,7 +119,7 @@ public class GuestService implements GuestFacade {
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
     eventApi.getEvent(current.getEventId(), actorUserId);
-    // guests FK has deleteCascade — group children go with it.
+    // guests FK has deleteCascade â€” group children go with it.
     groupRepository.deleteById(groupId);
     log.info("guest_group.deleted groupId={} actorUserId={}", groupId, actorUserId);
   }

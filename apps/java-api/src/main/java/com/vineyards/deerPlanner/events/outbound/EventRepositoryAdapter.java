@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.events.outbound;
 
-import com.vineyards.deerPlanner.events.application.port.EventRepository;
+import com.vineyards.deerPlanner.events.application.port.EventOutPort;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventType;
 import com.vineyards.deerPlanner.events.domain.WeddingDetail;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Adapts the {@link EventRepository} port to PostgreSQL via two JPA repositories: {@code events}
+ * Adapts the {@link EventOutPort} port to PostgreSQL via two JPA repositories: {@code events}
  * (shared columns) and {@code wedding_events} (1:1 detail). The 1:1 read is composed in Java (no
  * Hibernate relationships) to keep the entity model explicit and avoids lazy-init traps on the
  * secondary side.
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SecondaryAdapter
 @RequiredArgsConstructor
 @Slf4j
-public class EventRepositoryAdapter implements EventRepository {
+public class EventRepositoryAdapter implements EventOutPort {
 
   private final EventJpaRepository eventJpa;
   private final WeddingEventJpaRepository weddingJpa;
@@ -76,7 +76,7 @@ public class EventRepositoryAdapter implements EventRepository {
   @Override
   @Transactional
   public void deleteById(String id) {
-    // wedding row lives on the same PK + ON DELETE CASCADE — no manual cleanup required.
+    // wedding row lives on the same PK + ON DELETE CASCADE â€” no manual cleanup required.
     eventJpa.deleteById(id);
   }
 

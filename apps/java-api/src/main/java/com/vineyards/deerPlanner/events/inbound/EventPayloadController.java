@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.events.inbound;
 
-import com.vineyards.deerPlanner.events.facade.EventFacade;
+import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EventPayloadController {
 
-  private final EventFacade eventApi;
+  private final EventInPort eventApi;
 
   @PutMapping(path = "/{id}/locations")
   public EventDto updateLocations(

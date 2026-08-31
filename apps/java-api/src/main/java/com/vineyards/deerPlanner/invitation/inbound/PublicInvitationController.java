@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.invitation.inbound;
 
-import com.vineyards.deerPlanner.invitation.facade.PublicInvitationFacade;
+import com.vineyards.deerPlanner.invitation.facade.PublicInvitationInPort;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicInvitationDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpRequestDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpResponseDto;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Public invitation surface. No JWT — the {@code slug} IS the access token. The {@code
+ * Public invitation surface. No JWT â€” the {@code slug} IS the access token. The {@code
  * PublicTokenFilter} (in {@code shared/security/}) already validated the slug and stored the
  * resolved {@code eventId} in the request attributes if needed; this controller reads the slug path
  * variable directly and delegates validation to {@link
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class PublicInvitationController {
 
-  private final PublicInvitationFacade publicInvitationApi;
+  private final PublicInvitationInPort publicInvitationApi;
 
   @GetMapping("/{slug}")
   public PublicInvitationDto getBySlug(@PathVariable String slug) {

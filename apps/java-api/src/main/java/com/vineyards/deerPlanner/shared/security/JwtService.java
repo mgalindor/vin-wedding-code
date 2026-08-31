@@ -14,7 +14,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import com.vineyards.deerPlanner.shared.config.JwtProperties;
+import com.vineyards.deerPlanner.shared.properties.JwtProperties;
 import jakarta.annotation.PostConstruct;
 import java.text.ParseException;
 import java.util.Date;
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class JwtService implements JwtIssuerPort {
+public class JwtService implements JwtIssuerOutPort {
 
   private static final String REFRESH_AUDIENCE = "refresh";
 
@@ -99,7 +99,7 @@ public class JwtService implements JwtIssuerPort {
       return processor.process(jwt, null);
     } catch (ParseException | com.nimbusds.jose.proc.BadJOSEException | JOSEException e) {
       // Processor.process() throws BadJOSEException for verification failures and
-      // JOSEException for lower-level errors — collapse both into one mapped exception.
+      // JOSEException for lower-level errors â€” collapse both into one mapped exception.
       throw new JwtVerificationException("Invalid or expired token: " + e.getMessage(), e);
     }
   }
@@ -156,7 +156,7 @@ public class JwtService implements JwtIssuerPort {
 
     if (pem == null || pem.isBlank()) {
       log.warn(
-          "JWT signing key is not configured — generating an ephemeral RSA key. "
+          "JWT signing key is not configured â€” generating an ephemeral RSA key. "
               + "DO NOT use this in production. Set deerplanner.jwt.private-key.");
       return new RSAKeyGenerator(2048, props.getKeyId()).generate();
     }

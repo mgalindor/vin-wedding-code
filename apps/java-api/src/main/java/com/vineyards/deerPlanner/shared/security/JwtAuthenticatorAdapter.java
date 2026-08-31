@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 @PrimaryAdapter
 @RequiredArgsConstructor
-public class JwtAuthenticatorAdapter implements JwtAuthenticator {
+public class JwtAuthenticatorAdapter implements JwtAuthenticatorInPort {
 
   private final JwtService jwtService;
 

@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.identity.outbound;
 
-import com.vineyards.deerPlanner.identity.application.port.UserRepository;
+import com.vineyards.deerPlanner.identity.application.port.UserOutPort;
 import com.vineyards.deerPlanner.identity.domain.Role;
 import com.vineyards.deerPlanner.identity.domain.User;
 import java.time.Instant;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @SecondaryAdapter
 @RequiredArgsConstructor
 @Slf4j
-public class UserRepositoryAdapter implements UserRepository {
+public class UserRepositoryAdapter implements UserOutPort {
 
   private final UserJpaRepository userJpa;
   private final UserRoleJpaRepository userRoleJpa;

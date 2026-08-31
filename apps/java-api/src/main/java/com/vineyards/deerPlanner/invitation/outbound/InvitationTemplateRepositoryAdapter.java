@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.invitation.outbound;
 
-import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateRepository;
+import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateOutPort;
 import com.vineyards.deerPlanner.invitation.domain.InvitationTemplate;
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @SecondaryAdapter
 @RequiredArgsConstructor
 @Slf4j
-public class InvitationTemplateRepositoryAdapter implements InvitationTemplateRepository {
+public class InvitationTemplateRepositoryAdapter implements InvitationTemplateOutPort {
 
   private final InvitationTemplateJpaRepository jpa;
 

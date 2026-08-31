@@ -1,7 +1,7 @@
 package com.vineyards.deerPlanner.identity.inbound;
 
 import com.vineyards.deerPlanner.identity.facade.AuthenticateResponse;
-import com.vineyards.deerPlanner.identity.facade.IdentityApi;
+import com.vineyards.deerPlanner.identity.facade.IdentityInPort;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AuthController {
 
-  private final IdentityApi identityApi;
+  private final IdentityInPort identityApi;
 
   @PostMapping(path = "/token")
   public ResponseEntity<AuthenticateResponse> token(@Valid @RequestBody TokenBody body) {

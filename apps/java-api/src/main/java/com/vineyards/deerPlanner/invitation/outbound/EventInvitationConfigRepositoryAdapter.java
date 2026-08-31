@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.invitation.outbound;
 
-import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigRepository;
+import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigOutPort;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
 import java.time.Instant;
 import java.util.Optional;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @SecondaryAdapter
 @RequiredArgsConstructor
 @Slf4j
-public class EventInvitationConfigRepositoryAdapter implements EventInvitationConfigRepository {
+public class EventInvitationConfigRepositoryAdapter implements EventInvitationConfigOutPort {
 
   private final EventInvitationConfigJpaRepository jpa;
 
