@@ -3,20 +3,16 @@ package com.vineyards.deerPlanner.events.inbound;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.vineyards.deerPlanner.events.domain.EventStatus;
-import com.vineyards.deerPlanner.events.domain.EventType;
-import com.vineyards.deerPlanner.events.facade.EventInPort;
-import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
-import com.vineyards.deerPlanner.events.facade.dto.EventDto;
-import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
-import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
+import com.vineyards.deerPlanner.events.facade.WeddingEventInPort;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingAccommodationPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.WeddingDetailDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingGiftRegistryPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingLandingPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingParentsPayloadDto;
@@ -26,8 +22,6 @@ import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import java.time.Instant;
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,15 +33,15 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(EventPayloadController.class)
+@WebMvcTest(WeddingEventController.class)
 @AutoConfigureMockMvc
-class EventPayloadControllerTest {
+class WeddingEventControllerTest {
 
   private static final String ORGANIZER_ID = "user-organizer-1";
 
   @Autowired MockMvc mvc;
 
-  @MockitoBean EventInPort eventApi;
+  @MockitoBean WeddingEventInPort weddingApi;
   @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
   @MockitoBean JwtAuthenticatorInPort jwtAuthenticator;
   @MockitoBean JwtDecoder jwtDecoder;
@@ -71,112 +65,43 @@ class EventPayloadControllerTest {
         .authorities(new SimpleGrantedAuthority("ROLE_EventOrganizer"));
   }
 
-  /** A minimal valid EventDto Ã¢â‚¬â€ every test reuses this as the expected response. */
-  private EventDto minimalDto() {
-    return new EventDto(
-        "evt-1",
-        ORGANIZER_ID,
-        EventType.wedding,
-        "Maya & Luis",
-        LocalDate.of(2027, 4, 15),
-        EventStatus.draft,
-        null,
-        null,
-        null,
-        null,
-        Instant.parse("2026-08-01T09:00:00Z"),
-        Instant.parse("2026-08-01T09:00:00Z"));
+  private WeddingDetailDto sampleDetail() {
+    return new WeddingDetailDto("evt-1", "Maya", "Luis", true, null, null, null, null, null, null);
   }
 
   @Test
-  void putLocations_withValidPayload_returns200AndPassesToEventInPort() throws Exception {
-    when(eventApi.updateLocations(eq("evt-1"), any(LocationsPayloadDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(minimalDto());
+  void getWeddingDetail_returns200WithDetail() throws Exception {
+    when(weddingApi.getWeddingDetail(eq("evt-1"), eq(ORGANIZER_ID))).thenReturn(sampleDetail());
+
+    mvc.perform(get("/api/v1/events/{id}/wedding-detail", "evt-1").with(authorizedUser()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.eventId").value("evt-1"))
+        .andExpect(jsonPath("$.partner1Name").value("Maya"))
+        .andExpect(jsonPath("$.partner2Name").value("Luis"))
+        .andExpect(jsonPath("$.countdownEnabled").value(true));
+  }
+
+  @Test
+  void putWeddingDetail_withPartialPayload_returns200() throws Exception {
+    when(weddingApi.updateWeddingDetail(eq("evt-1"), any(), eq(ORGANIZER_ID)))
+        .thenReturn(sampleDetail());
 
     mvc.perform(
-            put("/api/v1/events/{id}/locations", "evt-1")
+            put("/api/v1/events/{id}/wedding-detail", "evt-1")
                 .with(authorizedUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {
-                      "entries": [
-                        {"label": "Ceremony", "name": "Parroquia", "time": "16:00"}
-                      ]
-                    }
-                    """))
-        .andExpect(status().isOk());
-
-    verify(eventApi).updateLocations(eq("evt-1"), any(LocationsPayloadDto.class), eq(ORGANIZER_ID));
-  }
-
-  @Test
-  void putLocations_whenEntriesAreEmpty_returns400() throws Exception {
-    mvc.perform(
-            put("/api/v1/events/{id}/locations", "evt-1")
-                .with(authorizedUser())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {"entries": []}
-                    """))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void putProgram_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateProgram(eq("evt-1"), any(ProgramPayloadDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(minimalDto());
-
-    mvc.perform(
-            put("/api/v1/events/{id}/program", "evt-1")
-                .with(authorizedUser())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {
-                      "days": [
-                        {
-                          "date": "2027-04-15",
-                          "label": "Saturday",
-                          "items": [{"time": "16:00", "title": "Ceremony"}]
-                        }
-                      ]
-                    }
-                    """))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void putContacts_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateContacts(eq("evt-1"), any(ContactsPayloadDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(minimalDto());
-
-    mvc.perform(
-            put("/api/v1/events/{id}/contacts", "evt-1")
-                .with(authorizedUser())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {
-                      "entries": [
-                        {
-                          "label": "Wedding Planner",
-                          "fullName": "Ana Rodriguez",
-                          "phone": "+52 55 1234 5678",
-                          "email": "ana@example.com"
-                        }
-                      ]
-                    }
+                    {"partner1Name": "Maya", "countdownEnabled": false}
                     """))
         .andExpect(status().isOk());
   }
 
   @Test
   void putWeddingLanding_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateWeddingLanding(
+    when(weddingApi.updateWeddingLanding(
             eq("evt-1"), any(WeddingLandingPayloadDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(minimalDto());
+        .thenReturn(sampleDetail());
 
     mvc.perform(
             put("/api/v1/events/{id}/wedding-landing", "evt-1")
@@ -204,9 +129,9 @@ class EventPayloadControllerTest {
 
   @Test
   void putWeddingStory_whenBodyPresent_returns200() throws Exception {
-    when(eventApi.updateWeddingStory(
+    when(weddingApi.updateWeddingStory(
             eq("evt-1"), any(WeddingStoryPayloadDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(minimalDto());
+        .thenReturn(sampleDetail());
 
     mvc.perform(
             put("/api/v1/events/{id}/wedding-story", "evt-1")
@@ -234,9 +159,9 @@ class EventPayloadControllerTest {
 
   @Test
   void putWeddingGiftRegistry_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateWeddingGiftRegistry(
+    when(weddingApi.updateWeddingGiftRegistry(
             eq("evt-1"), any(WeddingGiftRegistryPayloadDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(minimalDto());
+        .thenReturn(sampleDetail());
 
     mvc.perform(
             put("/api/v1/events/{id}/wedding-gift-registry", "evt-1")
@@ -256,9 +181,9 @@ class EventPayloadControllerTest {
 
   @Test
   void putWeddingParents_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateWeddingParents(
+    when(weddingApi.updateWeddingParents(
             eq("evt-1"), any(WeddingParentsPayloadDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(minimalDto());
+        .thenReturn(sampleDetail());
 
     mvc.perform(
             put("/api/v1/events/{id}/wedding-parents", "evt-1")
@@ -276,9 +201,9 @@ class EventPayloadControllerTest {
 
   @Test
   void putWeddingAccommodation_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateWeddingAccommodation(
+    when(weddingApi.updateWeddingAccommodation(
             eq("evt-1"), any(WeddingAccommodationPayloadDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(minimalDto());
+        .thenReturn(sampleDetail());
 
     mvc.perform(
             put("/api/v1/events/{id}/wedding-accommodation", "evt-1")

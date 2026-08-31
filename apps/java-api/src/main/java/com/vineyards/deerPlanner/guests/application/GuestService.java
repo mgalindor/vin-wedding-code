@@ -16,12 +16,17 @@ import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.InlineGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestGroupsResponse;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
+import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupDto;
+import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupPrimaryDto;
+import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,14 +73,49 @@ public class GuestService implements GuestInPort {
   @Transactional
   public GuestGroupDto createGroup(String eventId, CreateGuestGroupDto dto, String actorUserId) {
     eventApi.getEvent(eventId, actorUserId);
+
+    List<InlineGuestDto> inlineGuests = dto.guests() == null ? List.of() : dto.guests();
+    if (inlineGuests.isEmpty()) {
+      throw new BusinessError(
+          "primary_guest_required",
+          "A group must be created with at least one guest and one of them marked as primary");
+    }
+
+    // Exactly one inline guest must carry primary=true. The flag is a request hint only — it
+    // tells the service which inline guest becomes the group's primaryGuestId. We validate
+    // before persisting anything so a malformed request never leaves a half-written group.
+    List<InlineGuestDto> markedPrimary =
+        inlineGuests.stream().filter(g -> Boolean.TRUE.equals(g.primary())).toList();
+    if (markedPrimary.isEmpty()) {
+      throw new BusinessError(
+          "primary_guest_required",
+          "Exactly one inline guest must have primary=true so the group's primary contact can be"
+              + " set");
+    }
+    if (markedPrimary.size() > 1) {
+      throw new BusinessError(
+          "multiple_primary_guests",
+          "Only one inline guest may be marked primary=true; got " + markedPrimary.size());
+    }
+
     String newId = UUID.randomUUID().toString();
     String token = UUID.randomUUID().toString();
     int displayOrder = dto.displayOrder() != null ? dto.displayOrder() : 0;
     Instant now = Instant.now();
 
-    List<InlineGuestDto> inlineGuests = dto.guests() == null ? List.of() : dto.guests();
     List<Guest> guests = persistInlineGuests(newId, inlineGuests, now);
-    String primaryGuestId = pickPrimaryGuestId(guests);
+    // Map back to the position marked as primary to find the persisted guest's id. The validation
+    // above already guarantees exactly one such entry, so this lookup is safe.
+    String primaryGuestId =
+        guests.stream()
+            .filter(g -> Boolean.TRUE.equals(inlineGuests.get(guests.indexOf(g)).primary()))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "Primary guest lookup failed — validation should have rejected this"
+                            + " earlier"))
+            .getId();
 
     GuestGroup group =
         GuestGroup.builder()
@@ -102,7 +142,11 @@ public class GuestService implements GuestInPort {
     return toDto(saved);
   }
 
-  /** Builds and persists inline guests for a freshly-created group, returning the saved domains. */
+  /**
+   * Builds and persists inline guests for a freshly-created group, returning the saved domains in
+   * the same order as the input list. The caller is responsible for marking exactly one of the
+   * inputs with {@code primary=true}; this method does not check, it just preserves order.
+   */
   private List<Guest> persistInlineGuests(
       String groupId, List<InlineGuestDto> inlineGuests, Instant now) {
     List<Guest> saved = new ArrayList<>(inlineGuests.size());
@@ -116,7 +160,6 @@ public class GuestService implements GuestInPort {
               .email(g.email())
               .phone(g.phone())
               .dietaryNotes(g.dietaryNotes())
-              .primary(Boolean.TRUE.equals(g.primary()))
               .invitationToken(UUID.randomUUID().toString())
               .rsvpStatus(RsvpStatus.pending)
               .rsvpConfirmedAt(null)
@@ -128,20 +171,6 @@ public class GuestService implements GuestInPort {
       saved.add(guestRepository.save(guest));
     }
     return saved;
-  }
-
-  /**
-   * Picks the primary guest: first one marked primary, otherwise the first guest, otherwise null.
-   */
-  private String pickPrimaryGuestId(List<Guest> guests) {
-    if (guests.isEmpty()) {
-      return null;
-    }
-    return guests.stream()
-        .filter(Guest::isPrimary)
-        .map(Guest::getId)
-        .findFirst()
-        .orElseGet(() -> guests.get(0).getId());
   }
 
   @Override
@@ -170,7 +199,7 @@ public class GuestService implements GuestInPort {
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
     eventApi.getEvent(current.getEventId(), actorUserId);
-    // guests FK has deleteCascade â€” group children go with it.
+    // guests FK has deleteCascade — group children go with it.
     groupRepository.deleteById(groupId);
     log.info("guest_group.deleted groupId={} actorUserId={}", groupId, actorUserId);
   }
@@ -189,6 +218,38 @@ public class GuestService implements GuestInPort {
     String newToken = UUID.randomUUID().toString();
     GuestGroup saved = groupRepository.save(current.withToken(newToken));
     log.info("guest_group.token_regenerated groupId={} actorUserId={}", groupId, actorUserId);
+    return toDto(saved);
+  }
+
+  @Override
+  @Transactional
+  public GuestGroupDto updatePrimaryGuest(
+      String groupId, UpdateGuestGroupPrimaryDto dto, String actorUserId) {
+    GuestGroup group = loadOwnedGroup(groupId, actorUserId);
+    String newPrimaryId = dto.guestId();
+
+    if (newPrimaryId != null) {
+      Guest guest =
+          guestRepository
+              .findById(newPrimaryId)
+              .orElseThrow(
+                  () ->
+                      new ResourceNotFoundError(
+                          "guest_not_found", "Guest " + newPrimaryId + " not found"));
+      if (!groupId.equals(guest.getGroupId())) {
+        throw new BusinessError(
+            "guest_not_in_group", "Guest " + newPrimaryId + " does not belong to group " + groupId);
+      }
+    }
+
+    GuestGroup updated =
+        group.toBuilder().primaryGuestId(newPrimaryId).updatedAt(Instant.now()).build();
+    GuestGroup saved = groupRepository.save(updated);
+    log.info(
+        "guest_group.primary_updated groupId={} primaryGuestId={} actorUserId={}",
+        groupId,
+        newPrimaryId,
+        actorUserId);
     return toDto(saved);
   }
 
@@ -234,7 +295,6 @@ public class GuestService implements GuestInPort {
                     "guest_group_not_found", "Guest group " + dto.groupId() + " not found"));
     String newId = UUID.randomUUID().toString();
     String token = UUID.randomUUID().toString();
-    boolean primary = Boolean.TRUE.equals(dto.primary());
     Instant now = Instant.now();
     Guest guest =
         Guest.builder()
@@ -245,7 +305,6 @@ public class GuestService implements GuestInPort {
             .email(dto.email())
             .phone(dto.phone())
             .dietaryNotes(dto.dietaryNotes())
-            .primary(primary)
             .invitationToken(token)
             .rsvpStatus(RsvpStatus.pending)
             .rsvpConfirmedAt(null)
@@ -341,7 +400,7 @@ public class GuestService implements GuestInPort {
       }
     }
 
-    if (java.util.Objects.equals(oldGroupId, newGroupId)) {
+    if (Objects.equals(oldGroupId, newGroupId)) {
       // No-op: already in the requested group (or already unassigned).
       return toDto(current);
     }
@@ -349,9 +408,7 @@ public class GuestService implements GuestInPort {
     Guest updated = current.toBuilder().groupId(newGroupId).updatedAt(Instant.now()).build();
     Guest saved = guestRepository.save(updated);
 
-    // If the guest was the primary of the old group, clear the dangling reference. We do NOT
-    // auto-promote the moved guest to primary of the new group: the caller can use
-    // PATCH /guests/{id} with { "primary": true } if they want that.
+    // If the guest was the primary of the old group, clear the dangling reference.
     if (oldGroupId != null) {
       GuestGroup oldGroup = groupRepository.findById(oldGroupId).orElse(null);
       if (oldGroup != null && guestId.equals(oldGroup.getPrimaryGuestId())) {
@@ -370,6 +427,61 @@ public class GuestService implements GuestInPort {
     return toDto(saved);
   }
 
+  // ============== Admin RSVP ==============
+
+  @Override
+  @Transactional
+  public GuestGroupDto markGroupRsvp(String groupId, RsvpUpdateDto dto, String actorUserId) {
+    GuestGroup group = loadOwnedGroup(groupId, actorUserId);
+    List<Guest> guests = guestRepository.findByGroupId(groupId);
+    Instant now = Instant.now();
+    for (Guest guest : guests) {
+      Guest updated = applyRsvpPatch(guest, dto, now);
+      guestRepository.save(updated);
+    }
+    log.info(
+        "guest_group.rsvp_marked groupId={} status={} actorUserId={} guestsAffected={}",
+        groupId,
+        dto.status(),
+        actorUserId,
+        guests.size());
+    return toDto(group);
+  }
+
+  @Override
+  @Transactional
+  public GuestDto markGuestRsvp(String guestId, RsvpUpdateDto dto, String actorUserId) {
+    Guest current = loadOwnedGuest(guestId, actorUserId);
+    Guest updated = applyRsvpPatch(current, dto, Instant.now());
+    Guest saved = guestRepository.save(updated);
+    log.info(
+        "guest.rsvp_marked guestId={} status={} actorUserId={}",
+        guestId,
+        dto.status(),
+        actorUserId);
+    return toDto(saved);
+  }
+
+  // ============== Public RSVP (called from invitation module) ==============
+
+  @Override
+  @Transactional
+  public GuestDto applyRsvpFromInvitation(String guestId, RsvpUpdateDto dto) {
+    Guest current =
+        guestRepository
+            .findById(guestId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundError(
+                        "guest_not_found", "Guest " + guestId + " not found"));
+    Guest updated = applyRsvpPatch(current, dto, Instant.now());
+    Guest saved = guestRepository.save(updated);
+    log.info("guest.rsvp_marked_from_invitation guestId={} status={}", guestId, dto.status());
+    return toDto(saved);
+  }
+
+  // ============== Cross-context reads ==============
+
   @Override
   @Transactional(readOnly = true)
   public List<GuestDto> findAllForEvent(String eventId) {
@@ -383,7 +495,43 @@ public class GuestService implements GuestInPort {
         .toList();
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<GuestDto> listGuestsByGroupId(String groupId) {
+    return guestRepository.findByGroupId(groupId).stream().map(GuestService::toDto).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<GuestGroupDto> findGroupByInvitationToken(String token) {
+    return groupRepository.findByInvitationToken(token).map(GuestService::toDto);
+  }
+
   // ============== helpers ==============
+
+  private Guest loadOwnedGuest(String guestId, String actorUserId) {
+    Guest guest =
+        guestRepository
+            .findById(guestId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundError(
+                        "guest_not_found", "Guest " + guestId + " not found"));
+    verifyGuestOwnership(guest.getGroupId(), actorUserId);
+    return guest;
+  }
+
+  private GuestGroup loadOwnedGroup(String groupId, String actorUserId) {
+    GuestGroup group =
+        groupRepository
+            .findById(groupId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundError(
+                        "guest_group_not_found", "Guest group " + groupId + " not found"));
+    eventApi.getEvent(group.getEventId(), actorUserId);
+    return group;
+  }
 
   private void verifyGuestOwnership(String groupId, String actorUserId) {
     GuestGroup group =
@@ -417,8 +565,16 @@ public class GuestService implements GuestInPort {
         .email(dto.email() != null ? dto.email() : current.getEmail())
         .phone(dto.phone() != null ? dto.phone() : current.getPhone())
         .dietaryNotes(dto.dietaryNotes() != null ? dto.dietaryNotes() : current.getDietaryNotes())
-        .primary(dto.primary() != null ? dto.primary() : current.isPrimary())
         .updatedAt(Instant.now())
+        .build();
+  }
+
+  private Guest applyRsvpPatch(Guest current, RsvpUpdateDto dto, Instant now) {
+    return current.toBuilder()
+        .rsvpStatus(dto.status())
+        .rsvpConfirmedAt(dto.status() == RsvpStatus.pending ? null : now)
+        .rsvpMessage(dto.message())
+        .updatedAt(now)
         .build();
   }
 
@@ -446,7 +602,6 @@ public class GuestService implements GuestInPort {
         g.getEmail(),
         g.getPhone(),
         g.getDietaryNotes(),
-        g.isPrimary(),
         g.getInvitationToken(),
         g.getRsvpStatus().name(),
         g.getRsvpConfirmedAt(),

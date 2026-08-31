@@ -39,8 +39,6 @@ public class GuestEntity {
 
   private String dietaryNotes;
 
-  private boolean primary = false;
-
   private String invitationToken;
 
   private String rsvpStatus = "pending";

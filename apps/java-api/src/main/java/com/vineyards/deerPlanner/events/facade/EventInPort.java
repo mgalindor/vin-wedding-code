@@ -7,16 +7,16 @@ import com.vineyards.deerPlanner.events.facade.dto.ListEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
-import com.vineyards.deerPlanner.events.facade.dto.WeddingAccommodationPayloadDto;
-import com.vineyards.deerPlanner.events.facade.dto.WeddingDressCodePayloadDto;
-import com.vineyards.deerPlanner.events.facade.dto.WeddingGiftRegistryPayloadDto;
-import com.vineyards.deerPlanner.events.facade.dto.WeddingLandingPayloadDto;
-import com.vineyards.deerPlanner.events.facade.dto.WeddingParentsPayloadDto;
-import com.vineyards.deerPlanner.events.facade.dto.WeddingStoryPayloadDto;
 import java.util.List;
 import java.util.Optional;
 import org.jmolecules.architecture.hexagonal.PrimaryPort;
 
+/**
+ * Primary port for the events bounded context. Wedding-, birthday- or anniversary-specific state
+ * lives behind the corresponding extension port (e.g. {@link WeddingEventInPort}) — this one
+ * intentionally knows nothing about any particular event type beyond {@link
+ * com.vineyards.deerPlanner.events.domain.EventType}.
+ */
 @PrimaryPort
 public interface EventInPort {
 
@@ -30,8 +30,6 @@ public interface EventInPort {
 
   void deleteEvent(String eventId, String actorUserId);
 
-  EventDto publishEvent(String eventId, String actorUserId);
-
   EventDto archiveEvent(String eventId, String actorUserId);
 
   EventDto updateLocations(String eventId, LocationsPayloadDto dto, String actorUserId);
@@ -40,28 +38,13 @@ public interface EventInPort {
 
   EventDto updateContacts(String eventId, ContactsPayloadDto dto, String actorUserId);
 
-  EventDto updateWeddingLanding(String eventId, WeddingLandingPayloadDto dto, String actorUserId);
-
-  EventDto updateWeddingStory(String eventId, WeddingStoryPayloadDto dto, String actorUserId);
-
-  EventDto updateWeddingDressCode(
-      String eventId, WeddingDressCodePayloadDto dto, String actorUserId);
-
-  EventDto updateWeddingGiftRegistry(
-      String eventId, WeddingGiftRegistryPayloadDto dto, String actorUserId);
-
-  EventDto updateWeddingParents(String eventId, WeddingParentsPayloadDto dto, String actorUserId);
-
-  EventDto updateWeddingAccommodation(
-      String eventId, WeddingAccommodationPayloadDto dto, String actorUserId);
-
   /** Internal use by other modules; no auth at this layer. */
   List<EventDto> findByOrganizer(String organizerUserId);
 
   /**
    * Cross-context read for invitation rendering. Skips ownership checks; the caller (invitation
    * module) is responsible for ensuring the requested eventId corresponds to a live, active
-   * invitation before calling this method.
+   * invitation before invoking this method.
    */
   Optional<EventDto> findByEventId(String eventId);
 }

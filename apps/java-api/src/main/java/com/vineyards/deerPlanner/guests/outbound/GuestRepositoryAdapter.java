@@ -64,7 +64,6 @@ public class GuestRepositoryAdapter implements GuestOutPort {
         .email(e.getEmail())
         .phone(e.getPhone())
         .dietaryNotes(e.getDietaryNotes())
-        .primary(e.isPrimary())
         .invitationToken(e.getInvitationToken())
         .rsvpStatus(RsvpStatus.fromString(e.getRsvpStatus()))
         .rsvpConfirmedAt(e.getRsvpConfirmedAt())
@@ -84,7 +83,6 @@ public class GuestRepositoryAdapter implements GuestOutPort {
     e.setEmail(d.getEmail());
     e.setPhone(d.getPhone());
     e.setDietaryNotes(d.getDietaryNotes());
-    e.setPrimary(d.isPrimary());
     e.setInvitationToken(d.getInvitationToken());
     e.setRsvpStatus(d.getRsvpStatus().name());
     e.setRsvpConfirmedAt(d.getRsvpConfirmedAt());

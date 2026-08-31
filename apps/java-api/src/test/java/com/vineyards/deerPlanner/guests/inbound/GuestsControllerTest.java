@@ -11,15 +11,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.guests.domain.RsvpStatus;
 import com.vineyards.deerPlanner.guests.facade.GuestInPort;
 import com.vineyards.deerPlanner.guests.facade.dto.ChangeGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
+import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
@@ -86,7 +89,6 @@ class GuestsControllerTest {
         "maria@example.com",
         "+521111111111",
         null,
-        true,
         "token-guest",
         "pending",
         null,
@@ -133,8 +135,7 @@ class GuestsControllerTest {
           "firstName": "Maria",
           "lastName": "Morales",
           "email": "maria@example.com",
-          "phone": "+521111111111",
-          "primary": true
+          "phone": "+521111111111"
         }
         """;
 
@@ -163,7 +164,7 @@ class GuestsControllerTest {
 
   @Test
   void postGuest_whenGroupIdMissing_returns400() throws Exception {
-    // groupId is @NotBlank Ã¢â‚¬â€ required so the service can place the guest in the right group.
+    // groupId is @NotBlank — required so the service can place the guest in the right group.
     mvc.perform(
             post("/api/v1/events/{id}/guests", EVENT_ID)
                 .with(authorizedUser())
@@ -181,12 +182,11 @@ class GuestsControllerTest {
         new GuestDto(
             GUEST_ID,
             GROUP_ID,
-            "MarÃƒÂ­a JosÃƒÂ©",
+            "María José",
             "Morales",
             null,
             null,
             null,
-            false,
             "token-guest",
             "pending",
             null,
@@ -203,10 +203,10 @@ class GuestsControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"firstName": "MarÃƒÂ­a JosÃƒÂ©"}
+                    {"firstName": "María José"}
                     """))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.firstName").value("MarÃƒÂ­a JosÃƒÂ©"));
+        .andExpect(jsonPath("$.firstName").value("María José"));
   }
 
   @Test
@@ -229,7 +229,6 @@ class GuestsControllerTest {
             "maria@example.com",
             "+521111111111",
             null,
-            true,
             "token-guest",
             "pending",
             null,
@@ -266,7 +265,6 @@ class GuestsControllerTest {
             "maria@example.com",
             "+521111111111",
             null,
-            true,
             "token-guest",
             "pending",
             null,
@@ -292,39 +290,56 @@ class GuestsControllerTest {
     assertThat(captor.getValue().groupId()).isNull();
   }
 
+  // ----- Admin RSVP (individual) -----
+
   @Test
-  void patchGroup_withEmptyGroupId_unassigns() throws Exception {
-    GuestDto unassigned =
+  void putGuestRsvp_withConfirmedStatus_returns200() throws Exception {
+    GuestDto updated =
         new GuestDto(
             GUEST_ID,
-            null,
+            GROUP_ID,
             "Maria",
             "Morales",
-            "maria@example.com",
-            "+521111111111",
             null,
-            true,
+            null,
+            null,
             "token-guest",
-            "pending",
-            null,
+            "confirmed",
+            Instant.parse("2026-09-01T10:00:00Z"),
             null,
             null,
             Instant.parse("2026-08-01T10:00:00Z"),
-            Instant.parse("2026-08-02T10:00:00Z"));
-    when(guestApi.changeGuestGroup(
-            eq(EVENT_ID), eq(GUEST_ID), any(ChangeGuestGroupDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(unassigned);
+            Instant.parse("2026-09-01T10:00:00Z"));
+    when(guestApi.markGuestRsvp(eq(GUEST_ID), any(RsvpUpdateDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(updated);
 
     mvc.perform(
-            patch("/api/v1/events/{eid}/guests/{gid}/group", EVENT_ID, GUEST_ID)
+            put("/api/v1/events/{eid}/guests/{gid}/rsvp", EVENT_ID, GUEST_ID)
                 .with(authorizedUser())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"groupId\":\"\"}"))
-        .andExpect(status().isOk());
+                .content(
+                    """
+                    {"status": "confirmed", "message": "All set"}
+                    """))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.rsvpStatus").value("confirmed"));
 
-    ArgumentCaptor<ChangeGuestGroupDto> captor = ArgumentCaptor.forClass(ChangeGuestGroupDto.class);
-    verify(guestApi)
-        .changeGuestGroup(eq(EVENT_ID), eq(GUEST_ID), captor.capture(), eq(ORGANIZER_ID));
-    assertThat(captor.getValue().groupId()).isEmpty();
+    ArgumentCaptor<RsvpUpdateDto> captor = ArgumentCaptor.forClass(RsvpUpdateDto.class);
+    verify(guestApi).markGuestRsvp(eq(GUEST_ID), captor.capture(), eq(ORGANIZER_ID));
+    assertThat(captor.getValue().status()).isEqualTo(RsvpStatus.confirmed);
+    assertThat(captor.getValue().message()).isEqualTo("All set");
+  }
+
+  @Test
+  void putGuestRsvp_whenStatusMissing_returns400() throws Exception {
+    mvc.perform(
+            put("/api/v1/events/{eid}/guests/{gid}/rsvp", EVENT_ID, GUEST_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"message": "no status"}
+                    """))
+        .andExpect(status().isBadRequest());
   }
 }

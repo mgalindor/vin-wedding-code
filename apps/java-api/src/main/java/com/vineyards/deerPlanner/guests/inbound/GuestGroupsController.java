@@ -4,7 +4,9 @@ import com.vineyards.deerPlanner.guests.facade.GuestInPort;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestGroupsResponse;
+import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupDto;
+import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupPrimaryDto;
 import jakarta.validation.Valid;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -88,5 +91,25 @@ public class GuestGroupsController {
       @PathVariable String groupId,
       @AuthenticationPrincipal Jwt jwt) {
     return guestApi.regenerateGroupToken(groupId, jwt.getSubject());
+  }
+
+  @PutMapping("/{groupId}/primary")
+  public GuestGroupDto updatePrimary(
+      @PathVariable String eventId,
+      @PathVariable String groupId,
+      @Valid @RequestBody UpdateGuestGroupPrimaryDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return guestApi.updatePrimaryGuest(groupId, body, jwt.getSubject());
+  }
+
+  // ----- RSVP (organizer-facing, whole group) -----
+
+  @PutMapping("/{groupId}/rsvp")
+  public GuestGroupDto markGroupRsvp(
+      @PathVariable String eventId,
+      @PathVariable String groupId,
+      @Valid @RequestBody RsvpUpdateDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return guestApi.markGroupRsvp(groupId, body, jwt.getSubject());
   }
 }

@@ -1,23 +1,22 @@
 package com.vineyards.deerPlanner.invitation.facade;
 
+import com.vineyards.deerPlanner.invitation.facade.dto.PublicGroupRsvpRequestDto;
+import com.vineyards.deerPlanner.invitation.facade.dto.PublicGroupViewDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicInvitationDto;
-import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpRequestDto;
-import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpResponseDto;
 import org.jmolecules.architecture.hexagonal.PrimaryPort;
 
 /**
- * Primary port for the public invitation surface (no JWT required; the {@code slug} IS the access
- * token). Implemented by {@code invitation/application/PublicInvitationService}.
- *
- * <p>The route is exposed under {@code /api/v1/public/invitations/**} and {@code permitAll()} in
- * the security config. Authorisation happens by virtue of knowing the slug (which is regenerated
- * when the Organizer rotates it; see {@link
- * com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigOutPort#existsBySlug}).
+ * Primary port for the public invitation surface. Event-level reads use {@link #getBySlug(String)};
+ * the group-level RSVP flow uses {@link #getGroup(String, String)} and {@link
+ * #submitGroupRsvp(String, String, PublicGroupRsvpRequestDto)} — both require a valid {@code
+ * groupToken} in addition to the {@code slug}.
  */
 @PrimaryPort
 public interface PublicInvitationInPort {
 
   PublicInvitationDto getBySlug(String slug);
 
-  PublicRsvpResponseDto submitRsvp(String slug, PublicRsvpRequestDto dto);
+  PublicGroupViewDto getGroup(String slug, String groupToken);
+
+  PublicGroupViewDto submitGroupRsvp(String slug, String groupToken, PublicGroupRsvpRequestDto dto);
 }

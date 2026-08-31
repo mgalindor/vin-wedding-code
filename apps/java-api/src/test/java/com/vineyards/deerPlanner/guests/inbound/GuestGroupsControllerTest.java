@@ -11,16 +11,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.guests.domain.RsvpStatus;
 import com.vineyards.deerPlanner.guests.facade.GuestInPort;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestGroupsResponse;
+import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupDto;
+import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupPrimaryDto;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
@@ -119,37 +123,7 @@ class GuestGroupsControllerTest {
   }
 
   @Test
-  void postGroup_withValidBody_returns201WithLocation() throws Exception {
-    when(guestApi.createGroup(eq(EVENT_ID), any(CreateGuestGroupDto.class), eq(ORGANIZER_ID)))
-        .thenReturn(sampleGroup());
-
-    String body =
-        """
-        {
-          "name": "Familia Morales",
-          "relationship": "family",
-          "sharedEmail": "fm@example.com",
-          "sharedPhone": "+521234567890",
-          "displayOrder": 0
-        }
-        """;
-
-    MvcResult result =
-        mvc.perform(
-                post("/api/v1/events/{id}/guest-groups", EVENT_ID)
-                    .with(authorizedUser())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
-            .andExpect(status().isCreated())
-            .andExpect(header().exists("Location"))
-            .andExpect(jsonPath("$.id").value(GROUP_ID))
-            .andReturn();
-
-    assertThat(result.getResponse().getHeader("Location")).contains("/guest-groups/" + GROUP_ID);
-  }
-
-  @Test
-  void postGroup_withInlineGuests_returns201AndDelegatesFullPayload() throws Exception {
+  void postGroup_withInlineGuestsAndPrimary_returns201AndDelegatesFullPayload() throws Exception {
     when(guestApi.createGroup(eq(EVENT_ID), any(CreateGuestGroupDto.class), eq(ORGANIZER_ID)))
         .thenReturn(sampleGroup());
 
@@ -165,12 +139,18 @@ class GuestGroupsControllerTest {
         }
         """;
 
-    mvc.perform(
-            post("/api/v1/events/{id}/guest-groups", EVENT_ID)
-                .with(authorizedUser())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-        .andExpect(status().isCreated());
+    MvcResult result =
+        mvc.perform(
+                post("/api/v1/events/{id}/guest-groups", EVENT_ID)
+                    .with(authorizedUser())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isCreated())
+            .andExpect(header().exists("Location"))
+            .andExpect(jsonPath("$.id").value(GROUP_ID))
+            .andReturn();
+
+    assertThat(result.getResponse().getHeader("Location")).contains("/guest-groups/" + GROUP_ID);
 
     ArgumentCaptor<CreateGuestGroupDto> captor = ArgumentCaptor.forClass(CreateGuestGroupDto.class);
     verify(guestApi).createGroup(eq(EVENT_ID), captor.capture(), eq(ORGANIZER_ID));
@@ -178,6 +158,8 @@ class GuestGroupsControllerTest {
         .hasSize(2)
         .extracting("firstName")
         .containsExactly("Maria", "Jose");
+    assertThat(captor.getValue().guests().get(0).primary()).isTrue();
+    assertThat(captor.getValue().guests().get(1).primary()).isNull();
   }
 
   @Test
@@ -191,7 +173,7 @@ class GuestGroupsControllerTest {
                     {
                       "name": "Familia Morales",
                       "relationship": "family",
-                      "guests": [{"lastName": "Morales"}]
+                      "guests": [{"lastName": "Morales", "primary": true}]
                     }
                     """))
         .andExpect(status().isBadRequest());
@@ -285,5 +267,104 @@ class GuestGroupsControllerTest {
                 .with(authorizedUser()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.invitationToken").value("rotated-token"));
+  }
+
+  // ----- Primary contact setter -----
+
+  @Test
+  void putPrimary_withGuestId_setsPrimary() throws Exception {
+    GuestGroupDto updated =
+        new GuestGroupDto(
+            GROUP_ID,
+            EVENT_ID,
+            "Familia Morales",
+            "family",
+            null,
+            null,
+            "gst-1",
+            "token-1",
+            0,
+            Instant.parse("2026-08-01T10:00:00Z"),
+            Instant.parse("2026-09-01T10:00:00Z"));
+    when(guestApi.updatePrimaryGuest(
+            eq(GROUP_ID), any(UpdateGuestGroupPrimaryDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(updated);
+
+    mvc.perform(
+            put("/api/v1/events/{eid}/guest-groups/{gid}/primary", EVENT_ID, GROUP_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"guestId\":\"gst-1\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.primaryGuestId").value("gst-1"));
+
+    ArgumentCaptor<UpdateGuestGroupPrimaryDto> captor =
+        ArgumentCaptor.forClass(UpdateGuestGroupPrimaryDto.class);
+    verify(guestApi).updatePrimaryGuest(eq(GROUP_ID), captor.capture(), eq(ORGANIZER_ID));
+    assertThat(captor.getValue().guestId()).isEqualTo("gst-1");
+  }
+
+  @Test
+  void putPrimary_withNullGuest_clearsPrimary() throws Exception {
+    GuestGroupDto cleared =
+        new GuestGroupDto(
+            GROUP_ID,
+            EVENT_ID,
+            "Familia Morales",
+            "family",
+            null,
+            null,
+            null,
+            "token-1",
+            0,
+            Instant.parse("2026-08-01T10:00:00Z"),
+            Instant.parse("2026-09-01T10:00:00Z"));
+    when(guestApi.updatePrimaryGuest(
+            eq(GROUP_ID), any(UpdateGuestGroupPrimaryDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(cleared);
+
+    mvc.perform(
+            put("/api/v1/events/{eid}/guest-groups/{gid}/primary", EVENT_ID, GROUP_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"guestId\":null}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.primaryGuestId").doesNotExist());
+  }
+
+  // ----- Admin RSVP (whole group) -----
+
+  @Test
+  void putGroupRsvp_withConfirmedStatus_returns200AndDelegates() throws Exception {
+    when(guestApi.markGroupRsvp(eq(GROUP_ID), any(RsvpUpdateDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(sampleGroup());
+
+    mvc.perform(
+            put("/api/v1/events/{eid}/guest-groups/{gid}/rsvp", EVENT_ID, GROUP_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"status": "confirmed", "message": "All confirmed"}
+                    """))
+        .andExpect(status().isOk());
+
+    ArgumentCaptor<RsvpUpdateDto> captor = ArgumentCaptor.forClass(RsvpUpdateDto.class);
+    verify(guestApi).markGroupRsvp(eq(GROUP_ID), captor.capture(), eq(ORGANIZER_ID));
+    assertThat(captor.getValue().status()).isEqualTo(RsvpStatus.confirmed);
+    assertThat(captor.getValue().message()).isEqualTo("All confirmed");
+  }
+
+  @Test
+  void putGroupRsvp_whenStatusMissing_returns400() throws Exception {
+    mvc.perform(
+            put("/api/v1/events/{eid}/guest-groups/{gid}/rsvp", EVENT_ID, GROUP_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"message": "no status"}
+                    """))
+        .andExpect(status().isBadRequest());
   }
 }

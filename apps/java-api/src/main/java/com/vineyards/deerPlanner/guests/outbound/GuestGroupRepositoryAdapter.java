@@ -45,6 +45,11 @@ public class GuestGroupRepositoryAdapter implements GuestGroupOutPort {
     return jpa.existsByInvitationToken(token);
   }
 
+  @Override
+  public Optional<GuestGroup> findByInvitationToken(String token) {
+    return jpa.findByInvitationToken(token).map(GuestGroupRepositoryAdapter::toDomain);
+  }
+
   static GuestGroup toDomain(GuestGroupEntity e) {
     return GuestGroup.builder()
         .id(e.getId())

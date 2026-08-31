@@ -2,11 +2,13 @@ package com.vineyards.deerPlanner.identity.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.vineyards.deerPlanner.shared.config.JpaConfig;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest(
@@ -18,6 +20,7 @@ import org.springframework.test.context.jdbc.Sql;
       "spring.jpa.hibernate.ddl-auto=create-drop"
     })
 @AutoConfigureTestDatabase
+@Import(JpaConfig.class)
 class UserJpaRepositoryTest {
 
   @Autowired UserJpaRepository repository;

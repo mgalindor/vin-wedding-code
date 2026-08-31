@@ -5,6 +5,7 @@ import com.vineyards.deerPlanner.guests.facade.dto.ChangeGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
+import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -28,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping(path = "/api/v1/events/{eventId}/guests")
+@RequestMapping(path = "/api/v1/events/{eventId}")
 @PrimaryAdapter
 @PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @RequiredArgsConstructor
@@ -37,12 +39,12 @@ public class GuestsController {
 
   private final GuestInPort guestApi;
 
-  @GetMapping
+  @GetMapping("/guests")
   public ListGuestsResponse list(@PathVariable String eventId, @AuthenticationPrincipal Jwt jwt) {
     return guestApi.listGuests(eventId, jwt.getSubject());
   }
 
-  @GetMapping("/{guestId}")
+  @GetMapping("/guests/{guestId}")
   public GuestDto get(
       @PathVariable String eventId,
       @PathVariable String guestId,
@@ -50,7 +52,7 @@ public class GuestsController {
     return guestApi.getGuest(guestId, jwt.getSubject());
   }
 
-  @PostMapping
+  @PostMapping("/guests")
   public ResponseEntity<GuestDto> create(
       @PathVariable String eventId,
       @Valid @RequestBody CreateGuestDto body,
@@ -64,7 +66,7 @@ public class GuestsController {
     return ResponseEntity.created(location).body(created);
   }
 
-  @PatchMapping(path = "/{guestId}")
+  @PatchMapping(path = "/guests/{guestId}")
   public GuestDto update(
       @PathVariable String eventId,
       @PathVariable String guestId,
@@ -73,7 +75,7 @@ public class GuestsController {
     return guestApi.updateGuest(guestId, body, jwt.getSubject());
   }
 
-  @PatchMapping(path = "/{guestId}/group")
+  @PatchMapping(path = "/guests/{guestId}/group")
   public GuestDto changeGroup(
       @PathVariable String eventId,
       @PathVariable String guestId,
@@ -82,12 +84,23 @@ public class GuestsController {
     return guestApi.changeGuestGroup(eventId, guestId, body, jwt.getSubject());
   }
 
-  @DeleteMapping("/{guestId}")
+  @DeleteMapping("/guests/{guestId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(
       @PathVariable String eventId,
       @PathVariable String guestId,
       @AuthenticationPrincipal Jwt jwt) {
     guestApi.deleteGuest(guestId, jwt.getSubject());
+  }
+
+  // ----- RSVP (organizer-facing) -----
+
+  @PutMapping("/guests/{guestId}/rsvp")
+  public GuestDto markRsvp(
+      @PathVariable String eventId,
+      @PathVariable String guestId,
+      @Valid @RequestBody RsvpUpdateDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return guestApi.markGuestRsvp(guestId, body, jwt.getSubject());
   }
 }

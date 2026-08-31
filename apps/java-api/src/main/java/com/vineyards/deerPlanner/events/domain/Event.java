@@ -24,7 +24,6 @@ public class Event {
   private LocationsPayload locationsPayload;
   private ProgramPayload programPayload;
   private ContactsPayload contactsPayload;
-  private WeddingDetail wedding;
   private Instant createdAt;
   private Instant updatedAt;
 }

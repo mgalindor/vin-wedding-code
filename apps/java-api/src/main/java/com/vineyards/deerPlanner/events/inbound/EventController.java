@@ -1,9 +1,12 @@
 package com.vineyards.deerPlanner.events.inbound;
 
 import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.ListEventsResponse;
+import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -15,7 +18,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
@@ -59,13 +71,34 @@ public class EventController {
     eventApi.deleteEvent(id, jwt.getSubject());
   }
 
-  @PostMapping("/{id}/publish")
-  public EventDto publishEvent(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
-    return eventApi.publishEvent(id, jwt.getSubject());
-  }
-
   @PostMapping("/{id}/archive")
   public EventDto archiveEvent(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
     return eventApi.archiveEvent(id, jwt.getSubject());
+  }
+
+  // ----- Generic JSONB payloads (type-agnostic) -----
+
+  @PutMapping(path = "/{id}/locations")
+  public EventDto updateLocations(
+      @PathVariable String id,
+      @Valid @RequestBody LocationsPayloadDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return eventApi.updateLocations(id, body, jwt.getSubject());
+  }
+
+  @PutMapping(path = "/{id}/program")
+  public EventDto updateProgram(
+      @PathVariable String id,
+      @Valid @RequestBody ProgramPayloadDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return eventApi.updateProgram(id, body, jwt.getSubject());
+  }
+
+  @PutMapping(path = "/{id}/contacts")
+  public EventDto updateContacts(
+      @PathVariable String id,
+      @Valid @RequestBody ContactsPayloadDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return eventApi.updateContacts(id, body, jwt.getSubject());
   }
 }

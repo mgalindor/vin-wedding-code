@@ -15,6 +15,4 @@ public interface GuestJpaRepository extends JpaRepository<GuestEntity, String> {
   Optional<GuestEntity> findByInvitationToken(String invitationToken);
 
   long countByGroupId(String groupId);
-
-  long countByGroupIdAndPrimaryIsTrue(String groupId);
 }

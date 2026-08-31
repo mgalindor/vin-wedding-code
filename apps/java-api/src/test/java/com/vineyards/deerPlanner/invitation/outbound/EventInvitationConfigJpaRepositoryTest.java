@@ -2,6 +2,7 @@ package com.vineyards.deerPlanner.invitation.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.vineyards.deerPlanner.shared.config.JpaConfig;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -9,11 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest(
     properties = {"spring.liquibase.enabled=false", "spring.jpa.hibernate.ddl-auto=create-drop"})
 @AutoConfigureTestDatabase
+@Import(JpaConfig.class)
 class EventInvitationConfigJpaRepositoryTest {
 
   @Autowired EventInvitationConfigJpaRepository repository;

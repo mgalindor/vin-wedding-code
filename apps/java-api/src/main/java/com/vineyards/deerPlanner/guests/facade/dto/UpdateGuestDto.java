@@ -8,5 +8,4 @@ public record UpdateGuestDto(
     @Size(max = 120) String lastName,
     @Size(max = 254) String email,
     @Size(max = 32) String phone,
-    @Size(max = 4000) String dietaryNotes,
-    Boolean primary) {}
+    @Size(max = 4000) String dietaryNotes) {}

@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - comment: >
+      Drops the per-guest binary `primary` flag from the guests table.
+      Reason: the "primary contact" concept was relocated to the group level
+      (GuestGroup.primaryGuestId) as part of the events/wedding extension split.
+      Code: removed Guest.primary from GuestEntity, GuestDto, CreateGuestDto,
+      UpdateGuestDto, GuestJpaRepository, GuestService and their tests. The flag
+      remains ONLY as an InlineGuestDto request hint at group-creation time so the
+      organizer can designate which inline guest becomes primaryGuestId — that hint
+      is never persisted on the Guest entity itself.
+      Production cleanup: this changelog removes the now-orphaned column from the
+      guests table. The corresponding H2 ddl-auto=create-drop test schema already
+      excludes the column since the JPA mapping no longer declares it.
+  - changeSet:
+      id: 008-guests-drop-primary-column
+      author: deer-planner
+      labels: guests, schema
+      changes:
+        - dropColumn:
+            tableName: guests
+            columnName: primary

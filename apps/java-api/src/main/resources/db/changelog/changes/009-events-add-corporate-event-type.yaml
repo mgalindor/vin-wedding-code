@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - comment: >
+      Extends the events.event_type check constraint to admit 'corporate', and
+      brings the Java enum (EventType.java) into alignment with the invitation
+      template catalogue — the seed already includes 2 corporate templates
+      (tpl-corporate-conf-v1, tpl-corporate-launch-v1) that the enum previously
+      rejected, leaving them unreachable from the UI. The invitation_templates
+      check constraint already allowed 'corporate', so only events needs this
+      update.
+  - changeSet:
+      id: 009-events-add-corporate-event-type
+      author: deer-planner
+      labels: events, schema
+      changes:
+        - dropCheckConstraint:
+            tableName: events
+            constraintName: ck_events_event_type
+        - addCheckConstraint:
+            tableName: events
+            constraintName: ck_events_event_type
+            checkConstraint: "event_type IN ('wedding','birthday','anniversary','other','corporate')"

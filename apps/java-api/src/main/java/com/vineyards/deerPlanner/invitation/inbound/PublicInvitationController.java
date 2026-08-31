@@ -1,26 +1,24 @@
 package com.vineyards.deerPlanner.invitation.inbound;
 
 import com.vineyards.deerPlanner.invitation.facade.PublicInvitationInPort;
+import com.vineyards.deerPlanner.invitation.facade.dto.PublicGroupRsvpRequestDto;
+import com.vineyards.deerPlanner.invitation.facade.dto.PublicGroupViewDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicInvitationDto;
-import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpRequestDto;
-import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Public invitation surface. No JWT â€” the {@code slug} IS the access token. The {@code
- * PublicTokenFilter} (in {@code shared/security/}) already validated the slug and stored the
- * resolved {@code eventId} in the request attributes if needed; this controller reads the slug path
- * variable directly and delegates validation to {@link
- * com.vineyards.deerPlanner.invitation.application.PublicInvitationService}.
+ * Public invitation surface. No JWT — the {@code slug} + {@code groupToken} are the access tokens.
+ * Event-level reads (the landing page) use the slug; group-level reads and writes (the RSVP page)
+ * use both.
  */
 @RestController
 @RequestMapping(path = "/api/v1/public/invitations")
@@ -36,9 +34,16 @@ public class PublicInvitationController {
     return publicInvitationApi.getBySlug(slug);
   }
 
-  @PostMapping(path = "/{slug}/rsvp")
-  public PublicRsvpResponseDto submitRsvp(
-      @PathVariable String slug, @Valid @RequestBody PublicRsvpRequestDto body) {
-    return publicInvitationApi.submitRsvp(slug, body);
+  @GetMapping("/{slug}/groups/{groupToken}")
+  public PublicGroupViewDto getGroup(@PathVariable String slug, @PathVariable String groupToken) {
+    return publicInvitationApi.getGroup(slug, groupToken);
+  }
+
+  @PutMapping(path = "/{slug}/groups/{groupToken}/rsvp")
+  public PublicGroupViewDto submitRsvp(
+      @PathVariable String slug,
+      @PathVariable String groupToken,
+      @Valid @RequestBody PublicGroupRsvpRequestDto body) {
+    return publicInvitationApi.submitGroupRsvp(slug, groupToken, body);
   }
 }

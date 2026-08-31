@@ -10,14 +10,12 @@ import com.vineyards.deerPlanner.events.application.port.EventOutPort;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
-import com.vineyards.deerPlanner.events.domain.WeddingDetail;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
-import com.vineyards.deerPlanner.events.facade.dto.WeddingLandingPayloadDto;
 import com.vineyards.deerPlanner.events.facade.mapper.EventPayloadMapper;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
@@ -55,18 +53,8 @@ class EventServiceTest {
   class CreateEvent {
 
     @Test
-    void createEvent_withWeddingDetail_persistsWithDraftStatusAndUuidId() {
-      var dto =
-          new CreateEventDto(
-              "Maya & Luis",
-              EventType.wedding,
-              LocalDate.now().plusDays(180),
-              null,
-              "Maya",
-              "Luis",
-              null,
-              null,
-              null);
+    void createEvent_persistsWithDraftStatusAndUuidId() {
+      var dto = new CreateEventDto("Maya & Luis", EventType.wedding, LocalDate.now().plusDays(180));
 
       ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
       when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -80,31 +68,26 @@ class EventServiceTest {
       assertThat(saved.getOrganizerId()).isEqualTo(ORGANIZER_ID);
       assertThat(saved.getStatus()).isEqualTo(EventStatus.draft);
       assertThat(saved.getTitle()).isEqualTo("Maya & Luis");
-      assertThat(saved.getWedding()).isNotNull();
-      assertThat(saved.getWedding().getPartner1Name()).isEqualTo("Maya");
+      assertThat(saved.getEventType()).isEqualTo(EventType.wedding);
+      assertThat(saved.getLocationsPayload()).isNull();
+      assertThat(saved.getProgramPayload()).isNull();
+      assertThat(saved.getContactsPayload()).isNull();
       assertThat(result.id()).isEqualTo(saved.getId());
     }
 
     @Test
-    void createEvent_whenEventTypeIsNotWedding_returnsNullWeddingDetail() {
+    void createEvent_forBirthday_keepsEventTypeButNoWeddingDetail() {
       var dto =
-          new CreateEventDto(
-              "Cumple de SofÃƒÂ­a",
-              EventType.birthday,
-              LocalDate.now().plusDays(30),
-              null,
-              null,
-              null,
-              null,
-              5,
-              null);
+          new CreateEventDto("Cumple de Sofía", EventType.birthday, LocalDate.now().plusDays(30));
       when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       EventDto result = service.createEvent(dto, ORGANIZER_ID);
 
-      // The detail builder returns null for non-wedding types Ã¢â‚¬â€ the service must not
-      // persist an empty row in wedding_events for birthday/anniversary/other.
-      assertThat(result.wedding()).isNull();
+      assertThat(result.eventType()).isEqualTo(EventType.birthday);
+      // No wedding payload is part of the base event DTO; that lives behind WeddingEventController.
+      assertThat(result.locations()).isNull();
+      assertThat(result.program()).isNull();
+      assertThat(result.contacts()).isNull();
     }
   }
 
@@ -144,27 +127,6 @@ class EventServiceTest {
 
   @Nested
   class StateTransitions {
-
-    @Test
-    void publishEvent_fromDraft_succeedsAndBumpsUpdatedAt() {
-      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
-      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
-
-      EventDto result = service.publishEvent(EVENT_ID, ORGANIZER_ID);
-
-      assertThat(result.status()).isEqualTo(EventStatus.published);
-    }
-
-    @Test
-    void publishEvent_whenAlreadyArchived_throwsBusinessError() {
-      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.archived);
-      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-
-      assertThatThrownBy(() -> service.publishEvent(EVENT_ID, ORGANIZER_ID))
-          .isInstanceOf(BusinessError.class)
-          .hasMessageContaining("invalid_status_transition");
-    }
 
     @Test
     void archiveEvent_fromPublished_succeeds() {
@@ -210,13 +172,6 @@ class EventServiceTest {
       assertThat(result.locations()).isNotNull();
       assertThat(result.locations().entries()).hasSize(1);
       assertThat(result.locations().entries().get(0).label()).isEqualTo("Ceremony");
-    }
-
-    @Test
-    void updateLocations_whenPayloadIsUnchanged_isNoopAndDoesNotBumpUpdatedAt() {
-      // TODO: the new EventService.updateLocations always persists via repository.save()
-      // (locationsPayload is now a typed object, not a raw JSON string). The previous
-      // "skip-save-when-unchanged" behaviour is gone Ã¢â‚¬â€ revisit if it is reintroduced.
     }
 
     @Test
@@ -268,28 +223,6 @@ class EventServiceTest {
       assertThat(result.contacts()).isNotNull();
       assertThat(result.contacts().entries().get(0).fullName()).isEqualTo("Ana Rodriguez");
     }
-
-    @Test
-    void updateWeddingLanding_whenDetailMissing_createsDetailRow() {
-      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
-      stored.setWedding(null);
-      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
-
-      var dto = new WeddingLandingPayloadDto("You are cordially invited");
-      when(payloadMapper.toPayload(any(WeddingLandingPayloadDto.class)))
-          .thenReturn(
-              new com.vineyards.deerPlanner.events.domain.payload.WeddingLandingPayload(null));
-      when(payloadMapper.toDto(
-              any(com.vineyards.deerPlanner.events.domain.payload.WeddingLandingPayload.class)))
-          .thenReturn(dto);
-
-      EventDto result = service.updateWeddingLanding(EVENT_ID, dto, ORGANIZER_ID);
-
-      assertThat(result.wedding()).isNotNull();
-      assertThat(result.wedding().landing()).isNotNull();
-      assertThat(result.wedding().landing().preTitle()).isEqualTo("You are cordially invited");
-    }
   }
 
   @Nested
@@ -309,14 +242,28 @@ class EventServiceTest {
               any(com.vineyards.deerPlanner.events.domain.payload.LocationsPayload.class)))
           .thenReturn(existingDto);
 
-      var partialDto =
-          new UpdateEventDto("Maya & Luis Ã¢â‚¬â€ Updated Title", null, null, null, null);
+      var partialDto = new UpdateEventDto("Maya & Luis — Updated Title", null);
 
       EventDto result = service.updateEventMetadata(EVENT_ID, partialDto, ORGANIZER_ID);
 
-      assertThat(result.title()).isEqualTo("Maya & Luis Ã¢â‚¬â€ Updated Title");
+      assertThat(result.title()).isEqualTo("Maya & Luis — Updated Title");
       assertThat(result.eventDate()).isEqualTo(stored.getEventDate());
       assertThat(result.locations()).isNotNull();
+    }
+
+    @Test
+    void updateEventMetadata_withAllNullFields_isNoopForContentButBumpsUpdatedAt() {
+      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
+      Instant before = stored.getUpdatedAt();
+      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
+      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      EventDto result =
+          service.updateEventMetadata(EVENT_ID, new UpdateEventDto(null, null), ORGANIZER_ID);
+
+      assertThat(result.title()).isEqualTo(stored.getTitle());
+      assertThat(result.eventDate()).isEqualTo(stored.getEventDate());
+      assertThat(result.updatedAt()).isAfterOrEqualTo(before);
     }
   }
 
@@ -375,7 +322,6 @@ class EventServiceTest {
         null,
         null,
         null,
-        new WeddingDetail("Maya", "Luis", true, null, null, null, null, null, null),
         Instant.now(),
         Instant.now());
   }

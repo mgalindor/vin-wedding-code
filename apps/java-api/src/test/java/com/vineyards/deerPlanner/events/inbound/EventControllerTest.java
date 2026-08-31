@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,10 +17,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
 import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventSummaryDto;
 import com.vineyards.deerPlanner.events.facade.dto.ListEventsResponse;
+import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
@@ -56,8 +60,6 @@ class EventControllerTest {
 
   @BeforeEach
   void passThroughJwtFilter() throws Exception {
-    // The shared JwtAuthenticationFilter lives on the classpath; replace it with a mock
-    // that delegates to the next filter so the .with(jwt()) post-processor wins.
     doAnswer(
             inv -> {
               FilterChain chain = inv.getArgument(2);
@@ -86,7 +88,6 @@ class EventControllerTest {
         null,
         null,
         null,
-        null,
         Instant.parse("2026-08-01T09:00:00Z"),
         Instant.parse("2026-08-01T09:00:00Z"));
   }
@@ -105,9 +106,7 @@ class EventControllerTest {
                     {
                       "title": "Maya & Luis",
                       "eventType": "wedding",
-                      "eventDate": "2027-04-15",
-                      "partner1Name": "Maya",
-                      "partner2Name": "Luis"
+                      "eventDate": "2027-04-15"
                     }
                     """))
         .andExpect(status().isCreated())
@@ -181,7 +180,7 @@ class EventControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"title": "Maya & Luis Ã¢â‚¬â€ Postponed"}
+                    {"title": "Maya & Luis — Postponed"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value("evt-1"));
@@ -193,16 +192,6 @@ class EventControllerTest {
         .andExpect(status().isNoContent());
 
     org.mockito.Mockito.verify(eventApi).deleteEvent(eq("evt-1"), eq(ORGANIZER_ID));
-  }
-
-  @Test
-  void publishEventById_whenEventIsDraft_returns200WithPublishedStatus() throws Exception {
-    when(eventApi.publishEvent(eq("evt-1"), eq(ORGANIZER_ID)))
-        .thenReturn(sampleDto("evt-1", EventStatus.published));
-
-    mvc.perform(post("/api/v1/events/{id}/publish", "evt-1").with(authorizedUser()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.status").value("published"));
   }
 
   @Test
@@ -231,5 +220,92 @@ class EventControllerTest {
                     }
                     """))
         .andExpect(status().isBadRequest());
+  }
+
+  // ----- Generic JSONB payloads (migrated from EventPayloadControllerTest) -----
+
+  @Test
+  void putLocations_withValidPayload_returns200() throws Exception {
+    when(eventApi.updateLocations(eq("evt-1"), any(LocationsPayloadDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(sampleDto("evt-1", EventStatus.draft));
+
+    mvc.perform(
+            put("/api/v1/events/{id}/locations", "evt-1")
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "entries": [
+                        {"label": "Ceremony", "name": "Parroquia", "time": "16:00"}
+                      ]
+                    }
+                    """))
+        .andExpect(status().isOk());
+
+    org.mockito.Mockito.verify(eventApi)
+        .updateLocations(eq("evt-1"), any(LocationsPayloadDto.class), eq(ORGANIZER_ID));
+  }
+
+  @Test
+  void putLocations_whenEntriesAreEmpty_returns400() throws Exception {
+    mvc.perform(
+            put("/api/v1/events/{id}/locations", "evt-1")
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"entries": []}
+                    """))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void putProgram_withValidPayload_returns200() throws Exception {
+    when(eventApi.updateProgram(eq("evt-1"), any(ProgramPayloadDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(sampleDto("evt-1", EventStatus.draft));
+
+    mvc.perform(
+            put("/api/v1/events/{id}/program", "evt-1")
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "days": [
+                        {
+                          "date": "2027-04-15",
+                          "label": "Saturday",
+                          "items": [{"time": "16:00", "title": "Ceremony"}]
+                        }
+                      ]
+                    }
+                    """))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void putContacts_withValidPayload_returns200() throws Exception {
+    when(eventApi.updateContacts(eq("evt-1"), any(ContactsPayloadDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(sampleDto("evt-1", EventStatus.draft));
+
+    mvc.perform(
+            put("/api/v1/events/{id}/contacts", "evt-1")
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "entries": [
+                        {
+                          "label": "Wedding Planner",
+                          "fullName": "Ana Rodriguez",
+                          "phone": "+52 55 1234 5678",
+                          "email": "ana@example.com"
+                        }
+                      ]
+                    }
+                    """))
+        .andExpect(status().isOk());
   }
 }

@@ -14,7 +14,6 @@ public class Guest {
   private String email;
   private String phone;
   private String dietaryNotes;
-  private boolean primary;
   private String invitationToken;
   private RsvpStatus rsvpStatus;
   private Instant rsvpConfirmedAt;

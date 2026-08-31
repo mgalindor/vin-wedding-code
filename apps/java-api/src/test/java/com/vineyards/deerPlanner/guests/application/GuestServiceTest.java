@@ -25,6 +25,8 @@ import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.InlineGuestDto;
+import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
+import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupPrimaryDto;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import java.time.Instant;
@@ -77,7 +79,6 @@ class GuestServiceTest {
         .email("maria@example.com")
         .phone("+521111111111")
         .dietaryNotes(null)
-        .primary(true)
         .invitationToken("token-" + id)
         .rsvpStatus(RsvpStatus.pending)
         .rsvpConfirmedAt(null)
@@ -104,7 +105,6 @@ class GuestServiceTest {
                 "Maya & Luis",
                 java.time.LocalDate.of(2027, 4, 15),
                 EventStatus.draft,
-                null,
                 null,
                 null,
                 null,
@@ -141,33 +141,51 @@ class GuestServiceTest {
   class CreateGroup {
 
     @Test
-    void createGroup_withValidDto_assignsUuidAndPersists() {
+    void createGroup_whenNoInlineGuests_throwsPrimaryRequired() {
       verifyOwnershipPasses();
-      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+      var dto = new CreateGuestGroupDto("Familia Morales", "family", null, null, 0, null);
 
-      var dto =
-          new CreateGuestGroupDto("Familia Morales", "family", "fm@example.com", "+52123", 0, null);
-
-      GuestGroupDto result = service.createGroup(EVENT_ID, dto, ORGANIZER_ID);
-
-      assertThat(result.id()).isNotBlank();
-      assertThat(result.eventId()).isEqualTo(EVENT_ID);
-      assertThat(result.name()).isEqualTo("Familia Morales");
-      assertThat(result.relationship()).isEqualTo("family");
-      assertThat(result.invitationToken()).isNotBlank();
-      assertThat(result.primaryGuestId()).isNull();
-      verify(groupRepository).save(any(GuestGroup.class));
+      assertThatThrownBy(() -> service.createGroup(EVENT_ID, dto, ORGANIZER_ID))
+          .isInstanceOf(BusinessError.class)
+          .hasMessageContaining("primary_guest_required");
+      verify(groupRepository, never()).save(any(GuestGroup.class));
       verify(guestRepository, never()).save(any(Guest.class));
     }
 
     @Test
-    void createGroup_withInlineGuests_persistsGuestsAndSetsPrimaryGuestId() {
+    void createGroup_whenNoPrimaryMarked_throwsPrimaryRequired() {
+      verifyOwnershipPasses();
+      var maria = new InlineGuestDto("Maria", "Morales", null, null, null, null);
+      var jose = new InlineGuestDto("Jose", "Morales", null, null, null, null);
+      var dto =
+          new CreateGuestGroupDto("Familia Morales", "family", null, null, 0, List.of(maria, jose));
+
+      assertThatThrownBy(() -> service.createGroup(EVENT_ID, dto, ORGANIZER_ID))
+          .isInstanceOf(BusinessError.class)
+          .hasMessageContaining("primary_guest_required");
+    }
+
+    @Test
+    void createGroup_whenMultiplePrimariesMarked_throwsMultiplePrimaryGuests() {
+      verifyOwnershipPasses();
+      var maria = new InlineGuestDto("Maria", "Morales", null, null, null, true);
+      var jose = new InlineGuestDto("Jose", "Morales", null, null, null, true);
+      var dto =
+          new CreateGuestGroupDto("Familia Morales", "family", null, null, 0, List.of(maria, jose));
+
+      assertThatThrownBy(() -> service.createGroup(EVENT_ID, dto, ORGANIZER_ID))
+          .isInstanceOf(BusinessError.class)
+          .hasMessageContaining("multiple_primary_guests");
+    }
+
+    @Test
+    void createGroup_withExactlyOnePrimary_setsPrimaryGuestIdToThatGuest() {
       verifyOwnershipPasses();
       when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
       when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
 
-      var maria = new InlineGuestDto("Maria", "Morales", "maria@example.com", "+52111", null, true);
-      var jose = new InlineGuestDto("Jose", "Morales", "jose@example.com", "+52122", null, null);
+      var maria = new InlineGuestDto("Maria", "Morales", null, null, null, null);
+      var jose = new InlineGuestDto("Jose", "Morales", null, null, null, true); // primary
       var luis = new InlineGuestDto("Luis", "Morales", null, null, null, null);
       var dto =
           new CreateGuestGroupDto(
@@ -177,31 +195,12 @@ class GuestServiceTest {
 
       ArgumentCaptor<Guest> captor = ArgumentCaptor.forClass(Guest.class);
       verify(guestRepository, times(3)).save(captor.capture());
-      List<Guest> savedGuests = captor.getAllValues();
-      assertThat(savedGuests).extracting(Guest::isPrimary).containsExactly(true, false, false);
-      assertThat(savedGuests).extracting(Guest::getGroupId).containsOnly(result.id());
-      // Maria is the only one marked primary -> she becomes primaryGuestId of the group.
-      assertThat(result.primaryGuestId()).isEqualTo(savedGuests.get(0).getId());
-    }
-
-    @Test
-    void createGroup_withInlineGuestsButNoPrimary_picksFirstAsPrimary() {
-      verifyOwnershipPasses();
-      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
-      when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
-
-      var first = new InlineGuestDto("Maria", "Morales", null, null, null, null);
-      var second = new InlineGuestDto("Jose", "Morales", null, null, null, null);
-      var dto =
-          new CreateGuestGroupDto(
-              "Familia Morales", "family", null, null, 0, List.of(first, second));
-
-      GuestGroupDto result = service.createGroup(EVENT_ID, dto, ORGANIZER_ID);
-
-      ArgumentCaptor<Guest> captor = ArgumentCaptor.forClass(Guest.class);
-      verify(guestRepository, times(2)).save(captor.capture());
-      // No primary marked -> first guest becomes primaryGuestId.
-      assertThat(result.primaryGuestId()).isEqualTo(captor.getAllValues().get(0).getId());
+      Guest joseSaved =
+          captor.getAllValues().stream()
+              .filter(g -> "Jose".equals(g.getFirstName()))
+              .findFirst()
+              .orElseThrow();
+      assertThat(result.primaryGuestId()).isEqualTo(joseSaved.getId());
     }
   }
 
@@ -222,6 +221,55 @@ class GuestServiceTest {
   }
 
   @Nested
+  class PrimaryGuestUpdate {
+
+    @Test
+    void updatePrimaryGuest_withValidGuest_setsPrimaryAndReturnsGroup() {
+      verifyOwnershipPasses();
+      GuestGroup group = sampleGroup(GROUP_ID);
+      Guest guest = sampleGuest(GUEST_ID, GROUP_ID);
+      when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+      when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.of(guest));
+      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      GuestGroupDto result =
+          service.updatePrimaryGuest(
+              GROUP_ID, new UpdateGuestGroupPrimaryDto(GUEST_ID), ORGANIZER_ID);
+
+      assertThat(result.primaryGuestId()).isEqualTo(GUEST_ID);
+    }
+
+    @Test
+    void updatePrimaryGuest_withNullGuest_clearsPrimary() {
+      verifyOwnershipPasses();
+      GuestGroup group = sampleGroup(GROUP_ID).toBuilder().primaryGuestId("someone").build();
+      when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      GuestGroupDto result =
+          service.updatePrimaryGuest(GROUP_ID, new UpdateGuestGroupPrimaryDto(null), ORGANIZER_ID);
+
+      assertThat(result.primaryGuestId()).isNull();
+    }
+
+    @Test
+    void updatePrimaryGuest_whenGuestInOtherGroup_throwsBusinessError() {
+      verifyOwnershipPasses();
+      GuestGroup group = sampleGroup(GROUP_ID);
+      Guest otherGroupGuest = sampleGuest(GUEST_ID, "grp-other");
+      when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+      when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.of(otherGroupGuest));
+
+      assertThatThrownBy(
+              () ->
+                  service.updatePrimaryGuest(
+                      GROUP_ID, new UpdateGuestGroupPrimaryDto(GUEST_ID), ORGANIZER_ID))
+          .isInstanceOf(BusinessError.class)
+          .hasMessageContaining("guest_not_in_group");
+    }
+  }
+
+  @Nested
   class CreateGuest {
 
     @Test
@@ -229,7 +277,7 @@ class GuestServiceTest {
       verifyOwnershipPasses();
       when(groupRepository.findById("grp-missing")).thenReturn(Optional.empty());
 
-      var dto = new CreateGuestDto("grp-missing", "Maria", "Morales", null, null, null, null);
+      var dto = new CreateGuestDto("grp-missing", "Maria", "Morales", null, null, null);
 
       assertThatThrownBy(() -> service.createGuest(EVENT_ID, dto, ORGANIZER_ID))
           .isInstanceOf(ResourceNotFoundError.class);
@@ -241,12 +289,11 @@ class GuestServiceTest {
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(sampleGroup(GROUP_ID)));
       when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
 
-      var dto = new CreateGuestDto(GROUP_ID, "Maria", "Morales", null, null, null, true);
+      var dto = new CreateGuestDto(GROUP_ID, "Maria", "Morales", null, null, null);
 
       GuestDto result = service.createGuest(EVENT_ID, dto, ORGANIZER_ID);
 
       assertThat(result.rsvpStatus()).isEqualTo("pending");
-      assertThat(result.primary()).isTrue();
     }
   }
 
@@ -309,8 +356,7 @@ class GuestServiceTest {
       verifyOwnershipPasses();
       GuestGroup oldGroup = sampleGroup(GROUP_ID).toBuilder().primaryGuestId(GUEST_ID).build();
       GuestGroup newGroup = sampleGroup(NEW_GROUP_ID);
-      Guest current =
-          sampleGuest(GUEST_ID, GROUP_ID).toBuilder().primary(true).updatedAt(null).build();
+      Guest current = sampleGuest(GUEST_ID, GROUP_ID).toBuilder().updatedAt(null).build();
       when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.of(current));
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(oldGroup));
       when(groupRepository.findById(NEW_GROUP_ID)).thenReturn(Optional.of(newGroup));
@@ -322,12 +368,9 @@ class GuestServiceTest {
               EVENT_ID, GUEST_ID, new ChangeGuestGroupDto(NEW_GROUP_ID), ORGANIZER_ID);
 
       assertThat(result.groupId()).isEqualTo(NEW_GROUP_ID);
-      // Old group's primaryGuestId is cleared because the moved guest WAS its primary.
       ArgumentCaptor<GuestGroup> groupCaptor = ArgumentCaptor.forClass(GuestGroup.class);
       verify(groupRepository, times(1)).save(groupCaptor.capture());
       assertThat(groupCaptor.getValue().getPrimaryGuestId()).isNull();
-      // The new group's primaryGuestId is NOT auto-promoted (caller can PATCH /guests/{id} if
-      // needed).
       assertThat(newGroup.getPrimaryGuestId()).isNull();
     }
 
@@ -345,7 +388,6 @@ class GuestServiceTest {
           service.changeGuestGroup(EVENT_ID, GUEST_ID, new ChangeGuestGroupDto(null), ORGANIZER_ID);
 
       assertThat(result.groupId()).isNull();
-      // The moved guest was NOT the primary of the old group -> group is not modified.
       verify(groupRepository, never()).save(any(GuestGroup.class));
     }
 
@@ -415,6 +457,71 @@ class GuestServiceTest {
                   service.changeGuestGroup(
                       EVENT_ID, GUEST_ID, new ChangeGuestGroupDto(NEW_GROUP_ID), ORGANIZER_ID))
           .isInstanceOf(ResourceNotFoundError.class);
+    }
+  }
+
+  @Nested
+  class AdminRsvp {
+
+    @Test
+    void markGroupRsvp_confirmed_setsAllGuestsToConfirmedWithTimestamp() {
+      verifyOwnershipPasses();
+      GuestGroup group = sampleGroup(GROUP_ID);
+      Guest maria = sampleGuest(GUEST_ID, GROUP_ID);
+      Guest jose = sampleGuest("gst-2", GROUP_ID);
+      when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+      when(guestRepository.findByGroupId(GROUP_ID)).thenReturn(List.of(maria, jose));
+      when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      var dto = new RsvpUpdateDto(RsvpStatus.confirmed, "All confirmed");
+      service.markGroupRsvp(GROUP_ID, dto, ORGANIZER_ID);
+
+      ArgumentCaptor<Guest> captor = ArgumentCaptor.forClass(Guest.class);
+      verify(guestRepository, times(2)).save(captor.capture());
+      assertThat(captor.getAllValues())
+          .extracting(Guest::getRsvpStatus)
+          .containsOnly(RsvpStatus.confirmed);
+      assertThat(captor.getAllValues()).allMatch(g -> g.getRsvpConfirmedAt() != null);
+    }
+
+    @Test
+    void markGuestRsvp_declined_setsSingleGuestAndClearsTimestampOnPendingReset() {
+      verifyOwnershipPasses();
+      Guest current = sampleGuest(GUEST_ID, GROUP_ID);
+      when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.of(current));
+      when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(sampleGroup(GROUP_ID)));
+      when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      service.markGuestRsvp(GUEST_ID, new RsvpUpdateDto(RsvpStatus.declined, null), ORGANIZER_ID);
+
+      ArgumentCaptor<Guest> captor = ArgumentCaptor.forClass(Guest.class);
+      verify(guestRepository).save(captor.capture());
+      Guest saved = captor.getValue();
+      assertThat(saved.getRsvpStatus()).isEqualTo(RsvpStatus.declined);
+      assertThat(saved.getRsvpMessage()).isNull();
+
+      when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.of(saved));
+      service.markGuestRsvp(GUEST_ID, new RsvpUpdateDto(RsvpStatus.pending, null), ORGANIZER_ID);
+
+      ArgumentCaptor<Guest> captor2 = ArgumentCaptor.forClass(Guest.class);
+      verify(guestRepository, times(2)).save(captor2.capture());
+      Guest reset = captor2.getAllValues().get(1);
+      assertThat(reset.getRsvpStatus()).isEqualTo(RsvpStatus.pending);
+      assertThat(reset.getRsvpConfirmedAt()).isNull();
+    }
+
+    @Test
+    void applyRsvpFromInvitation_writesWithoutOwnershipCheck() {
+      Guest current = sampleGuest(GUEST_ID, GROUP_ID);
+      when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.of(current));
+      when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      GuestDto result =
+          service.applyRsvpFromInvitation(
+              GUEST_ID, new RsvpUpdateDto(RsvpStatus.confirmed, "Looking forward"));
+
+      assertThat(result.rsvpStatus()).isEqualTo("confirmed");
+      assertThat(result.rsvpMessage()).isEqualTo("Looking forward");
     }
   }
 }

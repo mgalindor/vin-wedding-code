@@ -4,6 +4,7 @@ public enum EventType {
   wedding,
   birthday,
   anniversary,
+  corporate,
   other;
 
   public static EventType fromString(String value) {

@@ -1,24 +1,13 @@
 package com.vineyards.deerPlanner.shared.config;
 
-import com.vineyards.deerPlanner.shared.persistence.AuditorAwareImpl;
-import com.vineyards.deerPlanner.shared.persistence.XidId;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.modulith.PackageInfo;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.RollbackOn;
 
-/**
- * Marks the {@code shared.persistence} package as exposed to every application module — {@link
- * XidId}, {@link AuditorAwareImpl} and this class itself are intended to be referenced from
- * entities living in the events / guests / identity / invitation modules.
- */
 @PackageInfo
 @Configuration
 @EnableJpaAuditing
-@ConditionalOnClass(name = "jakarta.persistence.Entity")
-@ConditionalOnProperty(
-    name = "spring.data.jpa.auditing.enabled",
-    havingValue = "true",
-    matchIfMissing = true)
+@EnableTransactionManagement(rollbackOn = RollbackOn.ALL_EXCEPTIONS)
 public class JpaConfig {}
