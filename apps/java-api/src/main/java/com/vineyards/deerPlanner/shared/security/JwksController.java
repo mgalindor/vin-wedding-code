@@ -1,6 +1,5 @@
-package com.vineyards.deerPlanner.shared.web;
+package com.vineyards.deerPlanner.shared.security;
 
-import com.vineyards.deerPlanner.shared.security.JwtAuthenticator;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class JwksController {
 
-  private final JwtAuthenticator jwtAuthenticator;
+  private final JwtAuthenticatorInPort jwtAuthenticator;
 
   @GetMapping(path = "/jwks.json")
   public ResponseEntity<String> jwks() {

@@ -1,5 +1,7 @@
-package com.vineyards.deerPlanner.shared.persistence;
+package com.vineyards.deerPlanner.shared.config;
 
+import com.vineyards.deerPlanner.shared.persistence.AuditorAwareImpl;
+import com.vineyards.deerPlanner.shared.persistence.XidId;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
@@ -19,4 +21,4 @@ import org.springframework.modulith.PackageInfo;
     name = "spring.data.jpa.auditing.enabled",
     havingValue = "true",
     matchIfMissing = true)
-public class JpaAuditingConfig {}
+public class JpaConfig {}

@@ -1,10 +1,9 @@
-package com.vineyards.deerPlanner.shared.security;
+package com.vineyards.deerPlanner.shared.config;
 
+import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
-import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,25 +14,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Stateless JWT security: only the routes opted out in the matcher list are public; everything else
- * requires a valid bearer token. 401/403 responses follow the {@code { code, message, timestamp }}
- * envelope.
- */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-  private final JwtAuthenticationFilter jwtAuthenticationFilter;
-  private final JsonMapper jsonMapper;
-
-  public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, JsonMapper jsonMapper) {
-    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    this.jsonMapper = jsonMapper;
-  }
-
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter, JsonMapper jsonMapper)
+      throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
@@ -68,30 +55,38 @@ public class SecurityConfig {
                         (request, response, authException) ->
                             writeError(
                                 response,
+                                jsonMapper,
                                 HttpServletResponse.SC_UNAUTHORIZED,
-                                "unauthorized",
+                                "Unauthorized",
                                 "Authentication is required to access this resource"))
                     .accessDeniedHandler(
                         (request, response, accessDeniedException) ->
                             writeError(
                                 response,
+                                jsonMapper,
                                 HttpServletResponse.SC_FORBIDDEN,
-                                "forbidden",
+                                "Forbidden",
                                 "You do not have permission to access this resource")))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
 
-  private void writeError(HttpServletResponse response, int status, String code, String message) {
+  private void writeError(
+      HttpServletResponse response,
+      JsonMapper jsonMapper,
+      int status,
+      String title,
+      String detail) {
     try {
       response.setStatus(status);
-      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+      response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
 
       Map<String, Object> body = new LinkedHashMap<>();
-      body.put("code", code);
-      body.put("message", message);
-      body.put("timestamp", OffsetDateTime.now().toString());
+      body.put("type", "about:blank");
+      body.put("title", title);
+      body.put("status", status);
+      body.put("detail", detail);
 
       response.getWriter().write(jsonMapper.writeValueAsString(body));
     } catch (Exception ignored) {

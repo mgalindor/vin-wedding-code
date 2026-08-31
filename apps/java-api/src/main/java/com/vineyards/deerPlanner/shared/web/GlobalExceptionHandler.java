@@ -1,4 +1,4 @@
-package com.vineyards.deerPlanner.shared.error;
+package com.vineyards.deerPlanner.shared.web;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;

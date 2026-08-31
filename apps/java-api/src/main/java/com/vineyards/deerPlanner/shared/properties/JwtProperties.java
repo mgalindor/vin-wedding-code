@@ -1,4 +1,4 @@
-package com.vineyards.deerPlanner.shared.config;
+package com.vineyards.deerPlanner.shared.properties;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

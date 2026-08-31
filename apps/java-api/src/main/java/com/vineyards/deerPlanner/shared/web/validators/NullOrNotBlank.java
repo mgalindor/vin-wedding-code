@@ -1,4 +1,4 @@
-package com.vineyards.deerPlanner.shared.validators;
+package com.vineyards.deerPlanner.shared.web.validators;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
