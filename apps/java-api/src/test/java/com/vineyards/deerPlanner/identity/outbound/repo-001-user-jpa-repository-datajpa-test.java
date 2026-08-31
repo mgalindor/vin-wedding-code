@@ -2,7 +2,7 @@ package com.vineyards.deerPlanner.identity.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -72,11 +72,11 @@ class Repo001UserJpaRepositorySliceTest {
       scripts = "/sql/identity/user-repository/record-login-stamps-last-login-at.sql",
       executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   void recordLogin_stampsLastLoginAt() {
-    OffsetDateTime stampedAt = OffsetDateTime.parse("2026-08-27T12:00:00Z");
+    Instant stampedAt = Instant.parse("2026-08-27T12:00:00Z");
     repository.recordLogin("u-alice-login", stampedAt);
 
     var reloaded = repository.findByUsername("alice").orElseThrow();
     assertThat(reloaded.getLastLoginAt()).isNotNull();
-    assertThat(reloaded.getLastLoginAt().toInstant()).isEqualTo(stampedAt.toInstant());
+    assertThat(reloaded.getLastLoginAt()).isEqualTo(stampedAt);
   }
 }

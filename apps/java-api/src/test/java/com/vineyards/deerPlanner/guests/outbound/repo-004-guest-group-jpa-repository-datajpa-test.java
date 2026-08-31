@@ -76,20 +76,18 @@ class Repo004GuestGroupJpaRepositorySliceTest {
       executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   void save_persistsGroupWithGeneratedColumns() {
     GuestGroupEntity entity = new GuestGroupEntity();
-    entity.setId("grp-new");
     entity.setEventId("evt-1");
     entity.setName("New Group");
     entity.setSide("Novia");
     entity.setRelationship("family");
     entity.setInvitationToken("new-token");
     entity.setDisplayOrder(0);
-    java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
-    entity.setCreatedAt(now);
-    entity.setUpdatedAt(now);
 
     GuestGroupEntity saved = repository.save(entity);
 
-    assertThat(saved.getId()).isEqualTo("grp-new");
+    assertThat(saved.getId()).isNotBlank();
     assertThat(saved.getInvitationToken()).isEqualTo("new-token");
+    assertThat(saved.getCreatedAt()).isNotNull();
+    assertThat(saved.getUpdatedAt()).isNotNull();
   }
 }

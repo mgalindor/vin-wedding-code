@@ -1,80 +1,51 @@
 package com.vineyards.deerPlanner.guests.outbound;
 
-import com.github.shamil.Xid;
-import jakarta.persistence.Column;
+import com.vineyards.deerPlanner.shared.persistence.XidId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SoftDelete;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "guest_groups")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@SoftDelete
 public class GuestGroupEntity {
 
-  @Id
-  @Column(name = "id", nullable = false, length = 20)
-  private String id;
+  @Id @XidId private String id;
 
-  @Column(name = "event_id", nullable = false, length = 20)
   private String eventId;
 
-  @Column(name = "name", nullable = false, length = 180)
   private String name;
 
-  @Column(name = "side", length = 80)
   private String side;
 
-  @Column(name = "relationship", nullable = false, length = 20)
   private String relationship;
 
-  @Column(name = "shared_email", length = 254)
   private String sharedEmail;
 
-  @Column(name = "shared_phone", length = 32)
   private String sharedPhone;
 
-  @Column(name = "primary_guest_id", length = 20)
   private String primaryGuestId;
 
-  @Column(name = "invitation_token", nullable = false, length = 20)
   private String invitationToken;
 
-  @Column(name = "display_order", nullable = false)
   private int displayOrder = 0;
 
-  @Column(name = "created_at", nullable = false, updatable = false)
-  private OffsetDateTime createdAt;
+  @CreatedDate private Instant createdAt;
 
-  @Column(name = "updated_at", nullable = false)
-  private OffsetDateTime updatedAt;
-
-  @PrePersist
-  void onPersist() {
-    if (id == null || id.isBlank()) {
-      id = Xid.get().toString();
-    }
-    if (invitationToken == null || invitationToken.isBlank()) {
-      invitationToken = Xid.get().toString();
-    }
-    OffsetDateTime now = OffsetDateTime.now();
-    if (createdAt == null) {
-      createdAt = now;
-    }
-    updatedAt = now;
-  }
-
-  @PreUpdate
-  void onUpdate() {
-    updatedAt = OffsetDateTime.now();
-  }
+  @LastModifiedDate private Instant updatedAt;
 }

@@ -26,8 +26,8 @@ import com.vineyards.deerPlanner.shared.security.JwtAuthenticator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,8 +84,8 @@ class Ctrl005EventPayloadControllerSliceTest {
         null,
         null,
         null,
-        OffsetDateTime.parse("2026-08-01T09:00:00Z"),
-        OffsetDateTime.parse("2026-08-01T09:00:00Z"));
+        Instant.parse("2026-08-01T09:00:00Z"),
+        Instant.parse("2026-08-01T09:00:00Z"));
   }
 
   @Test

@@ -6,8 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vineyards.deerPlanner.events.application.port.EventRepository;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
@@ -20,11 +18,11 @@ import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingLandingPayloadDto;
+import com.vineyards.deerPlanner.events.facade.mapper.EventPayloadMapper;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
-import com.vineyards.deerPlanner.shared.security.JwtIssuerPort;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,15 +42,13 @@ class App002EventServiceTest {
   private static final String EVENT_ID = "evt-1";
 
   @Mock EventRepository repository;
-  @Mock JwtIssuerPort jwtIssuer;
+  @Mock EventPayloadMapper payloadMapper;
 
-  ObjectMapper objectMapper;
   EventService service;
 
   @BeforeEach
   void setUp() {
-    objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-    service = new EventService(repository, objectMapper, jwtIssuer);
+    service = new EventService(repository, payloadMapper);
   }
 
   @Nested
@@ -202,6 +198,12 @@ class App002EventServiceTest {
                       "https://maps.google.com/?q=parroquia",
                       "16:00",
                       null)));
+      var expectedPayload =
+          new com.vineyards.deerPlanner.events.domain.payload.LocationsPayload(List.of());
+      when(payloadMapper.toPayload(any(LocationsPayloadDto.class))).thenReturn(expectedPayload);
+      when(payloadMapper.toDto(
+              any(com.vineyards.deerPlanner.events.domain.payload.LocationsPayload.class)))
+          .thenReturn(dto);
 
       EventDto result = service.updateLocations(EVENT_ID, dto, ORGANIZER_ID);
 
@@ -230,6 +232,12 @@ class App002EventServiceTest {
                       LocalDate.now().plusDays(180),
                       "Saturday",
                       List.of(new ProgramPayloadDto.Item("16:00", "Ceremony", "Parroquia")))));
+      when(payloadMapper.toPayload(any(ProgramPayloadDto.class)))
+          .thenReturn(
+              new com.vineyards.deerPlanner.events.domain.payload.ProgramPayload(List.of()));
+      when(payloadMapper.toDto(
+              any(com.vineyards.deerPlanner.events.domain.payload.ProgramPayload.class)))
+          .thenReturn(dto);
 
       EventDto result = service.updateProgram(EVENT_ID, dto, ORGANIZER_ID);
 
@@ -248,6 +256,12 @@ class App002EventServiceTest {
               List.of(
                   new ContactsPayloadDto.Entry(
                       "Wedding Planner", "Ana Rodriguez", "+52 55 1234 5678", "ana@example.com")));
+      when(payloadMapper.toPayload(any(ContactsPayloadDto.class)))
+          .thenReturn(
+              new com.vineyards.deerPlanner.events.domain.payload.ContactsPayload(List.of()));
+      when(payloadMapper.toDto(
+              any(com.vineyards.deerPlanner.events.domain.payload.ContactsPayload.class)))
+          .thenReturn(dto);
 
       EventDto result = service.updateContacts(EVENT_ID, dto, ORGANIZER_ID);
 
@@ -263,6 +277,12 @@ class App002EventServiceTest {
       when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       var dto = new WeddingLandingPayloadDto("You are cordially invited");
+      when(payloadMapper.toPayload(any(WeddingLandingPayloadDto.class)))
+          .thenReturn(
+              new com.vineyards.deerPlanner.events.domain.payload.WeddingLandingPayload(null));
+      when(payloadMapper.toDto(
+              any(com.vineyards.deerPlanner.events.domain.payload.WeddingLandingPayload.class)))
+          .thenReturn(dto);
 
       EventDto result = service.updateWeddingLanding(EVENT_ID, dto, ORGANIZER_ID);
 
@@ -282,6 +302,12 @@ class App002EventServiceTest {
           new com.vineyards.deerPlanner.events.domain.payload.LocationsPayload(List.of()));
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
       when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      var existingDto =
+          new LocationsPayloadDto(
+              List.of(new LocationsPayloadDto.Entry("x", "n", "a", "c", null, "t", null)));
+      when(payloadMapper.toDto(
+              any(com.vineyards.deerPlanner.events.domain.payload.LocationsPayload.class)))
+          .thenReturn(existingDto);
 
       var partialDto = new UpdateEventDto("Maya & Luis — Updated Title", null, null, null, null);
 
@@ -349,7 +375,7 @@ class App002EventServiceTest {
         null,
         null,
         new WeddingDetail("Maya", "Luis", true, null, null, null, null, null, null),
-        OffsetDateTime.now(),
-        OffsetDateTime.now());
+        Instant.now(),
+        Instant.now());
   }
 }

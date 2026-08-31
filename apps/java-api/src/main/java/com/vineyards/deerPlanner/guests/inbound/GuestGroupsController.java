@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,9 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping(
-    path = "/api/v1/events/{eventId}/guest-groups",
-    produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api/v1/events/{eventId}/guest-groups")
 @PrimaryAdapter
 @PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @RequiredArgsConstructor
@@ -53,7 +50,7 @@ public class GuestGroupsController {
     return guestApi.getGroup(groupId, jwt.getSubject());
   }
 
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping
   public ResponseEntity<GuestGroupDto> create(
       @PathVariable String eventId,
       @Valid @RequestBody CreateGuestGroupDto body,
@@ -67,7 +64,7 @@ public class GuestGroupsController {
     return ResponseEntity.created(location).body(created);
   }
 
-  @PatchMapping(path = "/{groupId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PatchMapping(path = "/{groupId}")
   public GuestGroupDto update(
       @PathVariable String eventId,
       @PathVariable String groupId,

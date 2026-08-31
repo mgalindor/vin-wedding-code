@@ -2,8 +2,8 @@ package com.vineyards.deerPlanner.invitation.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,9 +60,9 @@ class Repo003EventInvitationConfigJpaRepositorySliceTest {
     entity.setActive(true);
     entity.setRsvpEnabled(true);
     entity.setSlug("new-event-2027");
-    entity.setPublishedAt(OffsetDateTime.parse("2026-09-01T10:00:00Z"));
+    entity.setPublishedAt(Instant.parse("2026-09-01T10:00:00Z"));
     entity.setDeadline(LocalDate.of(2027, 9, 1));
-    entity.setUpdatedAt(OffsetDateTime.now());
+    entity.setUpdatedAt(Instant.now());
 
     EventInvitationConfigEntity saved = repository.save(entity);
 

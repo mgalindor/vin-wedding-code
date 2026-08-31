@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.guests.facade.dto;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 public record GuestDto(
     String id,
@@ -13,8 +13,8 @@ public record GuestDto(
     boolean primary,
     String invitationToken,
     String rsvpStatus,
-    OffsetDateTime rsvpConfirmedAt,
+    Instant rsvpConfirmedAt,
     String rsvpMessage,
     String rsvpDietaryChoice,
-    OffsetDateTime createdAt,
-    OffsetDateTime updatedAt) {}
+    Instant createdAt,
+    Instant updatedAt) {}

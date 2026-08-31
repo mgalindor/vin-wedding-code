@@ -2,7 +2,7 @@ package com.vineyards.deerPlanner.invitation.outbound;
 
 import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigRepository;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +42,12 @@ public class EventInvitationConfigRepositoryAdapter implements EventInvitationCo
         .eventId(e.getEventId())
         .templateId(e.getTemplateId())
         .active(e.isActive())
-        .publishedAt(Optional.ofNullable(e.getPublishedAt()))
-        .deadline(Optional.ofNullable(e.getDeadline()))
+        .publishedAt(e.getPublishedAt())
+        .deadline(e.getDeadline())
         .rsvpEnabled(e.isRsvpEnabled())
-        .rsvpDeadline(Optional.ofNullable(e.getRsvpDeadline()))
+        .rsvpDeadline(e.getRsvpDeadline())
         .slug(e.getSlug())
-        .updatedAt(e.getUpdatedAt() != null ? e.getUpdatedAt() : OffsetDateTime.now())
+        .updatedAt(e.getUpdatedAt() != null ? e.getUpdatedAt() : Instant.now())
         .build();
   }
 
@@ -56,10 +56,10 @@ public class EventInvitationConfigRepositoryAdapter implements EventInvitationCo
     e.setEventId(d.getEventId());
     e.setTemplateId(d.getTemplateId());
     e.setActive(d.isActive());
-    e.setPublishedAt(d.getPublishedAt().orElse(null));
-    e.setDeadline(d.getDeadline().orElse(null));
+    e.setPublishedAt(d.getPublishedAt());
+    e.setDeadline(d.getDeadline());
     e.setRsvpEnabled(d.isRsvpEnabled());
-    e.setRsvpDeadline(d.getRsvpDeadline().orElse(null));
+    e.setRsvpDeadline(d.getRsvpDeadline());
     e.setSlug(d.getSlug());
     e.setUpdatedAt(d.getUpdatedAt());
     return e;

@@ -7,9 +7,8 @@ import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigFacade;
 import com.vineyards.deerPlanner.invitation.facade.dto.EventInvitationConfigDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.UpdateInvitationConfigDto;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
@@ -56,7 +55,7 @@ public class EventInvitationConfigService implements EventInvitationConfigFacade
           "missing_template", "An invitation cannot be activated without a selected template");
     }
     if (activationRequested) {
-      updated = updated.withPublishedAt(OffsetDateTime.now());
+      updated = updated.withPublishedAt(Instant.now());
       log.info("invitation.activated eventId={} actorUserId={}", eventId, actorUserId);
     }
 
@@ -76,10 +75,9 @@ public class EventInvitationConfigService implements EventInvitationConfigFacade
       next = next.withRsvpEnabled(dto.rsvpEnabled());
     }
     if (dto.deadline() != null || dto.rsvpDeadline() != null) {
-      LocalDate deadline =
-          dto.deadline() != null ? dto.deadline() : current.getDeadline().orElse(null);
+      LocalDate deadline = dto.deadline() != null ? dto.deadline() : current.getDeadline();
       LocalDate rsvpDeadline =
-          dto.rsvpDeadline() != null ? dto.rsvpDeadline() : current.getRsvpDeadline().orElse(null);
+          dto.rsvpDeadline() != null ? dto.rsvpDeadline() : current.getRsvpDeadline();
       next = next.withDeadlines(deadline, rsvpDeadline);
     }
     if (dto.slug() != null) {
@@ -98,12 +96,12 @@ public class EventInvitationConfigService implements EventInvitationConfigFacade
             .eventId(eventId)
             .templateId(null)
             .active(false)
-            .publishedAt(Optional.empty())
-            .deadline(Optional.empty())
+            .publishedAt(null)
+            .deadline(null)
             .rsvpEnabled(true)
-            .rsvpDeadline(Optional.empty())
+            .rsvpDeadline(null)
             .slug("event-" + eventId.substring(0, Math.min(8, eventId.length())))
-            .updatedAt(OffsetDateTime.now())
+            .updatedAt(Instant.now())
             .build();
     return repository.save(defaults);
   }
@@ -113,10 +111,10 @@ public class EventInvitationConfigService implements EventInvitationConfigFacade
         c.getEventId(),
         c.getTemplateId(),
         c.isActive(),
-        c.getPublishedAt().orElse(null),
-        c.getDeadline().orElse(null),
+        c.getPublishedAt(),
+        c.getDeadline(),
         c.isRsvpEnabled(),
-        c.getRsvpDeadline().orElse(null),
+        c.getRsvpDeadline(),
         c.getSlug(),
         c.getUpdatedAt());
   }

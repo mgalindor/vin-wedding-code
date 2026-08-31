@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.identity.outbound;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -22,5 +22,5 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, String> {
 
   @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("UPDATE UserEntity u SET u.lastLoginAt = :now WHERE u.id = :id")
-  void recordLogin(@Param("id") String id, @Param("now") OffsetDateTime now);
+  void recordLogin(@Param("id") String id, @Param("now") Instant now);
 }

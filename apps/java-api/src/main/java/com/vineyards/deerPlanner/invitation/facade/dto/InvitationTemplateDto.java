@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.invitation.facade.dto;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 /**
  * {@code eventType} is exposed as a String here on purpose: the DTO lives in the {@code invitation}
@@ -15,5 +15,5 @@ public record InvitationTemplateDto(
     String name,
     String description,
     int displayOrder,
-    OffsetDateTime createdAt,
-    OffsetDateTime updatedAt) {}
+    Instant createdAt,
+    Instant updatedAt) {}

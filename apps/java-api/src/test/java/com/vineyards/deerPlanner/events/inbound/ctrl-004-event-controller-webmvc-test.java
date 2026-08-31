@@ -27,8 +27,8 @@ import com.vineyards.deerPlanner.shared.security.JwtAuthenticator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,8 +87,8 @@ class Ctrl004EventControllerSliceTest {
         null,
         null,
         null,
-        OffsetDateTime.parse("2026-08-01T09:00:00Z"),
-        OffsetDateTime.parse("2026-08-01T09:00:00Z"));
+        Instant.parse("2026-08-01T09:00:00Z"),
+        Instant.parse("2026-08-01T09:00:00Z"));
   }
 
   @Test
@@ -149,7 +149,7 @@ class Ctrl004EventControllerSliceTest {
                 "Maya & Luis",
                 LocalDate.of(2027, 4, 15),
                 EventStatus.draft,
-                OffsetDateTime.parse("2026-08-01T09:00:00Z")),
+                Instant.parse("2026-08-01T09:00:00Z")),
             new EventSummaryDto(
                 "evt-2",
                 ORGANIZER_ID,
@@ -157,7 +157,7 @@ class Ctrl004EventControllerSliceTest {
                 "Sofia & Diego",
                 LocalDate.of(2027, 6, 20),
                 EventStatus.published,
-                OffsetDateTime.parse("2026-08-01T10:00:00Z")));
+                Instant.parse("2026-08-01T10:00:00Z")));
     when(eventApi.listOwnEvents(ORGANIZER_ID))
         .thenReturn(new ListEventsResponse(items, items.size(), false));
 

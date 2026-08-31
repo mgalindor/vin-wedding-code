@@ -74,6 +74,13 @@ databaseChangeLog:
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+                  remarks: Soft delete flag for Hibernate @SoftDelete. Rows are never physically removed.
         - createIndex:
             tableName: users
             indexName: idx_users_is_active
@@ -118,6 +125,13 @@ databaseChangeLog:
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+                  remarks: Soft delete flag for Hibernate @SoftDelete. Rows are never physically removed.
         - addPrimaryKey:
             tableName: user_roles
             columnNames: user_id, role

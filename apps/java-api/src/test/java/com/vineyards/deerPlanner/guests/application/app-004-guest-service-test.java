@@ -24,7 +24,7 @@ import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,15 +54,15 @@ class App004GuestServiceTest {
         id,
         EVENT_ID,
         "Familia Morales",
-        Optional.of("Novia"),
+        "Novia",
         GuestRelationship.family,
-        Optional.of("familia@example.com"),
-        Optional.of("+521234567890"),
-        Optional.empty(),
+        "familia@example.com",
+        "+521234567890",
+        null,
         "token-" + id,
         0,
-        OffsetDateTime.parse("2026-08-01T10:00:00Z"),
-        OffsetDateTime.parse("2026-08-01T10:00:00Z"));
+        Instant.parse("2026-08-01T10:00:00Z"),
+        Instant.parse("2026-08-01T10:00:00Z"));
   }
 
   private static Guest sampleGuest(String id, String groupId) {
@@ -71,17 +71,17 @@ class App004GuestServiceTest {
         .groupId(groupId)
         .firstName("Maria")
         .lastName("Morales")
-        .email(Optional.of("maria@example.com"))
-        .phone(Optional.of("+521111111111"))
-        .dietaryNotes(Optional.empty())
+        .email("maria@example.com")
+        .phone("+521111111111")
+        .dietaryNotes(null)
         .primary(true)
         .invitationToken("token-" + id)
         .rsvpStatus(RsvpStatus.pending)
-        .rsvpConfirmedAt(Optional.empty())
-        .rsvpMessage(Optional.empty())
-        .rsvpDietaryChoice(Optional.empty())
-        .createdAt(OffsetDateTime.parse("2026-08-01T10:00:00Z"))
-        .updatedAt(OffsetDateTime.parse("2026-08-01T10:00:00Z"))
+        .rsvpConfirmedAt(null)
+        .rsvpMessage(null)
+        .rsvpDietaryChoice(null)
+        .createdAt(Instant.parse("2026-08-01T10:00:00Z"))
+        .updatedAt(Instant.parse("2026-08-01T10:00:00Z"))
         .build();
   }
 
@@ -105,8 +105,8 @@ class App004GuestServiceTest {
                 null,
                 null,
                 null,
-                OffsetDateTime.parse("2026-08-15T10:00:00Z"),
-                OffsetDateTime.parse("2026-08-15T10:00:00Z")));
+                Instant.parse("2026-08-15T10:00:00Z"),
+                Instant.parse("2026-08-15T10:00:00Z")));
   }
 
   @Nested

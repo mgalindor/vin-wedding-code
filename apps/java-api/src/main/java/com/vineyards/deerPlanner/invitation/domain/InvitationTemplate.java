@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.invitation.domain;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,6 +14,6 @@ public class InvitationTemplate {
   private String description;
   private boolean active;
   private int displayOrder;
-  private OffsetDateTime createdAt;
-  private OffsetDateTime updatedAt;
+  private Instant createdAt;
+  private Instant updatedAt;
 }

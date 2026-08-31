@@ -5,7 +5,6 @@ import com.vineyards.deerPlanner.identity.facade.UserProfileResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = "/oauth", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/oauth")
 @PrimaryAdapter
 @RequiredArgsConstructor
 @Slf4j

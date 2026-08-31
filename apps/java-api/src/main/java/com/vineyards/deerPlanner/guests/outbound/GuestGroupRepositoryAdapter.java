@@ -50,11 +50,11 @@ public class GuestGroupRepositoryAdapter implements GuestGroupRepository {
         .id(e.getId())
         .eventId(e.getEventId())
         .name(e.getName())
-        .side(java.util.Optional.ofNullable(e.getSide()))
+        .side(e.getSide())
         .relationship(GuestRelationship.fromString(e.getRelationship()))
-        .sharedEmail(java.util.Optional.ofNullable(e.getSharedEmail()))
-        .sharedPhone(java.util.Optional.ofNullable(e.getSharedPhone()))
-        .primaryGuestId(java.util.Optional.ofNullable(e.getPrimaryGuestId()))
+        .sharedEmail(e.getSharedEmail())
+        .sharedPhone(e.getSharedPhone())
+        .primaryGuestId(e.getPrimaryGuestId())
         .invitationToken(e.getInvitationToken())
         .displayOrder(e.getDisplayOrder())
         .createdAt(e.getCreatedAt())
@@ -67,11 +67,11 @@ public class GuestGroupRepositoryAdapter implements GuestGroupRepository {
     e.setId(d.getId());
     e.setEventId(d.getEventId());
     e.setName(d.getName());
-    e.setSide(d.getSide().orElse(null));
+    e.setSide(d.getSide());
     e.setRelationship(d.getRelationship().name());
-    e.setSharedEmail(d.getSharedEmail().orElse(null));
-    e.setSharedPhone(d.getSharedPhone().orElse(null));
-    e.setPrimaryGuestId(d.getPrimaryGuestId().orElse(null));
+    e.setSharedEmail(d.getSharedEmail());
+    e.setSharedPhone(d.getSharedPhone());
+    e.setPrimaryGuestId(d.getPrimaryGuestId());
     e.setInvitationToken(d.getInvitationToken());
     e.setDisplayOrder(d.getDisplayOrder());
     e.setCreatedAt(d.getCreatedAt());

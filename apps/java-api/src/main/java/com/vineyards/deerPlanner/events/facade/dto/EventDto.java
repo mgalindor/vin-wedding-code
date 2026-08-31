@@ -2,8 +2,8 @@ package com.vineyards.deerPlanner.events.facade.dto;
 
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 
 public record EventDto(
     String id,
@@ -16,8 +16,8 @@ public record EventDto(
     ProgramPayloadDto program,
     ContactsPayloadDto contacts,
     WeddingPayloadsDto wedding,
-    OffsetDateTime createdAt,
-    OffsetDateTime updatedAt) {
+    Instant createdAt,
+    Instant updatedAt) {
   public record WeddingPayloadsDto(
       String partner1Name,
       String partner2Name,

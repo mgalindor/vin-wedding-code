@@ -76,11 +76,24 @@ databaseChangeLog:
                     The MVP holds at most one active slug per event; rotating it invalidates
                     any previously-shared link — a deliberate feature.
               - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
                   name: updated_at
                   type: timestamptz
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+                  remarks: Soft delete flag for Hibernate @SoftDelete. Rows are never physically removed.
         - createIndex:
             tableName: event_invitation_config
             indexName: idx_event_invitation_config_template

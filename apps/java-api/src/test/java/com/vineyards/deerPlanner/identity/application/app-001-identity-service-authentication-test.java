@@ -18,7 +18,7 @@ import com.vineyards.deerPlanner.shared.exceptions.InvalidCredentialsException;
 import com.vineyards.deerPlanner.shared.exceptions.UserNotFoundException;
 import com.vineyards.deerPlanner.shared.security.JwtIssuerPort;
 import com.vineyards.deerPlanner.shared.security.PasswordEncoderPort;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
@@ -54,9 +54,9 @@ class App001IdentityServiceTest {
         .passwordHash(STORED_HASH)
         .isActive(true)
         .roles(roles)
-        .lastLoginAt(OffsetDateTime.now())
-        .createdAt(OffsetDateTime.now())
-        .updatedAt(OffsetDateTime.now())
+        .lastLoginAt(Instant.now())
+        .createdAt(Instant.now())
+        .updatedAt(Instant.now())
         .build();
   }
 
@@ -157,9 +157,9 @@ class App001IdentityServiceTest {
               .passwordHash(STORED_HASH)
               .isActive(false)
               .roles(EnumSet.of(Role.EventOrganizer))
-              .lastLoginAt(OffsetDateTime.now())
-              .createdAt(OffsetDateTime.now())
-              .updatedAt(OffsetDateTime.now())
+              .lastLoginAt(Instant.now())
+              .createdAt(Instant.now())
+              .updatedAt(Instant.now())
               .build();
       when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(inactive));
       when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);

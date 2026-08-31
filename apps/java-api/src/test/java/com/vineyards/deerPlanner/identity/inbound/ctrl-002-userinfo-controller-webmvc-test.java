@@ -14,7 +14,7 @@ import com.vineyards.deerPlanner.identity.facade.UserProfileResponse;
 import com.vineyards.deerPlanner.shared.exceptions.UserNotFoundException;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import jakarta.servlet.FilterChain;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class Ctrl002UserInfoControllerSliceTest {
                 "Alice Doe",
                 "alice@example.com",
                 Set.of(Role.EventOrganizer),
-                OffsetDateTime.parse("2026-08-15T10:30:00Z")));
+                Instant.parse("2026-08-15T10:30:00Z")));
 
     mvc.perform(get("/oauth/userinfo").with(jwt().jwt(j -> j.subject("user-1"))))
         .andExpect(status().isOk())

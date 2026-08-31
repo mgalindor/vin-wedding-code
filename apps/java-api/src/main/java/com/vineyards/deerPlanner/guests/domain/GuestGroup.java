@@ -1,7 +1,6 @@
 package com.vineyards.deerPlanner.guests.domain;
 
-import java.time.OffsetDateTime;
-import java.util.Optional;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,21 +14,21 @@ public class GuestGroup {
   private String id;
   private String eventId;
   private String name;
-  private Optional<String> side;
+  private String side;
   private GuestRelationship relationship;
-  private Optional<String> sharedEmail;
-  private Optional<String> sharedPhone;
-  private Optional<String> primaryGuestId;
+  private String sharedEmail;
+  private String sharedPhone;
+  private String primaryGuestId;
   private String invitationToken;
   private int displayOrder;
-  private OffsetDateTime createdAt;
-  private OffsetDateTime updatedAt;
+  private Instant createdAt;
+  private Instant updatedAt;
 
   public GuestGroup withToken(String newToken) {
     return toBuilder().invitationToken(newToken).build();
   }
 
   public GuestGroup withPrimaryGuest(String primaryGuestId) {
-    return toBuilder().primaryGuestId(Optional.ofNullable(primaryGuestId)).build();
+    return toBuilder().primaryGuestId(primaryGuestId).build();
   }
 }

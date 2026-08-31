@@ -25,7 +25,7 @@ import com.vineyards.deerPlanner.shared.security.JwtAuthenticator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,8 +89,8 @@ class Ctrl008GuestsControllerSliceTest {
         null,
         null,
         null,
-        OffsetDateTime.parse("2026-08-01T10:00:00Z"),
-        OffsetDateTime.parse("2026-08-01T10:00:00Z"));
+        Instant.parse("2026-08-01T10:00:00Z"),
+        Instant.parse("2026-08-01T10:00:00Z"));
   }
 
   @Test
@@ -189,8 +189,8 @@ class Ctrl008GuestsControllerSliceTest {
             null,
             null,
             null,
-            OffsetDateTime.parse("2026-08-01T10:00:00Z"),
-            OffsetDateTime.parse("2026-08-02T10:00:00Z"));
+            Instant.parse("2026-08-01T10:00:00Z"),
+            Instant.parse("2026-08-02T10:00:00Z"));
     when(guestApi.updateGuest(eq(GUEST_ID), any(UpdateGuestDto.class), eq(ORGANIZER_ID)))
         .thenReturn(updated);
 

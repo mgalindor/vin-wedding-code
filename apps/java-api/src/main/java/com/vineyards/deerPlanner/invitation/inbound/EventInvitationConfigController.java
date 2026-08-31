@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -19,9 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-    path = "/api/v1/events/{eventId}/invitation-config",
-    produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api/v1/events/{eventId}/invitation-config")
 @PrimaryAdapter
 @PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @RequiredArgsConstructor
@@ -36,7 +33,7 @@ public class EventInvitationConfigController {
     return configApi.getInvitationConfig(eventId, jwt.getSubject());
   }
 
-  @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PutMapping
   public EventInvitationConfigDto update(
       @PathVariable String eventId,
       @Valid @RequestBody UpdateInvitationConfigDto body,

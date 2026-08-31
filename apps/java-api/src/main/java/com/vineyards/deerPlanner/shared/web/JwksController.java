@@ -21,7 +21,7 @@ public class JwksController {
 
   private final JwtAuthenticator jwtAuthenticator;
 
-  @GetMapping(path = "/jwks.json", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/jwks.json")
   public ResponseEntity<String> jwks() {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())

@@ -27,7 +27,7 @@ import com.vineyards.deerPlanner.shared.security.JwtAuthenticator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,8 +88,8 @@ class Ctrl008GuestGroupsControllerSliceTest {
         null,
         "token-1",
         0,
-        OffsetDateTime.parse("2026-08-01T10:00:00Z"),
-        OffsetDateTime.parse("2026-08-01T10:00:00Z"));
+        Instant.parse("2026-08-01T10:00:00Z"),
+        Instant.parse("2026-08-01T10:00:00Z"));
   }
 
   @Test
@@ -189,8 +189,8 @@ class Ctrl008GuestGroupsControllerSliceTest {
             null,
             "token-1",
             0,
-            OffsetDateTime.parse("2026-08-01T10:00:00Z"),
-            OffsetDateTime.parse("2026-08-02T10:00:00Z"));
+            Instant.parse("2026-08-01T10:00:00Z"),
+            Instant.parse("2026-08-02T10:00:00Z"));
     when(guestApi.updateGroup(eq(GROUP_ID), any(UpdateGuestGroupDto.class), eq(ORGANIZER_ID)))
         .thenReturn(updated);
 
@@ -230,8 +230,8 @@ class Ctrl008GuestGroupsControllerSliceTest {
             null,
             "rotated-token",
             0,
-            OffsetDateTime.parse("2026-08-01T10:00:00Z"),
-            OffsetDateTime.parse("2026-08-02T10:00:00Z"));
+            Instant.parse("2026-08-01T10:00:00Z"),
+            Instant.parse("2026-08-02T10:00:00Z"));
     when(guestApi.regenerateGroupToken(eq(GROUP_ID), eq(ORGANIZER_ID))).thenReturn(rotated);
 
     mvc.perform(

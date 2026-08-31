@@ -20,7 +20,7 @@ import com.vineyards.deerPlanner.shared.security.JwtAuthenticator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,12 +71,12 @@ class Ctrl006EventInvitationConfigControllerSliceTest {
         EVENT_ID,
         "tpl-wedding-romantic-v1",
         true,
-        OffsetDateTime.parse("2026-08-15T10:00:00Z"),
+        Instant.parse("2026-08-15T10:00:00Z"),
         null,
         true,
         null,
         "emma-james-2026",
-        OffsetDateTime.parse("2026-08-15T10:00:00Z"));
+        Instant.parse("2026-08-15T10:00:00Z"));
   }
 
   @Test

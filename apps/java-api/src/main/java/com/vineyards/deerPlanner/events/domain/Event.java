@@ -3,8 +3,8 @@ package com.vineyards.deerPlanner.events.domain;
 import com.vineyards.deerPlanner.events.domain.payload.ContactsPayload;
 import com.vineyards.deerPlanner.events.domain.payload.LocationsPayload;
 import com.vineyards.deerPlanner.events.domain.payload.ProgramPayload;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +25,6 @@ public class Event {
   private ProgramPayload programPayload;
   private ContactsPayload contactsPayload;
   private WeddingDetail wedding;
-  private OffsetDateTime createdAt;
-  private OffsetDateTime updatedAt;
+  private Instant createdAt;
+  private Instant updatedAt;
 }

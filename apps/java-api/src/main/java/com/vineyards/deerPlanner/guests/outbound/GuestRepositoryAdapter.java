@@ -61,15 +61,15 @@ public class GuestRepositoryAdapter implements GuestRepository {
         .groupId(e.getGroupId())
         .firstName(e.getFirstName())
         .lastName(e.getLastName())
-        .email(java.util.Optional.ofNullable(e.getEmail()))
-        .phone(java.util.Optional.ofNullable(e.getPhone()))
-        .dietaryNotes(java.util.Optional.ofNullable(e.getDietaryNotes()))
+        .email(e.getEmail())
+        .phone(e.getPhone())
+        .dietaryNotes(e.getDietaryNotes())
         .primary(e.isPrimary())
         .invitationToken(e.getInvitationToken())
         .rsvpStatus(RsvpStatus.fromString(e.getRsvpStatus()))
-        .rsvpConfirmedAt(java.util.Optional.ofNullable(e.getRsvpConfirmedAt()))
-        .rsvpMessage(java.util.Optional.ofNullable(e.getRsvpMessage()))
-        .rsvpDietaryChoice(java.util.Optional.ofNullable(e.getRsvpDietaryChoice()))
+        .rsvpConfirmedAt(e.getRsvpConfirmedAt())
+        .rsvpMessage(e.getRsvpMessage())
+        .rsvpDietaryChoice(e.getRsvpDietaryChoice())
         .createdAt(e.getCreatedAt())
         .updatedAt(e.getUpdatedAt())
         .build();
@@ -81,15 +81,15 @@ public class GuestRepositoryAdapter implements GuestRepository {
     e.setGroupId(d.getGroupId());
     e.setFirstName(d.getFirstName());
     e.setLastName(d.getLastName());
-    e.setEmail(d.getEmail().orElse(null));
-    e.setPhone(d.getPhone().orElse(null));
-    e.setDietaryNotes(d.getDietaryNotes().orElse(null));
+    e.setEmail(d.getEmail());
+    e.setPhone(d.getPhone());
+    e.setDietaryNotes(d.getDietaryNotes());
     e.setPrimary(d.isPrimary());
     e.setInvitationToken(d.getInvitationToken());
     e.setRsvpStatus(d.getRsvpStatus().name());
-    e.setRsvpConfirmedAt(d.getRsvpConfirmedAt().orElse(null));
-    e.setRsvpMessage(d.getRsvpMessage().orElse(null));
-    e.setRsvpDietaryChoice(d.getRsvpDietaryChoice().orElse(null));
+    e.setRsvpConfirmedAt(d.getRsvpConfirmedAt());
+    e.setRsvpMessage(d.getRsvpMessage());
+    e.setRsvpDietaryChoice(d.getRsvpDietaryChoice());
     e.setCreatedAt(d.getCreatedAt());
     e.setUpdatedAt(d.getUpdatedAt());
     return e;

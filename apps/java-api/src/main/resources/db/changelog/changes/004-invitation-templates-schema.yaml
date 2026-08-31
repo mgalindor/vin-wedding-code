@@ -71,6 +71,13 @@ databaseChangeLog:
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+                  remarks: Soft delete flag for Hibernate @SoftDelete. Rows are never physically removed.
         - addCheckConstraint:
             tableName: invitation_templates
             constraintName: ck_invitation_templates_event_type

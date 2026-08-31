@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  * com.vineyards.deerPlanner.invitation.application.PublicInvitationService}.
  */
 @RestController
-@RequestMapping(path = "/api/v1/public/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api/v1/public/invitations")
 @PrimaryAdapter
 @RequiredArgsConstructor
 @Slf4j
@@ -37,7 +36,7 @@ public class PublicInvitationController {
     return publicInvitationApi.getBySlug(slug);
   }
 
-  @PostMapping(path = "/{slug}/rsvp", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(path = "/{slug}/rsvp")
   public PublicRsvpResponseDto submitRsvp(
       @PathVariable String slug, @Valid @RequestBody PublicRsvpRequestDto body) {
     return publicInvitationApi.submitRsvp(slug, body);

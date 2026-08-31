@@ -1,20 +1,10 @@
 package com.vineyards.deerPlanner.events.application;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vineyards.deerPlanner.events.application.port.EventRepository;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
 import com.vineyards.deerPlanner.events.domain.WeddingDetail;
-import com.vineyards.deerPlanner.events.domain.payload.ContactsPayload;
-import com.vineyards.deerPlanner.events.domain.payload.LocationsPayload;
-import com.vineyards.deerPlanner.events.domain.payload.ProgramPayload;
-import com.vineyards.deerPlanner.events.domain.payload.WeddingAccommodationPayload;
-import com.vineyards.deerPlanner.events.domain.payload.WeddingDressCodePayload;
-import com.vineyards.deerPlanner.events.domain.payload.WeddingGiftRegistryPayload;
-import com.vineyards.deerPlanner.events.domain.payload.WeddingLandingPayload;
-import com.vineyards.deerPlanner.events.domain.payload.WeddingParentsPayload;
-import com.vineyards.deerPlanner.events.domain.payload.WeddingStoryPayload;
 import com.vineyards.deerPlanner.events.facade.EventFacade;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
@@ -30,10 +20,10 @@ import com.vineyards.deerPlanner.events.facade.dto.WeddingGiftRegistryPayloadDto
 import com.vineyards.deerPlanner.events.facade.dto.WeddingLandingPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingParentsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingStoryPayloadDto;
+import com.vineyards.deerPlanner.events.facade.mapper.EventPayloadMapper;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
-import com.vineyards.deerPlanner.shared.security.JwtIssuerPort;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,10 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Application-layer orchestrator for events. Validates ownership, status transitions and payload
  * shapes; the inbound controllers stay slim and pass DTOs through untouched.
  *
- * <p>JSONB payloads are produced/consumed as typed DTOs (from {@code facade/dto/}); the service
- * serialises them with {@link ObjectMapper} before handing a string to the repository. The inbound
- * layer can therefore trust the shape of the DTOs — payloads never enter the application as raw
- * JSON.
+ * <p>JSONB payloads are mapped between their DTO and domain-payload forms via {@link
+ * EventPayloadMapper}; the domain layer holds the typed object that Hibernate serialises to JSON.
  */
 @Service
 @Application
@@ -60,16 +48,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class EventService implements EventFacade {
 
   private final EventRepository repository;
-  private final ObjectMapper objectMapper;
-
-  @SuppressWarnings("unused")
-  private final JwtIssuerPort jwtIssuer;
+  private final EventPayloadMapper payloadMapper;
 
   @Override
   @Transactional
   public EventDto createEvent(CreateEventDto dto, String actorUserId) {
     String id = UUID.randomUUID().toString();
     WeddingDetail wedding = buildWeddingDetail(dto);
+    Instant now = Instant.now();
     Event event =
         Event.builder()
             .id(id)
@@ -82,8 +68,8 @@ public class EventService implements EventFacade {
             .programPayload(null)
             .contactsPayload(null)
             .wedding(wedding)
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
+            .createdAt(now)
+            .updatedAt(now)
             .build();
     Event saved = repository.save(event);
     log.info(
@@ -128,7 +114,7 @@ public class EventService implements EventFacade {
     if (dto.title() != null) updated.setTitle(dto.title());
     if (dto.eventDate() != null) updated.setEventDate(dto.eventDate());
     updated.setWedding(updateWeddingFromMeta(current.getWedding(), dto));
-    updated.setUpdatedAt(OffsetDateTime.now());
+    updated.setUpdatedAt(Instant.now());
     return toDto(repository.save(updated));
   }
 
@@ -169,7 +155,7 @@ public class EventService implements EventFacade {
   @Transactional
   public EventDto updateLocations(String eventId, LocationsPayloadDto dto, String actorUserId) {
     Event current = loadOwnedEvent(eventId, actorUserId);
-    current.setLocationsPayload(objectMapper.convertValue(dto, LocationsPayload.class));
+    current.setLocationsPayload(payloadMapper.toPayload(dto));
     return toDto(repository.save(current));
   }
 
@@ -177,7 +163,7 @@ public class EventService implements EventFacade {
   @Transactional
   public EventDto updateProgram(String eventId, ProgramPayloadDto dto, String actorUserId) {
     Event current = loadOwnedEvent(eventId, actorUserId);
-    current.setProgramPayload(objectMapper.convertValue(dto, ProgramPayload.class));
+    current.setProgramPayload(payloadMapper.toPayload(dto));
     return toDto(repository.save(current));
   }
 
@@ -185,7 +171,7 @@ public class EventService implements EventFacade {
   @Transactional
   public EventDto updateContacts(String eventId, ContactsPayloadDto dto, String actorUserId) {
     Event current = loadOwnedEvent(eventId, actorUserId);
-    current.setContactsPayload(objectMapper.convertValue(dto, ContactsPayload.class));
+    current.setContactsPayload(payloadMapper.toPayload(dto));
     return toDto(repository.save(current));
   }
 
@@ -194,9 +180,7 @@ public class EventService implements EventFacade {
   public EventDto updateWeddingLanding(
       String eventId, WeddingLandingPayloadDto dto, String actorUserId) {
     return updateWeddingPayload(
-        eventId,
-        actorUserId,
-        w -> w.setLandingPayload(objectMapper.convertValue(dto, WeddingLandingPayload.class)));
+        eventId, actorUserId, w -> w.setLandingPayload(payloadMapper.toPayload(dto)));
   }
 
   @Override
@@ -204,9 +188,7 @@ public class EventService implements EventFacade {
   public EventDto updateWeddingStory(
       String eventId, WeddingStoryPayloadDto dto, String actorUserId) {
     return updateWeddingPayload(
-        eventId,
-        actorUserId,
-        w -> w.setStoryPayload(objectMapper.convertValue(dto, WeddingStoryPayload.class)));
+        eventId, actorUserId, w -> w.setStoryPayload(payloadMapper.toPayload(dto)));
   }
 
   @Override
@@ -214,9 +196,7 @@ public class EventService implements EventFacade {
   public EventDto updateWeddingDressCode(
       String eventId, WeddingDressCodePayloadDto dto, String actorUserId) {
     return updateWeddingPayload(
-        eventId,
-        actorUserId,
-        w -> w.setDressCodePayload(objectMapper.convertValue(dto, WeddingDressCodePayload.class)));
+        eventId, actorUserId, w -> w.setDressCodePayload(payloadMapper.toPayload(dto)));
   }
 
   @Override
@@ -224,11 +204,7 @@ public class EventService implements EventFacade {
   public EventDto updateWeddingGiftRegistry(
       String eventId, WeddingGiftRegistryPayloadDto dto, String actorUserId) {
     return updateWeddingPayload(
-        eventId,
-        actorUserId,
-        w ->
-            w.setGiftRegistryPayload(
-                objectMapper.convertValue(dto, WeddingGiftRegistryPayload.class)));
+        eventId, actorUserId, w -> w.setGiftRegistryPayload(payloadMapper.toPayload(dto)));
   }
 
   @Override
@@ -236,9 +212,7 @@ public class EventService implements EventFacade {
   public EventDto updateWeddingParents(
       String eventId, WeddingParentsPayloadDto dto, String actorUserId) {
     return updateWeddingPayload(
-        eventId,
-        actorUserId,
-        w -> w.setParentsPayload(objectMapper.convertValue(dto, WeddingParentsPayload.class)));
+        eventId, actorUserId, w -> w.setParentsPayload(payloadMapper.toPayload(dto)));
   }
 
   @Override
@@ -246,11 +220,7 @@ public class EventService implements EventFacade {
   public EventDto updateWeddingAccommodation(
       String eventId, WeddingAccommodationPayloadDto dto, String actorUserId) {
     return updateWeddingPayload(
-        eventId,
-        actorUserId,
-        w ->
-            w.setAccommodationPayload(
-                objectMapper.convertValue(dto, WeddingAccommodationPayload.class)));
+        eventId, actorUserId, w -> w.setAccommodationPayload(payloadMapper.toPayload(dto)));
   }
 
   @Override
@@ -349,11 +319,6 @@ public class EventService implements EventFacade {
         .build();
   }
 
-  private <T> T deserialize(Object value, Class<T> type) {
-    if (value == null) return null;
-    return objectMapper.convertValue(value, type);
-  }
-
   private EventDto toDto(Event event) {
     EventDto.WeddingPayloadsDto wedding =
         event.getWedding() == null
@@ -362,17 +327,24 @@ public class EventService implements EventFacade {
                 event.getWedding().getPartner1Name(),
                 event.getWedding().getPartner2Name(),
                 event.getWedding().isCountdownEnabled(),
-                deserialize(event.getWedding().getLandingPayload(), WeddingLandingPayloadDto.class),
-                deserialize(event.getWedding().getStoryPayload(), WeddingStoryPayloadDto.class),
-                deserialize(
-                    event.getWedding().getDressCodePayload(), WeddingDressCodePayloadDto.class),
-                deserialize(
-                    event.getWedding().getGiftRegistryPayload(),
-                    WeddingGiftRegistryPayloadDto.class),
-                deserialize(event.getWedding().getParentsPayload(), WeddingParentsPayloadDto.class),
-                deserialize(
-                    event.getWedding().getAccommodationPayload(),
-                    WeddingAccommodationPayloadDto.class));
+                event.getWedding().getLandingPayload() == null
+                    ? null
+                    : payloadMapper.toDto(event.getWedding().getLandingPayload()),
+                event.getWedding().getStoryPayload() == null
+                    ? null
+                    : payloadMapper.toDto(event.getWedding().getStoryPayload()),
+                event.getWedding().getDressCodePayload() == null
+                    ? null
+                    : payloadMapper.toDto(event.getWedding().getDressCodePayload()),
+                event.getWedding().getGiftRegistryPayload() == null
+                    ? null
+                    : payloadMapper.toDto(event.getWedding().getGiftRegistryPayload()),
+                event.getWedding().getParentsPayload() == null
+                    ? null
+                    : payloadMapper.toDto(event.getWedding().getParentsPayload()),
+                event.getWedding().getAccommodationPayload() == null
+                    ? null
+                    : payloadMapper.toDto(event.getWedding().getAccommodationPayload()));
     return new EventDto(
         event.getId(),
         event.getOrganizerId(),
@@ -380,9 +352,11 @@ public class EventService implements EventFacade {
         event.getTitle(),
         event.getEventDate(),
         event.getStatus(),
-        deserialize(event.getLocationsPayload(), LocationsPayloadDto.class),
-        deserialize(event.getProgramPayload(), ProgramPayloadDto.class),
-        deserialize(event.getContactsPayload(), ContactsPayloadDto.class),
+        event.getLocationsPayload() == null
+            ? null
+            : payloadMapper.toDto(event.getLocationsPayload()),
+        event.getProgramPayload() == null ? null : payloadMapper.toDto(event.getProgramPayload()),
+        event.getContactsPayload() == null ? null : payloadMapper.toDto(event.getContactsPayload()),
         wedding,
         event.getCreatedAt(),
         event.getUpdatedAt());

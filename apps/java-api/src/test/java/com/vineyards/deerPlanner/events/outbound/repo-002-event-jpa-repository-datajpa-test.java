@@ -2,6 +2,7 @@ package com.vineyards.deerPlanner.events.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.vineyards.deerPlanner.shared.persistence.JpaAuditingConfig;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest(
@@ -19,6 +21,7 @@ import org.springframework.test.context.jdbc.Sql;
       "spring.jpa.hibernate.ddl-auto=create-drop"
     })
 @AutoConfigureTestDatabase
+@Import(JpaAuditingConfig.class)
 class Repo002EventJpaRepositorySliceTest {
 
   @Autowired EventJpaRepository repository;
@@ -78,7 +81,6 @@ class Repo002EventJpaRepositorySliceTest {
       executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   void save_persistsNewEvent_withGeneratedTimestamps() {
     EventEntity entity = new EventEntity();
-    entity.setId("evt-new");
     entity.setOrganizerId("user-organizer-1");
     entity.setEventType("wedding");
     entity.setTitle("Newly created");
@@ -87,8 +89,8 @@ class Repo002EventJpaRepositorySliceTest {
 
     EventEntity saved = repository.save(entity);
 
-    assertThat(saved.getId()).isEqualTo("evt-new");
-    // @PrePersist populates created_at and updated_at; updated_at must be present.
+    assertThat(saved.getId()).isNotBlank();
+    // JPA auditing populates created_at and updated_at on persist.
     assertThat(saved.getCreatedAt()).isNotNull();
     assertThat(saved.getUpdatedAt()).isNotNull();
   }

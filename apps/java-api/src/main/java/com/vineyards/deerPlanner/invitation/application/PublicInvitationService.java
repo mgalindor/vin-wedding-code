@@ -47,8 +47,8 @@ public class PublicInvitationService implements PublicInvitationFacade {
     if (!config.isActive()) {
       throw new BusinessError("invitation_inactive", "Invitation is not currently published");
     }
-    if (config.getDeadline().isPresent()
-        && LocalDate.now(ZoneOffset.UTC).isAfter(config.getDeadline().get())) {
+    if (config.getDeadline() != null
+        && LocalDate.now(ZoneOffset.UTC).isAfter(config.getDeadline())) {
       throw new BusinessError("invitation_expired", "Invitation deadline has passed");
     }
 
@@ -90,8 +90,8 @@ public class PublicInvitationService implements PublicInvitationFacade {
     if (!config.isRsvpEnabled()) {
       throw new BusinessError("rsvp_disabled", "RSVP is disabled for this invitation");
     }
-    if (config.getRsvpDeadline().isPresent()
-        && LocalDate.now(ZoneOffset.UTC).isAfter(config.getRsvpDeadline().get())) {
+    if (config.getRsvpDeadline() != null
+        && LocalDate.now(ZoneOffset.UTC).isAfter(config.getRsvpDeadline())) {
       throw new BusinessError("rsvp_deadline_passed", "RSVP deadline has passed");
     }
 

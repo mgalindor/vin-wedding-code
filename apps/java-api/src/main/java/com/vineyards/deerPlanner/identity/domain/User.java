@@ -1,6 +1,6 @@
 package com.vineyards.deerPlanner.identity.domain;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +16,7 @@ public class User {
   private String passwordHash;
   private boolean isActive;
   private Set<Role> roles;
-  private OffsetDateTime lastLoginAt;
-  private OffsetDateTime createdAt;
-  private OffsetDateTime updatedAt;
+  private Instant lastLoginAt;
+  private Instant createdAt;
+  private Instant updatedAt;
 }

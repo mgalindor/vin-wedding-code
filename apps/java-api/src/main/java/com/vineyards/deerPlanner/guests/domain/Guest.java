@@ -1,7 +1,6 @@
 package com.vineyards.deerPlanner.guests.domain;
 
-import java.time.OffsetDateTime;
-import java.util.Optional;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,19 +11,19 @@ public class Guest {
   private String groupId;
   private String firstName;
   private String lastName;
-  private Optional<String> email;
-  private Optional<String> phone;
-  private Optional<String> dietaryNotes;
+  private String email;
+  private String phone;
+  private String dietaryNotes;
   private boolean primary;
   private String invitationToken;
   private RsvpStatus rsvpStatus;
-  private Optional<OffsetDateTime> rsvpConfirmedAt;
-  private Optional<String> rsvpMessage;
-  private Optional<String> rsvpDietaryChoice;
-  private OffsetDateTime createdAt;
-  private OffsetDateTime updatedAt;
+  private Instant rsvpConfirmedAt;
+  private String rsvpMessage;
+  private String rsvpDietaryChoice;
+  private Instant createdAt;
+  private Instant updatedAt;
 
-  public Guest withRsvpStatus(RsvpStatus status, OffsetDateTime confirmedAt) {
-    return toBuilder().rsvpStatus(status).rsvpConfirmedAt(Optional.ofNullable(confirmedAt)).build();
+  public Guest withRsvpStatus(RsvpStatus status, Instant confirmedAt) {
+    return toBuilder().rsvpStatus(status).rsvpConfirmedAt(confirmedAt).build();
   }
 }

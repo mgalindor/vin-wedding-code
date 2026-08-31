@@ -3,7 +3,7 @@ package com.vineyards.deerPlanner.identity.outbound;
 import com.vineyards.deerPlanner.identity.application.port.UserRepository;
 import com.vineyards.deerPlanner.identity.domain.Role;
 import com.vineyards.deerPlanner.identity.domain.User;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +34,7 @@ public class UserRepositoryAdapter implements UserRepository {
 
   @Override
   public void recordLogin(String userId) {
-    userJpa.recordLogin(userId, OffsetDateTime.now());
+    userJpa.recordLogin(userId, Instant.now());
   }
 
   private User toDomain(UserEntity entity) {

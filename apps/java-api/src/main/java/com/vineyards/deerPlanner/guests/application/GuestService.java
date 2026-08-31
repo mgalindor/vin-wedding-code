@@ -17,9 +17,8 @@ import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupDto;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,20 +68,21 @@ public class GuestService implements GuestFacade {
     String newId = UUID.randomUUID().toString();
     String token = UUID.randomUUID().toString();
     int displayOrder = dto.displayOrder() != null ? dto.displayOrder() : 0;
+    Instant now = Instant.now();
     GuestGroup group =
         GuestGroup.builder()
             .id(newId)
             .eventId(eventId)
             .name(dto.name())
-            .side(Optional.ofNullable(dto.side()))
+            .side(dto.side())
             .relationship(GuestRelationship.fromString(dto.relationship()))
-            .sharedEmail(Optional.ofNullable(dto.sharedEmail()))
-            .sharedPhone(Optional.ofNullable(dto.sharedPhone()))
-            .primaryGuestId(Optional.empty())
+            .sharedEmail(dto.sharedEmail())
+            .sharedPhone(dto.sharedPhone())
+            .primaryGuestId(null)
             .invitationToken(token)
             .displayOrder(displayOrder)
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
+            .createdAt(now)
+            .updatedAt(now)
             .build();
     GuestGroup saved = groupRepository.save(group);
     log.info(
@@ -184,23 +184,24 @@ public class GuestService implements GuestFacade {
     String newId = UUID.randomUUID().toString();
     String token = UUID.randomUUID().toString();
     boolean primary = Boolean.TRUE.equals(dto.primary());
+    Instant now = Instant.now();
     Guest guest =
         Guest.builder()
             .id(newId)
             .groupId(dto.groupId())
             .firstName(dto.firstName())
             .lastName(dto.lastName())
-            .email(Optional.ofNullable(dto.email()))
-            .phone(Optional.ofNullable(dto.phone()))
-            .dietaryNotes(Optional.ofNullable(dto.dietaryNotes()))
+            .email(dto.email())
+            .phone(dto.phone())
+            .dietaryNotes(dto.dietaryNotes())
             .primary(primary)
             .invitationToken(token)
             .rsvpStatus(RsvpStatus.pending)
-            .rsvpConfirmedAt(Optional.empty())
-            .rsvpMessage(Optional.empty())
-            .rsvpDietaryChoice(Optional.empty())
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
+            .rsvpConfirmedAt(null)
+            .rsvpMessage(null)
+            .rsvpDietaryChoice(null)
+            .createdAt(now)
+            .updatedAt(now)
             .build();
     Guest saved = guestRepository.save(guest);
     log.info(
@@ -270,17 +271,15 @@ public class GuestService implements GuestFacade {
   private GuestGroup applyGroupPatch(GuestGroup current, UpdateGuestGroupDto dto) {
     return current.toBuilder()
         .name(dto.name() != null ? dto.name() : current.getName())
-        .side(dto.side() != null ? Optional.of(dto.side()) : current.getSide())
+        .side(dto.side() != null ? dto.side() : current.getSide())
         .relationship(
             dto.relationship() != null
                 ? GuestRelationship.fromString(dto.relationship())
                 : current.getRelationship())
-        .sharedEmail(
-            dto.sharedEmail() != null ? Optional.of(dto.sharedEmail()) : current.getSharedEmail())
-        .sharedPhone(
-            dto.sharedPhone() != null ? Optional.of(dto.sharedPhone()) : current.getSharedPhone())
+        .sharedEmail(dto.sharedEmail() != null ? dto.sharedEmail() : current.getSharedEmail())
+        .sharedPhone(dto.sharedPhone() != null ? dto.sharedPhone() : current.getSharedPhone())
         .displayOrder(dto.displayOrder() != null ? dto.displayOrder() : current.getDisplayOrder())
-        .updatedAt(OffsetDateTime.now())
+        .updatedAt(Instant.now())
         .build();
   }
 
@@ -288,14 +287,11 @@ public class GuestService implements GuestFacade {
     return current.toBuilder()
         .firstName(dto.firstName() != null ? dto.firstName() : current.getFirstName())
         .lastName(dto.lastName() != null ? dto.lastName() : current.getLastName())
-        .email(dto.email() != null ? Optional.of(dto.email()) : current.getEmail())
-        .phone(dto.phone() != null ? Optional.of(dto.phone()) : current.getPhone())
-        .dietaryNotes(
-            dto.dietaryNotes() != null
-                ? Optional.of(dto.dietaryNotes())
-                : current.getDietaryNotes())
+        .email(dto.email() != null ? dto.email() : current.getEmail())
+        .phone(dto.phone() != null ? dto.phone() : current.getPhone())
+        .dietaryNotes(dto.dietaryNotes() != null ? dto.dietaryNotes() : current.getDietaryNotes())
         .primary(dto.primary() != null ? dto.primary() : current.isPrimary())
-        .updatedAt(OffsetDateTime.now())
+        .updatedAt(Instant.now())
         .build();
   }
 
@@ -304,11 +300,11 @@ public class GuestService implements GuestFacade {
         g.getId(),
         g.getEventId(),
         g.getName(),
-        g.getSide().orElse(null),
+        g.getSide(),
         g.getRelationship().name(),
-        g.getSharedEmail().orElse(null),
-        g.getSharedPhone().orElse(null),
-        g.getPrimaryGuestId().orElse(null),
+        g.getSharedEmail(),
+        g.getSharedPhone(),
+        g.getPrimaryGuestId(),
         g.getInvitationToken(),
         g.getDisplayOrder(),
         g.getCreatedAt(),
@@ -321,15 +317,15 @@ public class GuestService implements GuestFacade {
         g.getGroupId(),
         g.getFirstName(),
         g.getLastName(),
-        g.getEmail().orElse(null),
-        g.getPhone().orElse(null),
-        g.getDietaryNotes().orElse(null),
+        g.getEmail(),
+        g.getPhone(),
+        g.getDietaryNotes(),
         g.isPrimary(),
         g.getInvitationToken(),
         g.getRsvpStatus().name(),
-        g.getRsvpConfirmedAt().orElse(null),
-        g.getRsvpMessage().orElse(null),
-        g.getRsvpDietaryChoice().orElse(null),
+        g.getRsvpConfirmedAt(),
+        g.getRsvpMessage(),
+        g.getRsvpDietaryChoice(),
         g.getCreatedAt(),
         g.getUpdatedAt());
   }

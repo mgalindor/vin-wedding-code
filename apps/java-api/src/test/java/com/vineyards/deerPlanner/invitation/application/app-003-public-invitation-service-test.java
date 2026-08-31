@@ -17,8 +17,8 @@ import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpRequestDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.PublicRsvpResponseDto;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -45,12 +45,12 @@ class App003PublicInvitationServiceTest {
         .eventId(EVENT_ID)
         .templateId(TEMPLATE_ID)
         .active(true)
-        .publishedAt(Optional.of(OffsetDateTime.parse("2026-08-15T10:00:00Z")))
-        .deadline(Optional.empty())
+        .publishedAt(Instant.parse("2026-08-15T10:00:00Z"))
+        .deadline(null)
         .rsvpEnabled(true)
-        .rsvpDeadline(Optional.empty())
+        .rsvpDeadline(null)
         .slug(SLUG)
-        .updatedAt(OffsetDateTime.parse("2026-08-15T10:00:00Z"))
+        .updatedAt(Instant.parse("2026-08-15T10:00:00Z"))
         .build();
   }
 
@@ -66,8 +66,8 @@ class App003PublicInvitationServiceTest {
         null,
         null,
         null,
-        OffsetDateTime.parse("2026-08-15T10:00:00Z"),
-        OffsetDateTime.parse("2026-08-15T10:00:00Z"));
+        Instant.parse("2026-08-15T10:00:00Z"),
+        Instant.parse("2026-08-15T10:00:00Z"));
   }
 
   @Test
@@ -85,8 +85,8 @@ class App003PublicInvitationServiceTest {
                     .description("Elegant")
                     .active(true)
                     .displayOrder(1)
-                    .createdAt(OffsetDateTime.parse("2026-08-15T10:00:00Z"))
-                    .updatedAt(OffsetDateTime.parse("2026-08-15T10:00:00Z"))
+                    .createdAt(Instant.parse("2026-08-15T10:00:00Z"))
+                    .updatedAt(Instant.parse("2026-08-15T10:00:00Z"))
                     .build()));
 
     PublicInvitationDto result = service.getBySlug(SLUG);
@@ -114,12 +114,12 @@ class App003PublicInvitationServiceTest {
             .eventId(EVENT_ID)
             .templateId(TEMPLATE_ID)
             .active(false)
-            .publishedAt(Optional.empty())
-            .deadline(Optional.empty())
+            .publishedAt(null)
+            .deadline(null)
             .rsvpEnabled(true)
-            .rsvpDeadline(Optional.empty())
+            .rsvpDeadline(null)
             .slug(SLUG)
-            .updatedAt(OffsetDateTime.parse("2026-08-15T10:00:00Z"))
+            .updatedAt(Instant.parse("2026-08-15T10:00:00Z"))
             .build();
     when(configRepository.findBySlug(SLUG)).thenReturn(Optional.of(inactive));
 
@@ -136,12 +136,12 @@ class App003PublicInvitationServiceTest {
             .eventId(EVENT_ID)
             .templateId(TEMPLATE_ID)
             .active(true)
-            .publishedAt(Optional.empty())
-            .deadline(Optional.of(pastDeadline))
+            .publishedAt(null)
+            .deadline(pastDeadline)
             .rsvpEnabled(true)
-            .rsvpDeadline(Optional.empty())
+            .rsvpDeadline(null)
             .slug(SLUG)
-            .updatedAt(OffsetDateTime.parse("2026-08-15T10:00:00Z"))
+            .updatedAt(Instant.parse("2026-08-15T10:00:00Z"))
             .build();
     when(configRepository.findBySlug(SLUG)).thenReturn(Optional.of(expired));
 
@@ -181,12 +181,12 @@ class App003PublicInvitationServiceTest {
             .eventId(EVENT_ID)
             .templateId(TEMPLATE_ID)
             .active(true)
-            .publishedAt(Optional.empty())
-            .deadline(Optional.empty())
+            .publishedAt(null)
+            .deadline(null)
             .rsvpEnabled(false)
-            .rsvpDeadline(Optional.empty())
+            .rsvpDeadline(null)
             .slug(SLUG)
-            .updatedAt(OffsetDateTime.parse("2026-08-15T10:00:00Z"))
+            .updatedAt(Instant.parse("2026-08-15T10:00:00Z"))
             .build();
     when(configRepository.findBySlug(SLUG)).thenReturn(Optional.of(noRsvp));
 
