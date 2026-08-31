@@ -6,7 +6,6 @@ public record GuestGroupDto(
     String id,
     String eventId,
     String name,
-    String side,
     String relationship,
     String sharedEmail,
     String sharedPhone,

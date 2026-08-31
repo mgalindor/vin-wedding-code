@@ -1,5 +1,6 @@
 package com.vineyards.deerPlanner.guests.facade;
 
+import com.vineyards.deerPlanner.guests.facade.dto.ChangeGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
@@ -46,6 +47,16 @@ public interface GuestInPort {
   GuestDto updateGuest(String guestId, UpdateGuestDto dto, String actorUserId);
 
   void deleteGuest(String guestId, String actorUserId);
+
+  /**
+   * Moves a guest to a different group, or unassigns it when {@link ChangeGuestGroupDto#groupId()}
+   * is {@code null}. Validates that both the current and (when present) the target group belong to
+   * the event identified by {@code eventId}. When the guest is the {@code primaryGuestId} of the
+   * old group, that reference is cleared; when it is primary in the new group, that reference is
+   * set.
+   */
+  GuestDto changeGuestGroup(
+      String eventId, String guestId, ChangeGuestGroupDto dto, String actorUserId);
 
   /**
    * Aggregate across all groups in an event â€” used by the dashboard and by the invitation module

@@ -1,5 +1,6 @@
 package com.vineyards.deerPlanner.guests.inbound;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.guests.facade.GuestInPort;
+import com.vineyards.deerPlanner.guests.facade.dto.ChangeGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
@@ -29,6 +31,7 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -213,5 +216,115 @@ class GuestsControllerTest {
         .andExpect(status().isNoContent());
 
     verify(guestApi).deleteGuest(eq(GUEST_ID), eq(ORGANIZER_ID));
+  }
+
+  @Test
+  void patchGroup_withNewGroupId_returns200AndDelegates() throws Exception {
+    GuestDto moved =
+        new GuestDto(
+            GUEST_ID,
+            "grp-2",
+            "Maria",
+            "Morales",
+            "maria@example.com",
+            "+521111111111",
+            null,
+            true,
+            "token-guest",
+            "pending",
+            null,
+            null,
+            null,
+            Instant.parse("2026-08-01T10:00:00Z"),
+            Instant.parse("2026-08-02T10:00:00Z"));
+    when(guestApi.changeGuestGroup(
+            eq(EVENT_ID), eq(GUEST_ID), any(ChangeGuestGroupDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(moved);
+
+    mvc.perform(
+            patch("/api/v1/events/{eid}/guests/{gid}/group", EVENT_ID, GUEST_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"groupId\":\"grp-2\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.groupId").value("grp-2"));
+
+    ArgumentCaptor<ChangeGuestGroupDto> captor = ArgumentCaptor.forClass(ChangeGuestGroupDto.class);
+    verify(guestApi)
+        .changeGuestGroup(eq(EVENT_ID), eq(GUEST_ID), captor.capture(), eq(ORGANIZER_ID));
+    assertThat(captor.getValue().groupId()).isEqualTo("grp-2");
+  }
+
+  @Test
+  void patchGroup_withNullGroupId_unassigns() throws Exception {
+    GuestDto unassigned =
+        new GuestDto(
+            GUEST_ID,
+            null,
+            "Maria",
+            "Morales",
+            "maria@example.com",
+            "+521111111111",
+            null,
+            true,
+            "token-guest",
+            "pending",
+            null,
+            null,
+            null,
+            Instant.parse("2026-08-01T10:00:00Z"),
+            Instant.parse("2026-08-02T10:00:00Z"));
+    when(guestApi.changeGuestGroup(
+            eq(EVENT_ID), eq(GUEST_ID), any(ChangeGuestGroupDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(unassigned);
+
+    mvc.perform(
+            patch("/api/v1/events/{eid}/guests/{gid}/group", EVENT_ID, GUEST_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"groupId\":null}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.groupId").doesNotExist());
+
+    ArgumentCaptor<ChangeGuestGroupDto> captor = ArgumentCaptor.forClass(ChangeGuestGroupDto.class);
+    verify(guestApi)
+        .changeGuestGroup(eq(EVENT_ID), eq(GUEST_ID), captor.capture(), eq(ORGANIZER_ID));
+    assertThat(captor.getValue().groupId()).isNull();
+  }
+
+  @Test
+  void patchGroup_withEmptyGroupId_unassigns() throws Exception {
+    GuestDto unassigned =
+        new GuestDto(
+            GUEST_ID,
+            null,
+            "Maria",
+            "Morales",
+            "maria@example.com",
+            "+521111111111",
+            null,
+            true,
+            "token-guest",
+            "pending",
+            null,
+            null,
+            null,
+            Instant.parse("2026-08-01T10:00:00Z"),
+            Instant.parse("2026-08-02T10:00:00Z"));
+    when(guestApi.changeGuestGroup(
+            eq(EVENT_ID), eq(GUEST_ID), any(ChangeGuestGroupDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(unassigned);
+
+    mvc.perform(
+            patch("/api/v1/events/{eid}/guests/{gid}/group", EVENT_ID, GUEST_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"groupId\":\"\"}"))
+        .andExpect(status().isOk());
+
+    ArgumentCaptor<ChangeGuestGroupDto> captor = ArgumentCaptor.forClass(ChangeGuestGroupDto.class);
+    verify(guestApi)
+        .changeGuestGroup(eq(EVENT_ID), eq(GUEST_ID), captor.capture(), eq(ORGANIZER_ID));
+    assertThat(captor.getValue().groupId()).isEmpty();
   }
 }

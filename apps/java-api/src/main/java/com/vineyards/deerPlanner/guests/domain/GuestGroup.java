@@ -14,7 +14,6 @@ public class GuestGroup {
   private String id;
   private String eventId;
   private String name;
-  private String side;
   private GuestRelationship relationship;
   private String sharedEmail;
   private String sharedPhone;

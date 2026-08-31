@@ -50,7 +50,6 @@ public class GuestGroupRepositoryAdapter implements GuestGroupOutPort {
         .id(e.getId())
         .eventId(e.getEventId())
         .name(e.getName())
-        .side(e.getSide())
         .relationship(GuestRelationship.fromString(e.getRelationship()))
         .sharedEmail(e.getSharedEmail())
         .sharedPhone(e.getSharedPhone())
@@ -67,7 +66,6 @@ public class GuestGroupRepositoryAdapter implements GuestGroupOutPort {
     e.setId(d.getId());
     e.setEventId(d.getEventId());
     e.setName(d.getName());
-    e.setSide(d.getSide());
     e.setRelationship(d.getRelationship().name());
     e.setSharedEmail(d.getSharedEmail());
     e.setSharedPhone(d.getSharedPhone());

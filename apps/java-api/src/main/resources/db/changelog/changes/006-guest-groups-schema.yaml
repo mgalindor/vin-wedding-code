@@ -13,7 +13,7 @@ databaseChangeLog:
         - createTable:
             tableName: guest_groups
             remarks: >
-              One row per group. The Organizer fills the group metadata (name, side,
+              One row per group. The Organizer fills the group metadata (name,
               relationship, shared email/phone) and guests fan out from this row.
             columns:
               - column:
@@ -36,12 +36,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   remarks: 'Header row in the UI. Ej: Familia Morales, Frank & Laura.'
-              - column:
-                  name: side
-                  type: varchar(80)
-                  constraints:
-                    nullable: true
-                  remarks: 'Etiqueta libre del lado/grupo. NULL permitido.'
               - column:
                   name: relationship
                   type: varchar(20)
@@ -116,8 +110,6 @@ databaseChangeLog:
             columns:
               - column:
                   name: event_id
-              - column:
-                  name: side
               - column:
                   name: relationship
   - changeSet:

@@ -26,10 +26,11 @@ databaseChangeLog:
                   name: group_id
                   type: varchar(20)
                   constraints:
-                    nullable: false
+                    nullable: true
                     foreignKeyName: fk_guests_group
                     references: guest_groups(id)
                     deleteCascade: true
+                  remarks: 'Nullable: a guest can be temporarily unassigned from any group via the PATCH /group endpoint. ON DELETE CASCADE so removing the group still removes its guests.'
               - column:
                   name: first_name
                   type: varchar(120)

@@ -78,7 +78,6 @@ class GuestGroupJpaRepositoryTest {
     GuestGroupEntity entity = new GuestGroupEntity();
     entity.setEventId("evt-1");
     entity.setName("New Group");
-    entity.setSide("Novia");
     entity.setRelationship("family");
     entity.setInvitationToken("new-token");
     entity.setDisplayOrder(0);

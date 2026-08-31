@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -81,7 +82,6 @@ class GuestGroupsControllerTest {
         GROUP_ID,
         EVENT_ID,
         "Familia Morales",
-        "Novia",
         "family",
         "fm@example.com",
         "+521234567890",
@@ -127,7 +127,6 @@ class GuestGroupsControllerTest {
         """
         {
           "name": "Familia Morales",
-          "side": "Novia",
           "relationship": "family",
           "sharedEmail": "fm@example.com",
           "sharedPhone": "+521234567890",
@@ -150,6 +149,55 @@ class GuestGroupsControllerTest {
   }
 
   @Test
+  void postGroup_withInlineGuests_returns201AndDelegatesFullPayload() throws Exception {
+    when(guestApi.createGroup(eq(EVENT_ID), any(CreateGuestGroupDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(sampleGroup());
+
+    String body =
+        """
+        {
+          "name": "Familia Morales",
+          "relationship": "family",
+          "guests": [
+            {"firstName": "Maria", "lastName": "Morales", "primary": true},
+            {"firstName": "Jose",  "lastName": "Morales"}
+          ]
+        }
+        """;
+
+    mvc.perform(
+            post("/api/v1/events/{id}/guest-groups", EVENT_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isCreated());
+
+    ArgumentCaptor<CreateGuestGroupDto> captor = ArgumentCaptor.forClass(CreateGuestGroupDto.class);
+    verify(guestApi).createGroup(eq(EVENT_ID), captor.capture(), eq(ORGANIZER_ID));
+    assertThat(captor.getValue().guests())
+        .hasSize(2)
+        .extracting("firstName")
+        .containsExactly("Maria", "Jose");
+  }
+
+  @Test
+  void postGroup_whenInlineGuestMissingFirstName_returns400() throws Exception {
+    mvc.perform(
+            post("/api/v1/events/{id}/guest-groups", EVENT_ID)
+                .with(authorizedUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "name": "Familia Morales",
+                      "relationship": "family",
+                      "guests": [{"lastName": "Morales"}]
+                    }
+                    """))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void postGroup_whenNameBlank_returns400() throws Exception {
     mvc.perform(
             post("/api/v1/events/{id}/guest-groups", EVENT_ID)
@@ -157,7 +205,7 @@ class GuestGroupsControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"side": "Novia", "relationship": "family"}
+                    {"relationship": "family"}
                     """))
         .andExpect(status().isBadRequest());
   }
@@ -182,7 +230,6 @@ class GuestGroupsControllerTest {
             GROUP_ID,
             EVENT_ID,
             "Familia Morales (Updated)",
-            "Novia",
             "family",
             null,
             null,
@@ -223,7 +270,6 @@ class GuestGroupsControllerTest {
             GROUP_ID,
             EVENT_ID,
             "Familia Morales",
-            "Novia",
             "family",
             null,
             null,

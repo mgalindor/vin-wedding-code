@@ -1,6 +1,7 @@
 package com.vineyards.deerPlanner.guests.inbound;
 
 import com.vineyards.deerPlanner.guests.facade.GuestInPort;
+import com.vineyards.deerPlanner.guests.facade.dto.ChangeGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
@@ -70,6 +71,15 @@ public class GuestsController {
       @Valid @RequestBody UpdateGuestDto body,
       @AuthenticationPrincipal Jwt jwt) {
     return guestApi.updateGuest(guestId, body, jwt.getSubject());
+  }
+
+  @PatchMapping(path = "/{guestId}/group")
+  public GuestDto changeGroup(
+      @PathVariable String eventId,
+      @PathVariable String guestId,
+      @Valid @RequestBody ChangeGuestGroupDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return guestApi.changeGuestGroup(eventId, guestId, body, jwt.getSubject());
   }
 
   @DeleteMapping("/{guestId}")

@@ -31,8 +31,6 @@ public class GuestGroupEntity {
 
   private String name;
 
-  private String side;
-
   private String relationship;
 
   private String sharedEmail;
