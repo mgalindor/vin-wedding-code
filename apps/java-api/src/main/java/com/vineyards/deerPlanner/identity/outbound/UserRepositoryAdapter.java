@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @SecondaryAdapter
@@ -35,6 +36,43 @@ public class UserRepositoryAdapter implements UserOutPort {
   @Override
   public void recordLogin(String userId) {
     userJpa.recordLogin(userId, Instant.now());
+  }
+
+  @Override
+  @Transactional
+  public User create(User user) {
+    UserEntity entity = toEntity(user);
+    UserEntity saved = userJpa.save(entity);
+    // Flush so the generated id is materialised before we build the role rows that FK into it.
+    userJpa.flush();
+    Instant grantedAt = Instant.now();
+    for (Role role : user.getRoles()) {
+      UserRoleEntity roleEntity =
+          new UserRoleEntity(new UserRoleId(saved.getId(), role.name()), grantedAt);
+      userRoleJpa.save(roleEntity);
+    }
+    userJpa.flush();
+    log.info(
+        "user.created userId={} username={} roles={}",
+        saved.getId(),
+        user.getUsername(),
+        user.getRoles());
+    return findByUsername(user.getUsername())
+        .orElseThrow(
+            () ->
+                new IllegalStateException(
+                    "user.created.not-found-after-insert username=" + user.getUsername()));
+  }
+
+  private UserEntity toEntity(User user) {
+    UserEntity entity = new UserEntity();
+    entity.setUsername(user.getUsername());
+    entity.setDisplayName(user.getDisplayName());
+    entity.setEmail(user.getEmail());
+    entity.setPhone(user.getPhone());
+    entity.setPasswordHash(user.getPasswordHash());
+    entity.setActive(user.isActive());
+    return entity;
   }
 
   private User toDomain(UserEntity entity) {

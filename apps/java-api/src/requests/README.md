@@ -33,8 +33,10 @@ Total: 51 requests.
 
 - Bruno CLI: `npm i -D @usebruno/cli` (or use the Bruno desktop app)
 - The Java backend running locally on `http://localhost:8080`
-- A seeded user (`admin@deer` / `changeMe!`) — replace the placeholder password hash via
-  your bootstrap endpoint or direct DB update before first run
+- An `admin@deer` user exists after the first boot of the backend. The application
+  prints a randomly generated temporary password once to its WARN log on startup — copy
+  it from there, set `adminPassword` in `environments/local.bru`, and rotate the password
+  through the API (`PUT /oauth/user/password`) as soon as possible.
 
 ## Run
 
