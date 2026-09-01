@@ -18,6 +18,8 @@ import com.vineyards.deerPlanner.shared.properties.JwtProperties;
 import jakarta.annotation.PostConstruct;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Component;
 public class JwtService implements JwtIssuerOutPort {
 
   private static final String REFRESH_AUDIENCE = "refresh";
+  public static final String ROLES_CLAIM = "roles";
 
   private final JwtProperties props;
   private RSAKey signingKey;
@@ -53,12 +56,12 @@ public class JwtService implements JwtIssuerOutPort {
 
   @Override
   public String issueAccessToken(
-      String userId, String username, String displayName, String email, String role) {
+      String userId, String username, String displayName, String email, Set<String> roles) {
     long ttl = props.getAccessTokenTtlSeconds();
     return issue(
         userId,
         username,
-        role,
+        roles,
         props.getAudience(),
         ttl,
         claims -> {
@@ -68,12 +71,12 @@ public class JwtService implements JwtIssuerOutPort {
   }
 
   @Override
-  public String issueRefreshToken(String userId, String username, String role) {
+  public String issueRefreshToken(String userId, String username, Set<String> roles) {
     long ttl = props.getRefreshTokenTtlSeconds();
     return issue(
         userId,
         username,
-        role,
+        roles,
         REFRESH_AUDIENCE,
         ttl,
         claims -> {
@@ -111,7 +114,7 @@ public class JwtService implements JwtIssuerOutPort {
   private String issue(
       String userId,
       String username,
-      String role,
+      Set<String> roles,
       String audience,
       long ttlSeconds,
       Consumer<JWTClaimsSet.Builder> claimsCustomizer) {
@@ -129,7 +132,7 @@ public class JwtService implements JwtIssuerOutPort {
               .expirationTime(exp)
               .jwtID(UUID.randomUUID().toString())
               .claim("username", username)
-              .claim("role", role);
+              .claim(ROLES_CLAIM, List.copyOf(roles));
 
       if (claimsCustomizer != null) {
         claimsCustomizer.accept(claimsBuilder);

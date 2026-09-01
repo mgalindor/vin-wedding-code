@@ -2,6 +2,7 @@ package com.vineyards.deerPlanner.identity.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -20,13 +21,14 @@ import java.time.Instant;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class IdentityServiceTest {
@@ -34,7 +36,8 @@ class IdentityServiceTest {
   @Mock UserOutPort userRepository;
   @Mock JwtIssuerOutPort jwtIssuer;
 
-  @InjectMocks IdentityService service;
+  private PasswordEncoder encoder;
+  private IdentityService service;
 
   private static final String USER_ID = "user-1";
   private static final String USERNAME = "alice";
@@ -44,8 +47,14 @@ class IdentityServiceTest {
   private static final String STORED_HASH;
 
   static {
-    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-    STORED_HASH = encoder.encode(PASSWORD);
+    BCryptPasswordEncoder staticEncoder = new BCryptPasswordEncoder(12);
+    STORED_HASH = staticEncoder.encode(PASSWORD);
+  }
+
+  @BeforeEach
+  void setUp() {
+    encoder = new BCryptPasswordEncoder(12);
+    service = new IdentityService(userRepository, jwtIssuer, encoder);
   }
 
   private User activeUser(Set<Role> roles) {
@@ -67,11 +76,9 @@ class IdentityServiceTest {
   private void stubTokenIssuance() {
     when(jwtIssuer.accessTokenTtlSeconds()).thenReturn(3600L);
     when(jwtIssuer.refreshTokenTtlSeconds()).thenReturn(86400L);
-    when(jwtIssuer.issueAccessToken(
-            anyString(), anyString(), anyString(), anyString(), anyString()))
+    when(jwtIssuer.issueAccessToken(anyString(), anyString(), anyString(), anyString(), anySet()))
         .thenReturn("access.jwt");
-    when(jwtIssuer.issueRefreshToken(anyString(), anyString(), anyString()))
-        .thenReturn("refresh.jwt");
+    when(jwtIssuer.issueRefreshToken(anyString(), anyString(), anySet())).thenReturn("refresh.jwt");
   }
 
   @Nested
@@ -91,7 +98,7 @@ class IdentityServiceTest {
       verify(userRepository).recordLogin(USER_ID);
       verify(jwtIssuer)
           .issueAccessToken(
-              eq(USER_ID), eq(USERNAME), eq(DISPLAY_NAME), eq(EMAIL), eq("EventOrganizer"));
+              eq(USER_ID), eq(USERNAME), eq(DISPLAY_NAME), eq(EMAIL), eq(Set.of("EventOrganizer")));
     }
 
     @Test
@@ -106,7 +113,7 @@ class IdentityServiceTest {
     }
 
     @Test
-    void authenticate_whenUserHasBothRoles_selectsAdministratorAsPrimaryRole() {
+    void authenticate_whenUserHasBothRoles_passesFullRoleSetToIssuer() {
       User user = activeUser(EnumSet.of(Role.Administrator, Role.EventOrganizer));
       when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(user));
       stubTokenIssuance();
@@ -115,7 +122,14 @@ class IdentityServiceTest {
 
       verify(jwtIssuer)
           .issueAccessToken(
-              eq(USER_ID), anyString(), anyString(), anyString(), eq("Administrator"));
+              eq(USER_ID),
+              anyString(),
+              anyString(),
+              anyString(),
+              eq(Set.of("Administrator", "EventOrganizer")));
+      verify(jwtIssuer)
+          .issueRefreshToken(
+              eq(USER_ID), eq(USERNAME), eq(Set.of("Administrator", "EventOrganizer")));
     }
 
     @Test
@@ -127,8 +141,8 @@ class IdentityServiceTest {
 
       verify(userRepository, never()).recordLogin(anyString());
       verify(jwtIssuer, never())
-          .issueAccessToken(anyString(), anyString(), anyString(), anyString(), anyString());
-      verify(jwtIssuer, never()).issueRefreshToken(anyString(), anyString(), anyString());
+          .issueAccessToken(anyString(), anyString(), anyString(), anyString(), anySet());
+      verify(jwtIssuer, never()).issueRefreshToken(anyString(), anyString(), anySet());
     }
 
     @Test

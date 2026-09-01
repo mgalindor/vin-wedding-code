@@ -8,7 +8,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
@@ -28,6 +30,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private static final String BEARER_PREFIX = "Bearer ";
+  static final String ROLES_CLAIM = JwtService.ROLES_CLAIM;
 
   private final JwtAuthenticatorInPort jwtAuthenticator;
 
@@ -62,10 +65,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     return null;
   }
 
+  static Collection<GrantedAuthority> toAuthorities(JWTClaimsSet claims) throws ParseException {
+    List<String> roles = readRolesClaim(claims);
+    return roles.stream()
+        .map(JwtAuthenticationFilter::toAuthority)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  private static List<String> readRolesClaim(JWTClaimsSet claims) throws ParseException {
+    Object raw = claims.getClaim(ROLES_CLAIM);
+    if (raw == null) {
+      return Collections.emptyList();
+    }
+    if (raw instanceof List<?> list) {
+      return list.stream().map(String::valueOf).collect(Collectors.toUnmodifiableList());
+    }
+    if (raw instanceof String single) {
+      return List.of(single);
+    }
+    log.warn("Unexpected JWT {} claim type: {}", ROLES_CLAIM, raw.getClass().getName());
+    return Collections.emptyList();
+  }
+
+  private static GrantedAuthority toAuthority(String role) {
+    return new SimpleGrantedAuthority(role.startsWith("ROLE_") ? role : "ROLE_" + role);
+  }
+
   private static AbstractAuthenticationToken toAuthentication(JWTClaimsSet claims)
       throws ParseException {
-    Collection<GrantedAuthority> authorities =
-        List.of(new SimpleGrantedAuthority("ROLE_" + claims.getStringClaim("role")));
+    Collection<GrantedAuthority> authorities = toAuthorities(claims);
+
+    List<String> roles = readRolesClaim(claims);
 
     Jwt jwt =
         Jwt.withTokenValue("resolved-by-jwt-service")
@@ -77,7 +107,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             .issuedAt(claims.getIssueTime().toInstant())
             .expiresAt(claims.getExpirationTime().toInstant())
             .claim("username", claims.getStringClaim("username"))
-            .claim("role", claims.getStringClaim("role"))
+            .claim(ROLES_CLAIM, roles)
             .claim("displayName", claims.getStringClaim("displayName"))
             .claim("email", claims.getStringClaim("email"))
             .build();

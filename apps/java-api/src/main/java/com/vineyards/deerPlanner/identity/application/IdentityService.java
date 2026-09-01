@@ -1,7 +1,6 @@
 package com.vineyards.deerPlanner.identity.application;
 
 import com.vineyards.deerPlanner.identity.application.port.UserOutPort;
-import com.vineyards.deerPlanner.identity.domain.Role;
 import com.vineyards.deerPlanner.identity.domain.User;
 import com.vineyards.deerPlanner.identity.facade.AuthenticateResponse;
 import com.vineyards.deerPlanner.identity.facade.IdentityInPort;
@@ -10,10 +9,11 @@ import com.vineyards.deerPlanner.shared.exceptions.InvalidCredentialsException;
 import com.vineyards.deerPlanner.shared.exceptions.UserNotFoundException;
 import com.vineyards.deerPlanner.shared.security.JwtIssuerOutPort;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Application
 public class IdentityService implements IdentityInPort {
 
+  // A valid bcrypt hash whose plaintext is meaningless. We only ever feed it to
+  // PasswordEncoder.matches() when the user does not exist, so the result is discarded —
+  // the goal is to keep the comparison time constant and avoid leaking which arm failed.
   private static final String DUMMY_BCRYPT_HASH =
       "$2a$12$CwTycUXWue0Thq9StjUM0uJ8G8e1xJ8Z5Z2Z2Z2Z2Z2Z2Z2Z2Z2Z2Z";
 
   private final UserOutPort userRepository;
   private final JwtIssuerOutPort jwtIssuer;
-  private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+  private final PasswordEncoder passwordEncoder;
 
   @Override
   @Transactional
@@ -39,7 +42,8 @@ public class IdentityService implements IdentityInPort {
 
     // Constant-time comparison even when the user is missing, to avoid timing-based enumeration.
     String hashToCompare = user != null ? user.getPasswordHash() : DUMMY_BCRYPT_HASH;
-    boolean passwordOk = encoder.matches(rawPassword != null ? rawPassword : "", hashToCompare);
+    boolean passwordOk =
+        passwordEncoder.matches(rawPassword != null ? rawPassword : "", hashToCompare);
 
     if (user == null || !passwordOk || !user.isActive()) {
       log.debug("Authentication failed for username={}", username);
@@ -48,19 +52,14 @@ public class IdentityService implements IdentityInPort {
 
     userRepository.recordLogin(user.getId());
 
-    Role primaryRole = pickPrimaryRole(user.getRoles());
+    Set<String> roleNames = roleNames(user.getRoles());
     String accessToken =
         jwtIssuer.issueAccessToken(
-            user.getId(),
-            user.getUsername(),
-            user.getDisplayName(),
-            user.getEmail(),
-            primaryRole.name());
-    String refreshToken =
-        jwtIssuer.issueRefreshToken(user.getId(), user.getUsername(), primaryRole.name());
+            user.getId(), user.getUsername(), user.getDisplayName(), user.getEmail(), roleNames);
+    String refreshToken = jwtIssuer.issueRefreshToken(user.getId(), user.getUsername(), roleNames);
 
     log.info(
-        "user.login userId={} username={} role={}", user.getId(), user.getUsername(), primaryRole);
+        "user.login userId={} username={} roles={}", user.getId(), user.getUsername(), roleNames);
 
     return AuthenticateResponse.bearer(
         accessToken,
@@ -82,14 +81,9 @@ public class IdentityService implements IdentityInPort {
     return value == null ? "" : value.trim().toLowerCase();
   }
 
-  // Picks a single role to embed in the JWT. Administrators also acting as EventOrganizers get
-  // Administrator as the primary; pure EventOrganizers get EventOrganizer. The full set is
-  // still consulted at the route guard â€” a user with both roles can call any role-restricted
-  // endpoint as long as one of their roles is allowed.
-  private static Role pickPrimaryRole(Set<Role> roles) {
-    if (roles.contains(Role.Administrator)) {
-      return Role.Administrator;
-    }
-    return roles.iterator().next();
+  private static Set<String> roleNames(Set<com.vineyards.deerPlanner.identity.domain.Role> roles) {
+    return roles.stream()
+        .map(com.vineyards.deerPlanner.identity.domain.Role::name)
+        .collect(Collectors.toUnmodifiableSet());
   }
 }

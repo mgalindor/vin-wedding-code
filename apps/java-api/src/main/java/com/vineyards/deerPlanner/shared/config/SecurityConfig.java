@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import tools.jackson.databind.json.JsonMapper;
@@ -20,6 +22,18 @@ import tools.jackson.databind.json.JsonMapper;
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+
+  /** BCrypt cost factor used everywhere a password is hashed. Keep a single source of truth. */
+  private static final int BCRYPT_STRENGTH = 12;
+
+  /**
+   * Single {@link PasswordEncoder} bean shared by every component that hashes or verifies passwords
+   * (authenticate flow, identity bootstrap). Cost factor 12 per ADR-05.
+   */
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder(BCRYPT_STRENGTH);
+  }
 
   /**
    * The application's single SecurityFilterChain. {@code @Order(HIGHEST_PRECEDENCE)} + {@code
