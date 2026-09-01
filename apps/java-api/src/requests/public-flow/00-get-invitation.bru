@@ -1,0 +1,21 @@
+meta {
+  name: Public — get invitation by slug
+  type: http
+  seq: 44
+}
+
+get {
+  url: {{host}}/api/v1/public/invitations/{{slug}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.slug: isString
+  res.body.active: eq true
+  res.body.event.title: isString
+}
+
+docs {
+  The landing page payload. No auth. Returns the event summary, the active
+  template, and (for weddings) the wedding detail.
+}

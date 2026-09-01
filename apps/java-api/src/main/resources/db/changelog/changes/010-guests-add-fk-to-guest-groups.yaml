@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - comment: >
+      Adds the FK from guests.group_id to guest_groups.id. Split out from the create
+      scripts to break the circular dependency at table-creation time (guests references
+      guest_groups, guest_groups references guests). Both tables now exist, so the FK is
+      safe to add. preConditions make this changeset a no-op on deployments where the
+      constraint already exists.
+  - changeSet:
+      id: 010-guests-add-fk-to-guest-groups
+      author: deer-planner
+      labels: guests, schema, fk
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: guest_groups
+        - not:
+            - foreignKeyConstraintExists:
+                tableName: guests
+                constraintName: fk_guests_group
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: guests
+            baseColumnNames: group_id
+            referencedTableName: guest_groups
+            referencedColumnNames: id
+            constraintName: fk_guests_group
+            onDelete: CASCADE
+            remarks: >
+              ON DELETE CASCADE so removing the group still removes its members.
+              Nullable to support transient unassignment via PATCH /group.

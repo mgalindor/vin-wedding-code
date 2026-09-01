@@ -1,0 +1,38 @@
+meta {
+  name: Events — program
+  type: http
+  seq: 11
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/program
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "days": [
+      {
+        "date": "2027-04-15",
+        "label": "Boda",
+        "items": [
+          { "time": "16:00", "title": "Ceremony" },
+          { "time": "17:00", "title": "Cocktail" },
+          { "time": "19:00", "title": "Reception" }
+        ]
+      }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.program.days: isArray
+  res.body.program.days.length: eq 1
+  res.body.program.days[0].items.length: eq 3
+}

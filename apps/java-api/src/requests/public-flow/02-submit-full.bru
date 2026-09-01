@@ -1,0 +1,36 @@
+meta {
+  name: Public — submit full attendance
+  type: http
+  seq: 46
+}
+
+put {
+  url: {{host}}/api/v1/public/invitations/{{slug}}/groups/{{groupToken}}/rsvp
+  body: json
+}
+
+body:json {
+  {
+    "message": "Allí estaremos todos",
+    "guests": [
+      { "guestId": "{{guestId1}}", "status": "confirmed" },
+      { "guestId": "{{guestId2}}", "status": "confirmed" }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.guests: isArray
+}
+
+tests {
+  test("both guests persisted as confirmed", function() {
+    const items = res.getBody().guests;
+    expect(items.length).to.equal(2);
+    items.forEach(g => {
+      expect(g.rsvpStatus).to.equal("confirmed");
+      expect(g.rsvpMessage).to.equal("Allí estaremos todos");
+    });
+  });
+}

@@ -1,0 +1,43 @@
+meta {
+  name: Invitation config — activate
+  type: http
+  seq: 22
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/invitation-config
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "templateId": "{{templateId}}",
+    "slug": "maya-luis-2027",
+    "active": true,
+    "rsvpEnabled": true,
+    "deadline": "2027-03-15",
+    "rsvpDeadline": "2027-04-01"
+  }
+}
+
+vars:post-response {
+  slug: res.body.slug
+}
+
+assert {
+  res.status: eq 200
+  res.body.active: eq true
+  res.body.slug: isString
+  res.body.publishedAt: isString
+}
+
+docs {
+  Activates the public invitation. The slug becomes the public URL identifier —
+  GET /api/v1/public/invitations/{slug} returns the rendered event. publishedAt
+  is stamped at activation time.
+}

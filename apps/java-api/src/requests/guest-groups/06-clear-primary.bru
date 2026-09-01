@@ -1,0 +1,26 @@
+meta {
+  name: Guest groups — clear primary
+  type: http
+  seq: 31
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}/primary
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "guestId": null
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.primaryGuestId: eq null
+}

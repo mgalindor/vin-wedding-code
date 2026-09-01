@@ -1,0 +1,33 @@
+meta {
+  name: Auth — login
+  type: http
+  seq: 0
+}
+
+post {
+  url: {{host}}/oauth/token
+  body: json
+}
+
+body:json {
+  {
+    "grantType": "password",
+    "username": "{{adminUsername}}",
+    "password": "{{adminPassword}}"
+  }
+}
+
+vars:post-response {
+  organizerToken: res.body.accessToken
+}
+
+assert {
+  res.status: eq 200
+  res.body.accessToken: isString
+  res.body.tokenType: eq "Bearer"
+}
+
+docs {
+  Logs in the seeded admin and captures the access token as {{organizerToken}}
+  for every downstream authenticated request.
+}

@@ -2,11 +2,12 @@ databaseChangeLog:
   - comment: >
       Guest groups schema (target data model v2.1.0).
       Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Guest List.
-      Creates guest_groups (1 event -> N groups) with shared per-group contact info,
-      a unique invitation_token, and an optional FK to the primary guest (set lazily
-      after the guest row exists to break the cycle at insert time).
+      Creates guest_groups (1 event -> N groups) with shared per-group contact info
+      and a unique invitation_token. The FK to guests (primary_guest_id) is NOT created
+      here — it is added in 011-guest-groups-add-fk-to-guests.yaml AFTER the guests
+      table exists, breaking the circular dependency with 006-guests-schema.yaml.
   - changeSet:
-      id: 006-guests-create-guest-groups
+      id: 007-guest-groups-create-table
       author: deer-planner
       labels: guests, schema
       changes:
@@ -57,8 +58,10 @@ databaseChangeLog:
                   type: varchar(20)
                   constraints:
                     nullable: true
-                    foreignKeyName: fk_guest_groups_primary_guest
-                    references: guests(id)
+                  remarks: >
+                    FK to guests.id is added in changelog 011. The column exists from
+                    creation time so the application can read/write it; only the
+                    constraint is deferred.
               - column:
                   name: invitation_token
                   type: varchar(20)
@@ -66,7 +69,7 @@ databaseChangeLog:
                     nullable: false
                     unique: true
                     uniqueConstraintName: uk_guest_groups_invitation_token
-                  remarks: UUID v4 minted by the application. Path: /i/{token}.
+                  remarks: 'UUID v4 minted by the application. Path: /i/{token}.'
               - column:
                   name: display_order
                   type: smallint
@@ -92,10 +95,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   remarks: Soft delete flag for Hibernate @SoftDelete. Rows are never physically removed.
-        - addCheckConstraint:
-            tableName: guest_groups
-            constraintName: ck_guest_groups_relationship
-            checkConstraint: "relationship IN ('family','friends','other')"
+        - sql:
+            sql: >
+              ALTER TABLE guest_groups
+              ADD CONSTRAINT ck_guest_groups_relationship
+              CHECK (relationship IN ('family','friends','other'));
         - createIndex:
             tableName: guest_groups
             indexName: idx_guest_groups_event_id
@@ -113,7 +117,7 @@ databaseChangeLog:
               - column:
                   name: relationship
   - changeSet:
-      id: 006-guests-ensure-updated-at-trigger
+      id: 007-guest-groups-ensure-updated-at-trigger
       author: deer-planner
       labels: guests, schema, trigger
       changes:

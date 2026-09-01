@@ -1,0 +1,30 @@
+meta {
+  name: Guest groups — set primary guest
+  type: http
+  seq: 30
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}/primary
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "guestId": "{{guestId2}}"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.primaryGuestId: isString
+}
+
+docs {
+  Changes which guest receives the invitation. Use guestId=null to clear.
+}

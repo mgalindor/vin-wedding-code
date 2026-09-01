@@ -2,10 +2,15 @@ databaseChangeLog:
   - comment: >
       Guests schema (target data model v2.1.0).
       Source: 3-architecture/3.1-architecture/20260826-target-data-model.md §Guest List.
-      Creates guests (1 group -> N guests). The rsvp_status is stored as a varchar for
-      future extensions (a partial RSVP would need finer-grained states per guest).
+      Creates the guests table WITHOUT the FK to guest_groups — that constraint is
+      added in 010-guests-add-fk-to-guest-groups.yaml AFTER both tables exist, breaking
+      the circular dependency at table-creation time. The FK from guests.group_id is
+      otherwise unavoidable: the relationship is mandatory (groups own guests), and ON
+      DELETE CASCADE is required so removing a group cleans up its members.
+      The rsvp_status is stored as a varchar for future extensions (a partial RSVP
+      would need finer-grained states per guest).
   - changeSet:
-      id: 007-guests-create-guests
+      id: 006-guests-create-table
       author: deer-planner
       labels: guests, schema
       changes:
@@ -27,10 +32,10 @@ databaseChangeLog:
                   type: varchar(20)
                   constraints:
                     nullable: true
-                    foreignKeyName: fk_guests_group
-                    references: guest_groups(id)
-                    deleteCascade: true
-                  remarks: 'Nullable: a guest can be temporarily unassigned from any group via the PATCH /group endpoint. ON DELETE CASCADE so removing the group still removes its guests.'
+                  remarks: >
+                    Nullable: a guest can be temporarily unassigned from any group via
+                    the PATCH /group endpoint. The FK to guest_groups is added in
+                    changelog 010 (post guest_groups creation).
               - column:
                   name: first_name
                   type: varchar(120)
@@ -57,12 +62,6 @@ databaseChangeLog:
                   constraints:
                     nullable: true
               - column:
-                  name: is_primary
-                  type: boolean
-                  defaultValueBoolean: false
-                  constraints:
-                    nullable: false
-              - column:
                   name: invitation_token
                   type: varchar(20)
                   constraints:
@@ -72,7 +71,7 @@ databaseChangeLog:
               - column:
                   name: rsvp_status
                   type: varchar(20)
-                  defaultValueString: pending
+                  defaultValue: pending
                   constraints:
                     nullable: false
               - column:
@@ -109,10 +108,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   remarks: Soft delete flag for Hibernate @SoftDelete. Rows are never physically removed.
-        - addCheckConstraint:
-            tableName: guests
-            constraintName: ck_guests_rsvp_status
-            checkConstraint: "rsvp_status IN ('pending','confirmed','declined')"
+        - sql:
+            sql: >
+              ALTER TABLE guests
+              ADD CONSTRAINT ck_guests_rsvp_status
+              CHECK (rsvp_status IN ('pending','confirmed','declined'));
         - createIndex:
             tableName: guests
             indexName: idx_guests_group_id
@@ -134,7 +134,7 @@ databaseChangeLog:
               - column:
                   name: first_name
   - changeSet:
-      id: 007-guests-ensure-updated-at-trigger
+      id: 006-guests-ensure-updated-at-trigger
       author: deer-planner
       labels: guests, schema, trigger
       changes:

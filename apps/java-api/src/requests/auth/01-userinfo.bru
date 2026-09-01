@@ -1,0 +1,24 @@
+meta {
+  name: Auth — current user
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/oauth/userinfo
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isString
+  res.body.username: isString
+}
+
+docs {
+  Reads the profile of the currently authenticated user from the JWT subject.
+}

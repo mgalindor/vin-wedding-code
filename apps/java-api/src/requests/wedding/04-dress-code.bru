@@ -1,0 +1,29 @@
+meta {
+  name: Wedding — dress code
+  type: http
+  seq: 17
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-dress-code
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "entries": [
+      { "title": "Black tie", "body": "Optional for the reception" }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.dressCode.entries: isArray
+  res.body.dressCode.entries.length: eq 1
+}

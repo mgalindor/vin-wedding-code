@@ -1,0 +1,32 @@
+meta {
+  name: Invitation config — disable RSVP
+  type: http
+  seq: 23
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/invitation-config
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "rsvpEnabled": false
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.rsvpEnabled: eq false
+  res.body.active: eq true
+}
+
+docs {
+  Non-activation PATCHes don't touch publishedAt. The invitation stays active
+  but RSVP is now disabled at the config level.
+}

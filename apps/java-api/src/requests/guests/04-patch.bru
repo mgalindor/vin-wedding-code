@@ -1,0 +1,28 @@
+meta {
+  name: Guests — patch
+  type: http
+  seq: 37
+}
+
+patch {
+  url: {{host}}/api/v1/events/{{eventId}}/guests/{{guestId1}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "firstName": "Juan Pablo",
+    "dietaryNotes": "No shellfish"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.firstName: eq "Juan Pablo"
+  res.body.dietaryNotes: eq "No shellfish"
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Wedding — get detail
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-detail
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.eventId: isString
+}
+
+docs {
+  Returns the current wedding detail. For a freshly created event the body is
+  empty (all payloads null, partners blank, countdownEnabled false).
+}

@@ -1,0 +1,31 @@
+meta {
+  name: Guests — change group (unassign)
+  type: http
+  seq: 38
+}
+
+patch {
+  url: {{host}}/api/v1/events/{{eventId}}/guests/{{guestId1}}/group
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "groupId": null
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.groupId: eq null
+}
+
+docs {
+  Moving the guest out of their group. If they were the primary of the old group,
+  that reference is cleared server-side.
+}

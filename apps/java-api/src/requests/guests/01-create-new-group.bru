@@ -1,0 +1,37 @@
+meta {
+  name: Guests — create new group with primary
+  type: http
+  seq: 34
+}
+
+post {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "name": "Amigos del Trabajo",
+    "relationship": "friends",
+    "guests": [
+      { "firstName": "Pedro", "lastName": "Lopez", "primary": true }
+    ]
+  }
+}
+
+vars:post-response {
+  amigosGroupId: res.body.id
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  Captures the new group id into {{amigosGroupId}} for downstream tests.
+}

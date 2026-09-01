@@ -4,7 +4,10 @@ import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,19 +21,32 @@ import tools.jackson.databind.json.JsonMapper;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+  /**
+   * The application's single SecurityFilterChain. {@code @Order(HIGHEST_PRECEDENCE)} + {@code
+   * securityMatcher("/**)} make sure no other chain (notably Spring Boot's default or any
+   * autoconfigured one from {@code spring-boot-starter-oauth2-resource-server}) can shadow this one
+   * with a default form-login page. The starter stays in the classpath only because it pulls in the
+   * JOSE / Nimbus dependencies we use to issue our own JWTs — we do NOT rely on its auto-configured
+   * filter chain.
+   */
+  @Bean
+  @Order(Ordered.HIGHEST_PRECEDENCE)
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter, JsonMapper jsonMapper)
       throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable)
+    http.securityMatcher("/**")
+        .csrf(AbstractHttpConfigurer::disable)
         .cors(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
+        .logout(AbstractHttpConfigurer::disable)
+        .anonymous(AbstractHttpConfigurer::disable)
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             authorize ->
                 authorize
-                    .requestMatchers("/oauth/token")
+                    .requestMatchers("/oauth/token", "/oauth/userinfo")
                     .permitAll()
                     .requestMatchers("/.well-known/**")
                     .permitAll()

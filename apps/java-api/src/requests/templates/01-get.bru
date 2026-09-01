@@ -1,0 +1,19 @@
+meta {
+  name: Templates — get by id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/api/v1/invitation-templates/{{templateId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isString
+}

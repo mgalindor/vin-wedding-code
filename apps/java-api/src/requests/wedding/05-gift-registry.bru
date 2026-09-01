@@ -1,0 +1,29 @@
+meta {
+  name: Wedding — gift registry
+  type: http
+  seq: 18
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-gift-registry
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "links": [
+      { "label": "Liverpool", "url": "https://liverpool.com.mx/emma" }
+    ],
+    "notes": "BBVA 1234567890"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.giftRegistry.links: isArray
+}

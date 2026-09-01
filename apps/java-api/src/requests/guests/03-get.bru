@@ -1,0 +1,19 @@
+meta {
+  name: Guests — get one
+  type: http
+  seq: 36
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/guests/{{guestId1}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isString
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Templates — list catalogue
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host}}/api/v1/invitation-templates?onlyActive=true
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+vars:post-response {
+  templateId: res.body.items[0].id
+}
+
+assert {
+  res.status: eq 200
+  res.body.items: isArray
+  res.body.items[0].code: isString
+  res.body.items[0].id: isString
+}
+
+docs {
+  Lists active invitation templates. Captures the first one as {{templateId}}
+  for the invitation-config step later.
+}

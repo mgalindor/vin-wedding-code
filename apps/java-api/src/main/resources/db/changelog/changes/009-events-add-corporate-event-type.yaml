@@ -12,10 +12,12 @@ databaseChangeLog:
       author: deer-planner
       labels: events, schema
       changes:
-        - dropCheckConstraint:
-            tableName: events
-            constraintName: ck_events_event_type
-        - addCheckConstraint:
-            tableName: events
-            constraintName: ck_events_event_type
-            checkConstraint: "event_type IN ('wedding','birthday','anniversary','other','corporate')"
+        - sql:
+            sql: >
+              ALTER TABLE events
+              DROP CONSTRAINT ck_events_event_type;
+        - sql:
+            sql: >
+              ALTER TABLE events
+              ADD CONSTRAINT ck_events_event_type
+              CHECK (event_type IN ('wedding','birthday','anniversary','other','corporate'));

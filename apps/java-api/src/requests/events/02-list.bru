@@ -1,0 +1,19 @@
+meta {
+  name: Events — list own
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host}}/api/v1/events
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.items: isArray
+}

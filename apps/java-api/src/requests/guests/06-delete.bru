@@ -1,0 +1,18 @@
+meta {
+  name: Guests — delete (cleanup)
+  type: http
+  seq: 39
+}
+
+delete {
+  url: {{host}}/api/v1/events/{{eventId}}/guests/{{guestId1}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}

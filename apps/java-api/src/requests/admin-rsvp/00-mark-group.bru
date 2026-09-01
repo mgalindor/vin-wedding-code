@@ -1,0 +1,30 @@
+meta {
+  name: Admin RSVP — whole group confirmed
+  type: http
+  seq: 40
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}/rsvp
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "status": "confirmed",
+    "message": "Called them all — everyone's in"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Marks every guest in the group with the same status and stamps rsvpConfirmedAt.
+}

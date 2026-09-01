@@ -1,0 +1,29 @@
+meta {
+  name: Admin RSVP — verify each guest confirmed
+  type: http
+  seq: 41
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/guests
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("all guests in Familia García confirmed", function() {
+    const items = res.getBody().items.filter(g => g.groupId === bru.getVar("groupId"));
+    expect(items.length).to.be.greaterThan(0);
+    items.forEach(g => {
+      expect(g.rsvpStatus).to.equal("confirmed");
+      expect(g.rsvpConfirmedAt).to.be.a("string");
+    });
+  });
+}

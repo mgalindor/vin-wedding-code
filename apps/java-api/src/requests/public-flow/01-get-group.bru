@@ -1,0 +1,21 @@
+meta {
+  name: Public — get group + guests
+  type: http
+  seq: 45
+}
+
+get {
+  url: {{host}}/api/v1/public/invitations/{{slug}}/groups/{{groupToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.slug: isString
+  res.body.group.id: isString
+  res.body.guests: isArray
+}
+
+docs {
+  The RSVP page payload. The primary contact sees the guest list and picks
+  who attends. groupToken is the credential.
+}

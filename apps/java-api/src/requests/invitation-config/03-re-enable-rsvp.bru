@@ -1,0 +1,26 @@
+meta {
+  name: Invitation config — re-enable RSVP
+  type: http
+  seq: 24
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/invitation-config
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "rsvpEnabled": true
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.rsvpEnabled: eq true
+}

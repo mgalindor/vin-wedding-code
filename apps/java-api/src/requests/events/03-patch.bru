@@ -1,0 +1,26 @@
+meta {
+  name: Events — patch metadata
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{host}}/api/v1/events/{{eventId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "title": "Boda Maya & Luis — Final"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.title: eq "Boda Maya & Luis — Final"
+}

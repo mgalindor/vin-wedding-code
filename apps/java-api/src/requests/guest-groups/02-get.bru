@@ -1,0 +1,19 @@
+meta {
+  name: Guest groups — get one
+  type: http
+  seq: 27
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isString
+}

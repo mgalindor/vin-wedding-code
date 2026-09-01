@@ -1,0 +1,25 @@
+meta {
+  name: Invitation config — get
+  type: http
+  seq: 21
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/invitation-config
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.eventId: isString
+  res.body.active: eq false
+}
+
+docs {
+  Lazily creates the config on first GET. Returns the state with sensible defaults
+  (active=false, rsvpEnabled=true, slug derived from the event id).
+}

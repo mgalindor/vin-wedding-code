@@ -11,10 +11,18 @@ databaseChangeLog:
       Production cleanup: this changelog removes the now-orphaned column from the
       guests table. The corresponding H2 ddl-auto=create-drop test schema already
       excludes the column since the JPA mapping no longer declares it.
+      preConditions: columnExists + onFail: MARK_RAN makes this a no-op on fresh
+      deployments where 006 (post-refactor) does not create the column at all.
+      Without this guard, fresh databases fail with "column 'primary' does not exist".
   - changeSet:
       id: 008-guests-drop-primary-column
       author: deer-planner
       labels: guests, schema
+      preConditions:
+        - onFail: MARK_RAN
+        - columnExists:
+            tableName: guests
+            columnName: primary
       changes:
         - dropColumn:
             tableName: guests

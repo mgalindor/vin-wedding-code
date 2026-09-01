@@ -1,0 +1,46 @@
+meta {
+  name: Guest groups — create with inline primary
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "name": "Familia García",
+    "relationship": "family",
+    "sharedEmail": "familia@example.com",
+    "sharedPhone": "+521234567890",
+    "displayOrder": 0,
+    "guests": [
+      { "firstName": "Juan", "lastName": "García", "primary": true },
+      { "firstName": "María", "lastName": "García" }
+    ]
+  }
+}
+
+vars:post-response {
+  groupId: res.body.id
+  groupToken: res.body.invitationToken
+}
+
+assert {
+  res.status: eq 201
+  res.body.primaryGuestId: isString
+  res.body.invitationToken: isString
+}
+
+docs {
+  Strict B: at least one inline guest must have primary=true. The marked guest
+  becomes GuestGroup.primaryGuestId. Response captures groupId and the group-level
+  invitationToken (used by the public RSVP flow).
+}

@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - comment: >
+      Adds the FK from guest_groups.primary_guest_id to guests.id. The column already
+      exists (created in 007) but the constraint is deferred until the guests table
+      exists, breaking the circular dependency at create-time. Nullable because a group
+      can exist without a primary contact assigned (the setter endpoint resolves this
+      once guests are added).
+  - changeSet:
+      id: 011-guest-groups-add-fk-to-guests
+      author: deer-planner
+      labels: guests, schema, fk
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: guests
+        - not:
+            - foreignKeyConstraintExists:
+                tableName: guest_groups
+                constraintName: fk_guest_groups_primary_guest
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: guest_groups
+            baseColumnNames: primary_guest_id
+            referencedTableName: guests
+            referencedColumnNames: id
+            constraintName: fk_guest_groups_primary_guest

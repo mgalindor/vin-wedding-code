@@ -1,0 +1,33 @@
+meta {
+  name: Events — contacts
+  type: http
+  seq: 12
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/contacts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "entries": [
+      {
+        "label": "Wedding Planner",
+        "fullName": "Ana Rodriguez",
+        "phone": "+52 55 1234 5678",
+        "email": "ana@example.com"
+      }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.contacts.entries[0].fullName: eq "Ana Rodriguez"
+}

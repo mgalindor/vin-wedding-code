@@ -1,0 +1,31 @@
+meta {
+  name: Guests — list
+  type: http
+  seq: 33
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/guests
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+vars:post-response {
+  guestId1: res.body.items[0].id
+  guestId2: res.body.items[1].id
+}
+
+assert {
+  res.status: eq 200
+  res.body.items: isArray
+  res.body.items.length: eq 2
+  res.body.items[0].rsvpStatus: eq "pending"
+}
+
+docs {
+  Lists all guests across all groups for the event. Captures two ids for
+  downstream tests. Default RSVP for inline-created guests is "pending".
+}

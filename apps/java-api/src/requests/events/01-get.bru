@@ -1,0 +1,20 @@
+meta {
+  name: Events — get by id
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isString
+  res.body.status: eq "draft"
+}

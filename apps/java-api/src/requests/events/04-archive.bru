@@ -1,0 +1,24 @@
+meta {
+  name: Events — archive
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host}}/api/v1/events/{{eventId}}/archive
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq "archived"
+}
+
+docs {
+  draft → archived. After this, the event is terminal — delete it to clean up
+  before running the collection again.
+}

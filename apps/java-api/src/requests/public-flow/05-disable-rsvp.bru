@@ -1,0 +1,26 @@
+meta {
+  name: Public — disable RSVP via config
+  type: http
+  seq: 49
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/invitation-config
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "rsvpEnabled": false
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.rsvpEnabled: eq false
+}

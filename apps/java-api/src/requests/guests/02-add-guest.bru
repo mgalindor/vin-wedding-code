@@ -1,0 +1,32 @@
+meta {
+  name: Guests — add to Amigos del Trabajo
+  type: http
+  seq: 35
+}
+
+post {
+  url: {{host}}/api/v1/events/{{eventId}}/guests
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "groupId": "{{amigosGroupId}}",
+    "firstName": "Lucia",
+    "lastName": "Martinez",
+    "email": "lucia@example.com",
+    "phone": "+521111222333",
+    "dietaryNotes": "Vegetarian"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.dietaryNotes: eq "Vegetarian"
+  res.body.rsvpStatus: eq "pending"
+}
