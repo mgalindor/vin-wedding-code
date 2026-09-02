@@ -330,7 +330,15 @@ class GuestServiceTest {
           .thenThrow(
               new ResourceNotFoundError("event_not_found", "Event " + EVENT_ID + " not found"));
 
-      assertThatThrownBy(() -> service.listGuests(EVENT_ID, ORGANIZER_ID))
+      assertThatThrownBy(
+              () ->
+                  service.listGuests(
+                      EVENT_ID,
+                      null,
+                      null,
+                      null,
+                      ORGANIZER_ID,
+                      org.springframework.data.domain.Pageable.unpaged()))
           .isInstanceOf(ResourceNotFoundError.class);
     }
 

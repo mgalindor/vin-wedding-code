@@ -4,12 +4,16 @@ import com.vineyards.deerPlanner.identity.facade.UserInPort;
 import com.vineyards.deerPlanner.identity.facade.dto.CreateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UpdateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UserResponse;
+import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -59,8 +64,13 @@ public class UserController {
 
   @GetMapping
   @PreAuthorize("hasRole('Administrator')")
-  public List<UserResponse> listUsers() {
-    return userApi.listUsers();
+  public PagedResponse<UserResponse> listUsers(
+      @RequestParam(required = false) String q,
+      @RequestParam(required = false) String role,
+      @RequestParam(required = false) Boolean isActive,
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
+    return userApi.listUsers(q, role, isActive, pageable);
   }
 
   @GetMapping("/{id}")

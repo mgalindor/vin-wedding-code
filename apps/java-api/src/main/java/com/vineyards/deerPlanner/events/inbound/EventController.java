@@ -4,15 +4,20 @@ import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
-import com.vineyards.deerPlanner.events.facade.dto.ListEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,8 +59,19 @@ public class EventController {
   }
 
   @GetMapping
-  public ListEventsResponse listMyEvents(@AuthenticationPrincipal Jwt jwt) {
-    return eventApi.listOwnEvents(jwt.getSubject());
+  public PagedEventsResponse listMyEvents(
+      @RequestParam(required = false) String q,
+      @RequestParam(required = false) String status,
+      @RequestParam(required = false) String eventType,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate eventDateFrom,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate eventDateTo,
+      @PageableDefault(size = 20, sort = "eventDate", direction = Sort.Direction.DESC)
+          Pageable pageable,
+      @AuthenticationPrincipal Jwt jwt) {
+    return eventApi.listOwnEvents(
+        jwt.getSubject(), q, status, eventType, eventDateFrom, eventDateTo, pageable);
   }
 
   @PatchMapping(path = "/{id}")

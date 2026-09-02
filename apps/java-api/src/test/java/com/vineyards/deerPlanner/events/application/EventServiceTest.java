@@ -274,14 +274,26 @@ class EventServiceTest {
     void listOwnEvents_whenEventsExist_returnsItemsWrappedInResponse() {
       Event one = sampleEvent("evt-1", ORGANIZER_ID, EventStatus.draft);
       Event two = sampleEvent("evt-2", ORGANIZER_ID, EventStatus.published);
-      when(repository.findByOrganizerId(ORGANIZER_ID)).thenReturn(List.of(one, two));
+      when(repository.search(
+              org.mockito.ArgumentMatchers.any(
+                  org.springframework.data.jpa.domain.Specification.class),
+              org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class)))
+          .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(one, two)));
 
-      var response = service.listOwnEvents(ORGANIZER_ID);
+      var response =
+          service.listOwnEvents(
+              ORGANIZER_ID,
+              null,
+              null,
+              null,
+              null,
+              null,
+              org.springframework.data.domain.Pageable.unpaged());
 
-      assertThat(response.items()).hasSize(2);
-      assertThat(response.total()).isEqualTo(2);
-      assertThat(response.hasMore()).isFalse();
-      assertThat(response.items().get(0).id()).isEqualTo("evt-1");
+      assertThat(response.page().items()).hasSize(2);
+      assertThat(response.page().total()).isEqualTo(2);
+      assertThat(response.page().hasMore()).isFalse();
+      assertThat(response.page().items().get(0).id()).isEqualTo("evt-1");
     }
   }
 

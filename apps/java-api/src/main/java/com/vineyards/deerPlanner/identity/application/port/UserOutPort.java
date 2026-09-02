@@ -1,7 +1,7 @@
 package com.vineyards.deerPlanner.identity.application.port;
 
 import com.vineyards.deerPlanner.identity.domain.User;
-import java.util.List;
+import com.vineyards.deerPlanner.identity.outbound.UserEntity;
 import java.util.Optional;
 import org.jmolecules.architecture.hexagonal.SecondaryPort;
 
@@ -37,12 +37,16 @@ public interface UserOutPort {
 
   /**
    * Soft-deletes the user. Hibernate {@code @SoftDelete} translates the row delete into an update
-   * of the {@code deleted} column; the user disappears from every subsequent query.
+   * of the {@code deleted} column; the user disappears from every subsequent JPA query.
    */
   void delete(String id);
 
   /**
-   * Returns every non-soft-deleted user, active or not. Admin-only listing — no pagination in MVP.
+   * Paginated, filterable search over every non-soft-deleted user. The specification is built by
+   * the service from the admin's filter parameters (q, role, isActive). Page contents are mapped to
+   * the domain {@link User} type.
    */
-  List<User> findAll();
+  org.springframework.data.domain.Page<User> search(
+      org.springframework.data.jpa.domain.Specification<UserEntity> spec,
+      org.springframework.data.domain.Pageable pageable);
 }

@@ -8,12 +8,16 @@ import com.vineyards.deerPlanner.identity.facade.dto.UpdateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UserResponse;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
-import java.util.List;
+import com.vineyards.deerPlanner.shared.web.PagedResponse;
+import jakarta.persistence.criteria.Predicate;
 import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,8 +90,40 @@ public class UserService implements UserInPort {
 
   @Override
   @Transactional(readOnly = true)
-  public List<UserResponse> listUsers() {
-    return userRepository.findAll().stream().map(UserResponse::from).toList();
+  public PagedResponse<UserResponse> listUsers(
+      String q, String role, Boolean isActive, Pageable pageable) {
+    Specification<com.vineyards.deerPlanner.identity.outbound.UserEntity> spec =
+        Specification.unrestricted();
+    if (q != null && !q.isBlank()) {
+      String pattern = "%" + q.toLowerCase().trim() + "%";
+      spec =
+          spec.and(
+              (root, query, cb) -> {
+                Predicate byUsername = cb.like(cb.lower(root.get("username")), pattern);
+                Predicate byDisplayName = cb.like(cb.lower(root.get("displayName")), pattern);
+                Predicate byEmail = cb.like(cb.lower(cb.coalesce(root.get("email"), "")), pattern);
+                return cb.or(byUsername, byDisplayName, byEmail);
+              });
+    }
+    if (isActive != null) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("isActive"), isActive));
+    }
+    if (role != null && !role.isBlank()) {
+      spec =
+          spec.and(
+              (root, query, cb) -> {
+                jakarta.persistence.criteria.Subquery<String> sub = query.subquery(String.class);
+                jakarta.persistence.criteria.Root<
+                        com.vineyards.deerPlanner.identity.outbound.UserRoleEntity>
+                    roleRoot =
+                        sub.from(com.vineyards.deerPlanner.identity.outbound.UserRoleEntity.class);
+                sub.select(roleRoot.get("id").get("userId"))
+                    .where(cb.equal(roleRoot.get("id").get("role"), role));
+                return root.get("id").in(sub);
+              });
+    }
+    Page<User> page = userRepository.search(spec, pageable);
+    return PagedResponse.from(page, UserResponse::from);
   }
 
   // ---------- Update ----------

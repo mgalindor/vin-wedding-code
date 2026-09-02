@@ -15,7 +15,6 @@ import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.InlineGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestGroupsResponse;
-import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
 import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupDto;
@@ -257,16 +256,47 @@ public class GuestService implements GuestInPort {
 
   @Override
   @Transactional(readOnly = true)
-  public ListGuestsResponse listGuests(String eventId, String actorUserId) {
+  public com.vineyards.deerPlanner.guests.facade.dto.PagedGuestsResponse listGuests(
+      String eventId,
+      String groupId,
+      String rsvpStatus,
+      String q,
+      String actorUserId,
+      org.springframework.data.domain.Pageable pageable) {
     eventApi.getEvent(eventId, actorUserId);
     List<GuestGroup> groups = groupRepository.findByEventId(eventId);
-    if (groups.isEmpty()) {
-      return new ListGuestsResponse(List.of(), 0);
+    org.springframework.data.jpa.domain.Specification<
+            com.vineyards.deerPlanner.guests.outbound.GuestEntity>
+        spec = org.springframework.data.jpa.domain.Specification.unrestricted();
+    if (groupId != null && !groupId.isBlank()) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("groupId"), groupId));
+    } else if (!groups.isEmpty()) {
+      // No group filter but the event has groups — restrict to those.
+      List<String> groupIds = groups.stream().map(GuestGroup::getId).toList();
+      spec = spec.and((root, query, cb) -> root.get("groupId").in(groupIds));
+    } else {
+      // No groups at all — nothing to return.
+      return new com.vineyards.deerPlanner.guests.facade.dto.PagedGuestsResponse(
+          com.vineyards.deerPlanner.shared.web.PagedResponse.from(
+              new org.springframework.data.domain.PageImpl<>(List.of()),
+              e -> GuestService.toDto((com.vineyards.deerPlanner.guests.domain.Guest) e)));
     }
-    List<String> groupIds = groups.stream().map(GuestGroup::getId).toList();
-    List<Guest> guests = guestRepository.findByEventIdGroupIds(groupIds);
-    List<GuestDto> items = guests.stream().map(GuestService::toDto).toList();
-    return new ListGuestsResponse(items, items.size());
+    if (rsvpStatus != null && !rsvpStatus.isBlank()) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("rsvpStatus"), rsvpStatus));
+    }
+    if (q != null && !q.isBlank()) {
+      String pattern = "%" + q.toLowerCase().trim() + "%";
+      spec =
+          spec.and(
+              (root, query, cb) ->
+                  cb.or(
+                      cb.like(cb.lower(root.get("firstName")), pattern),
+                      cb.like(cb.lower(root.get("lastName")), pattern)));
+    }
+    org.springframework.data.domain.Page<com.vineyards.deerPlanner.guests.domain.Guest> page =
+        guestRepository.search(spec, pageable);
+    return new com.vineyards.deerPlanner.guests.facade.dto.PagedGuestsResponse(
+        com.vineyards.deerPlanner.shared.web.PagedResponse.from(page, GuestService::toDto));
   }
 
   @Override

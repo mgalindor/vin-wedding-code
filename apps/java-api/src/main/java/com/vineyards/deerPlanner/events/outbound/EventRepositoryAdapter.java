@@ -4,12 +4,13 @@ import com.vineyards.deerPlanner.events.application.port.EventOutPort;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
 import com.vineyards.deerPlanner.events.domain.EventType;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,13 +44,16 @@ public class EventRepositoryAdapter implements EventOutPort {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Event> findByOrganizerId(String organizerId) {
-    List<EventEntity> entities = eventJpa.findByOrganizerIdOrderByEventDateDesc(organizerId);
-    List<Event> out = new ArrayList<>(entities.size());
-    for (EventEntity entity : entities) {
-      out.add(toDomain(entity));
-    }
-    return out;
+  public Page<Event> search(Specification<EventEntity> spec, Pageable pageable) {
+    return eventJpa.findAll(spec, pageable).map(this::toDomain);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public java.util.List<Event> findByOrganizerId(String organizerId) {
+    return eventJpa.findByOrganizerIdOrderByEventDateDesc(organizerId).stream()
+        .map(this::toDomain)
+        .toList();
   }
 
   @Override

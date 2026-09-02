@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,6 +18,7 @@ import com.vineyards.deerPlanner.identity.facade.dto.UpdateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UserResponse;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
+import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
@@ -402,17 +404,50 @@ class UserServiceTest {
   class ListUsers {
 
     @Test
-    void listUsers_returnsAllUsersAsResponses() {
+    void listUsers_returnsPagedResponses() {
       User a = sampleUser("id-1", "alice@deer");
       User b = sampleUser("id-2", "bob@deer");
-      when(userRepository.findAll()).thenReturn(List.of(a, b));
+      org.springframework.data.domain.Page<User> page =
+          new org.springframework.data.domain.PageImpl<>(List.of(a, b));
+      org.mockito.ArgumentCaptor<
+              org.springframework.data.jpa.domain.Specification<
+                  com.vineyards.deerPlanner.identity.outbound.UserEntity>>
+          specCaptor =
+              org.mockito.ArgumentCaptor.forClass(
+                  org.springframework.data.jpa.domain.Specification.class);
+      org.mockito.ArgumentCaptor<org.springframework.data.domain.Pageable> pageableCaptor =
+          org.mockito.ArgumentCaptor.forClass(org.springframework.data.domain.Pageable.class);
+      when(userRepository.search(specCaptor.capture(), pageableCaptor.capture())).thenReturn(page);
 
-      List<UserResponse> response = service.listUsers();
+      PagedResponse<UserResponse> response =
+          service.listUsers(null, null, null, org.springframework.data.domain.Pageable.unpaged());
 
-      assertThat(response).hasSize(2);
-      assertThat(response)
+      assertThat(response.items()).hasSize(2);
+      assertThat(response.items())
           .extracting(UserResponse::username)
           .containsExactly("alice@deer", "bob@deer");
+      assertThat(response.total()).isEqualTo(2);
+      assertThat(response.hasMore()).isFalse();
+    }
+
+    @Test
+    void listUsers_passesFiltersThrough() {
+      org.springframework.data.domain.Page<User> page =
+          new org.springframework.data.domain.PageImpl<>(List.of());
+      when(userRepository.search(
+              org.mockito.ArgumentMatchers.any(
+                  org.springframework.data.jpa.domain.Specification.class),
+              org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class)))
+          .thenReturn(page);
+
+      service.listUsers(
+          "al", "EventOrganizer", true, org.springframework.data.domain.PageRequest.of(0, 10));
+
+      verify(userRepository)
+          .search(
+              org.mockito.ArgumentMatchers.any(
+                  org.springframework.data.jpa.domain.Specification.class),
+              eq(org.springframework.data.domain.PageRequest.of(0, 10)));
     }
   }
 

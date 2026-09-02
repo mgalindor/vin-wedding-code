@@ -21,13 +21,14 @@ import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventSummaryDto;
-import com.vineyards.deerPlanner.events.facade.dto.ListEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -157,16 +158,24 @@ class EventControllerTest {
                 LocalDate.of(2027, 6, 20),
                 EventStatus.published,
                 Instant.parse("2026-08-01T10:00:00Z")));
-    when(eventApi.listOwnEvents(ORGANIZER_ID))
-        .thenReturn(new ListEventsResponse(items, items.size(), false));
+    when(eventApi.listOwnEvents(
+            org.mockito.ArgumentMatchers.eq(ORGANIZER_ID),
+            org.mockito.ArgumentMatchers.isNull(),
+            org.mockito.ArgumentMatchers.isNull(),
+            org.mockito.ArgumentMatchers.isNull(),
+            org.mockito.ArgumentMatchers.isNull(),
+            org.mockito.ArgumentMatchers.isNull(),
+            any(org.springframework.data.domain.Pageable.class)))
+        .thenReturn(
+            new PagedEventsResponse(new PagedResponse<>(items, 0, 20, items.size(), 1, false)));
 
     mvc.perform(get("/api/v1/events").with(authorizedUser()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.items").isArray())
-        .andExpect(jsonPath("$.items.length()").value(2))
-        .andExpect(jsonPath("$.items[0].id").value("evt-1"))
-        .andExpect(jsonPath("$.total").value(2))
-        .andExpect(jsonPath("$.hasMore").value(false));
+        .andExpect(jsonPath("$.page.items").isArray())
+        .andExpect(jsonPath("$.page.items.length()").value(2))
+        .andExpect(jsonPath("$.page.items[0].id").value("evt-1"))
+        .andExpect(jsonPath("$.page.total").value(2))
+        .andExpect(jsonPath("$.page.hasMore").value(false));
   }
 
   @Test

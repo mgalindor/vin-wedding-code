@@ -3,8 +3,9 @@ package com.vineyards.deerPlanner.identity.facade;
 import com.vineyards.deerPlanner.identity.facade.dto.CreateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UpdateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UserResponse;
-import java.util.List;
+import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import org.jmolecules.architecture.hexagonal.PrimaryPort;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Primary port for user CRUD operations (create, edit, disable, enable, list, read). Distinct from
@@ -20,7 +21,12 @@ public interface UserInPort {
 
   UserResponse getUser(String userId, String actorUserId, boolean actorIsAdmin);
 
-  List<UserResponse> listUsers();
+  /**
+   * Paginated admin listing. {@code q} is a case-insensitive substring match against username,
+   * displayName or email. {@code role} is an exact match on the role name. {@code isActive} filters
+   * active vs disabled rows. Null / blank filters are ignored.
+   */
+  PagedResponse<UserResponse> listUsers(String q, String role, Boolean isActive, Pageable pageable);
 
   void disableUser(String userId, String actorUserId);
 

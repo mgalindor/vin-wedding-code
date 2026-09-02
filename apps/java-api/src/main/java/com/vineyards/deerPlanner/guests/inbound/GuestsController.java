@@ -4,7 +4,7 @@ import com.vineyards.deerPlanner.guests.facade.GuestInPort;
 import com.vineyards.deerPlanner.guests.facade.dto.ChangeGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
-import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
+import com.vineyards.deerPlanner.guests.facade.dto.PagedGuestsResponse;
 import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import jakarta.validation.Valid;
@@ -12,6 +12,9 @@ import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,8 +43,15 @@ public class GuestsController {
   private final GuestInPort guestApi;
 
   @GetMapping("/guests")
-  public ListGuestsResponse list(@PathVariable String eventId, @AuthenticationPrincipal Jwt jwt) {
-    return guestApi.listGuests(eventId, jwt.getSubject());
+  public PagedGuestsResponse list(
+      @PathVariable String eventId,
+      @org.springframework.web.bind.annotation.RequestParam(required = false) String groupId,
+      @org.springframework.web.bind.annotation.RequestParam(required = false) String rsvpStatus,
+      @org.springframework.web.bind.annotation.RequestParam(required = false) String q,
+      @PageableDefault(size = 50, sort = "lastName", direction = Sort.Direction.ASC)
+          Pageable pageable,
+      @AuthenticationPrincipal Jwt jwt) {
+    return guestApi.listGuests(eventId, groupId, rsvpStatus, q, jwt.getSubject(), pageable);
   }
 
   @GetMapping("/guests/{guestId}")

@@ -3,13 +3,15 @@ package com.vineyards.deerPlanner.identity.outbound;
 import java.time.Instant;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserJpaRepository extends JpaRepository<UserEntity, String> {
+public interface UserJpaRepository
+    extends JpaRepository<UserEntity, String>, JpaSpecificationExecutor<UserEntity> {
 
   // Returns the user row by username, including disabled ones — the application's
   // authentication use case needs to know the difference.

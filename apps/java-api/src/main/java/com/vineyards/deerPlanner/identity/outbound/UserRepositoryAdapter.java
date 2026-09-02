@@ -8,7 +8,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
@@ -133,8 +132,10 @@ public class UserRepositoryAdapter implements UserOutPort {
   }
 
   @Override
-  public List<User> findAll() {
-    return userJpa.findAll().stream().map(this::toDomain).collect(Collectors.toUnmodifiableList());
+  public org.springframework.data.domain.Page<User> search(
+      org.springframework.data.jpa.domain.Specification<UserEntity> spec,
+      org.springframework.data.domain.Pageable pageable) {
+    return userJpa.findAll(spec, pageable).map(this::toDomain);
   }
 
   private UserEntity toEntity(User user) {

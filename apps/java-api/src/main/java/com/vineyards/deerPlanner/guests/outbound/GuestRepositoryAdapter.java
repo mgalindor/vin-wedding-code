@@ -8,6 +8,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -43,6 +46,11 @@ public class GuestRepositoryAdapter implements GuestOutPort {
     return jpa.findByGroupIdInOrderByLastNameAscFirstNameAsc(groupIds).stream()
         .map(GuestRepositoryAdapter::toDomain)
         .toList();
+  }
+
+  @Override
+  public Page<Guest> search(Specification<GuestEntity> spec, Pageable pageable) {
+    return jpa.findAll(spec, pageable).map(GuestRepositoryAdapter::toDomain);
   }
 
   @Override

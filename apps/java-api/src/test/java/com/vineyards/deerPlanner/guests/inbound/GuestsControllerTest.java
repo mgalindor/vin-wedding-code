@@ -21,12 +21,13 @@ import com.vineyards.deerPlanner.guests.facade.GuestInPort;
 import com.vineyards.deerPlanner.guests.facade.dto.ChangeGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
-import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
+import com.vineyards.deerPlanner.guests.facade.dto.PagedGuestsResponse;
 import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -100,16 +101,24 @@ class GuestsControllerTest {
 
   @Test
   void listGuests_whenGuestsExist_returns200AndRootedItems() throws Exception {
-    when(guestApi.listGuests(EVENT_ID, ORGANIZER_ID))
-        .thenReturn(new ListGuestsResponse(List.of(sampleGuest()), 1));
+    when(guestApi.listGuests(
+            org.mockito.ArgumentMatchers.eq(EVENT_ID),
+            org.mockito.ArgumentMatchers.isNull(),
+            org.mockito.ArgumentMatchers.isNull(),
+            org.mockito.ArgumentMatchers.isNull(),
+            org.mockito.ArgumentMatchers.eq(ORGANIZER_ID),
+            any(org.springframework.data.domain.Pageable.class)))
+        .thenReturn(
+            new PagedGuestsResponse(
+                new PagedResponse<>(List.of(sampleGuest()), 0, 50, 1, 1, false)));
 
     mvc.perform(get("/api/v1/events/{id}/guests", EVENT_ID).with(authorizedUser()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.items").isArray())
-        .andExpect(jsonPath("$.items[0].id").value(GUEST_ID))
-        .andExpect(jsonPath("$.items[0].firstName").value("Maria"))
-        .andExpect(jsonPath("$.items[0].rsvpStatus").value("pending"))
-        .andExpect(jsonPath("$.total").value(1));
+        .andExpect(jsonPath("$.page.items").isArray())
+        .andExpect(jsonPath("$.page.items[0].id").value(GUEST_ID))
+        .andExpect(jsonPath("$.page.items[0].firstName").value("Maria"))
+        .andExpect(jsonPath("$.page.items[0].rsvpStatus").value("pending"))
+        .andExpect(jsonPath("$.page.total").value(1));
   }
 
   @Test

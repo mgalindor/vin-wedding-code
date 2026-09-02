@@ -8,21 +8,26 @@ import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventSummaryDto;
-import com.vineyards.deerPlanner.events.facade.dto.ListEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import com.vineyards.deerPlanner.events.facade.mapper.EventPayloadMapper;
+import com.vineyards.deerPlanner.events.outbound.EventEntity;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
+import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,21 +86,49 @@ public class EventService implements EventInPort {
 
   @Override
   @Transactional(readOnly = true)
-  public ListEventsResponse listOwnEvents(String actorUserId) {
-    List<Event> events = repository.findByOrganizerId(actorUserId);
-    List<EventSummaryDto> items = new ArrayList<>(events.size());
-    for (Event event : events) {
-      items.add(
-          new EventSummaryDto(
-              event.getId(),
-              event.getOrganizerId(),
-              event.getEventType(),
-              event.getTitle(),
-              event.getEventDate(),
-              event.getStatus(),
-              event.getUpdatedAt()));
+  public PagedEventsResponse listOwnEvents(
+      String actorUserId,
+      String q,
+      String status,
+      String eventType,
+      LocalDate eventDateFrom,
+      LocalDate eventDateTo,
+      Pageable pageable) {
+    Specification<EventEntity> spec =
+        Specification.where((root, query, cb) -> cb.equal(root.get("organizerId"), actorUserId));
+    if (q != null && !q.isBlank()) {
+      String pattern = "%" + q.toLowerCase().trim() + "%";
+      spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("title")), pattern));
     }
-    return new ListEventsResponse(items, items.size(), false);
+    if (status != null && !status.isBlank()) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+    }
+    if (eventType != null && !eventType.isBlank()) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("eventType"), eventType));
+    }
+    if (eventDateFrom != null) {
+      spec =
+          spec.and(
+              (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("eventDate"), eventDateFrom));
+    }
+    if (eventDateTo != null) {
+      spec =
+          spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("eventDate"), eventDateTo));
+    }
+    Page<Event> page = repository.search(spec, pageable);
+    PagedResponse<EventSummaryDto> mapped = PagedResponse.from(page, EventService::toSummary);
+    return new PagedEventsResponse(mapped);
+  }
+
+  private static EventSummaryDto toSummary(Event event) {
+    return new EventSummaryDto(
+        event.getId(),
+        event.getOrganizerId(),
+        event.getEventType(),
+        event.getTitle(),
+        event.getEventDate(),
+        event.getStatus(),
+        event.getUpdatedAt());
   }
 
   @Override

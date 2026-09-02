@@ -6,7 +6,7 @@ import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.GuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.ListGuestGroupsResponse;
-import com.vineyards.deerPlanner.guests.facade.dto.ListGuestsResponse;
+import com.vineyards.deerPlanner.guests.facade.dto.PagedGuestsResponse;
 import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupDto;
@@ -14,6 +14,7 @@ import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupPrimaryDto;
 import java.util.List;
 import java.util.Optional;
 import org.jmolecules.architecture.hexagonal.PrimaryPort;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Primary port for the guest list bounded context. Implemented by {@link
@@ -56,7 +57,18 @@ public interface GuestInPort {
 
   // ----- Guest operations -----
 
-  ListGuestsResponse listGuests(String eventId, String actorUserId);
+  /**
+   * Paginated guest listing for an event. {@code groupId} and {@code rsvpStatus} filter exactly;
+   * {@code q} is a case-insensitive substring match against firstName / lastName. Null / blank
+   * filters are ignored.
+   */
+  PagedGuestsResponse listGuests(
+      String eventId,
+      String groupId,
+      String rsvpStatus,
+      String q,
+      String actorUserId,
+      Pageable pageable);
 
   GuestDto getGuest(String guestId, String actorUserId);
 
