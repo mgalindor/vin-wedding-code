@@ -1,0 +1,23 @@
+meta {
+  name: Users — get one
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/v1/users/{{createdUserId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: eq {{createdUserId}}
+}
+
+docs {
+  Admin can read any user; a non-admin can only read their own profile.
+}

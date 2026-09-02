@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
@@ -31,6 +32,11 @@ public class UserRepositoryAdapter implements UserOutPort {
   @Override
   public Optional<User> findActiveById(String id) {
     return userJpa.findActiveById(id).map(this::toDomain);
+  }
+
+  @Override
+  public Optional<User> findById(String id) {
+    return userJpa.findById(id).map(this::toDomain);
   }
 
   @Override
@@ -62,6 +68,57 @@ public class UserRepositoryAdapter implements UserOutPort {
             () ->
                 new IllegalStateException(
                     "user.created.not-found-after-insert username=" + user.getUsername()));
+  }
+
+  @Override
+  @Transactional
+  public User update(User user) {
+    UserEntity existing =
+        userJpa
+            .findById(user.getId())
+            .orElseThrow(
+                () -> new IllegalStateException("user.update.not-found id=" + user.getId()));
+    existing.setDisplayName(user.getDisplayName());
+    existing.setEmail(user.getEmail());
+    existing.setPhone(user.getPhone());
+    if (user.getPasswordHash() != null && !user.getPasswordHash().isBlank()) {
+      existing.setPasswordHash(user.getPasswordHash());
+    }
+    UserEntity saved = userJpa.save(existing);
+
+    // Roles are a full replacement — the API takes a Set, not a delta.
+    List<UserRoleEntity> existingRoles = userRoleJpa.findByIdUserId(saved.getId());
+    userRoleJpa.deleteAll(existingRoles);
+    userRoleJpa.flush();
+    Instant grantedAt = Instant.now();
+    for (Role role : user.getRoles()) {
+      UserRoleEntity roleEntity =
+          new UserRoleEntity(new UserRoleId(saved.getId(), role.name()), grantedAt);
+      userRoleJpa.save(roleEntity);
+    }
+    userRoleJpa.flush();
+
+    log.info(
+        "user.updated userId={} username={} roles={}",
+        saved.getId(),
+        saved.getUsername(),
+        user.getRoles());
+    return findById(saved.getId())
+        .orElseThrow(
+            () ->
+                new IllegalStateException("user.update.not-found-after-save id=" + saved.getId()));
+  }
+
+  @Override
+  @Transactional
+  public void setActive(String id, boolean active) {
+    int rows = userJpa.setActive(id, active);
+    log.info("user.active-changed userId={} isActive={} matched={}", id, active, rows > 0);
+  }
+
+  @Override
+  public List<User> findAll() {
+    return userJpa.findAll().stream().map(this::toDomain).collect(Collectors.toUnmodifiableList());
   }
 
   private UserEntity toEntity(User user) {

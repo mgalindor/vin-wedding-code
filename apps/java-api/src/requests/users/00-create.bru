@@ -1,0 +1,44 @@
+meta {
+  name: Users — create
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "username": "miguel",
+    "displayName": "Miguel Doe",
+    "email": "miguel@example.com",
+    "phone": "+525512345678",
+    "password": "Sup3rSecret!",
+    "roles": ["EventOrganizer"]
+  }
+}
+
+vars:post-response {
+  createdUserId: res.body.id
+}
+
+assert {
+  res.status: eq 201
+  res.body.id: isString
+  res.body.username: eq "miguel@deer"
+  res.body.displayName: eq "Miguel Doe"
+  res.body.roles[0]: eq "EventOrganizer"
+}
+
+docs {
+  Admin creates a new user. The frontend sends the username slug (no suffix); the backend
+  appends `deerplanner.identity.username-suffix` (default `@deer`) before persisting.
+  Both roles and password are admin-supplied.
+}

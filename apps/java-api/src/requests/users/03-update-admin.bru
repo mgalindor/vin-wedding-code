@@ -1,0 +1,33 @@
+meta {
+  name: Users — update (admin sets roles)
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{host}}/api/v1/users/{{createdUserId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "displayName": "Miguel Doe Updated",
+    "roles": ["Administrator", "EventOrganizer"]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.displayName: eq "Miguel Doe Updated"
+  res.body.roles: isDefined
+}
+
+docs {
+  Admin partial update. Any null field is left untouched. The `roles` field is admin-only —
+  a non-admin caller sending it has it silently ignored.
+}

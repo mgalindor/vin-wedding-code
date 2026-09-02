@@ -1,0 +1,24 @@
+meta {
+  name: Users — disable
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/api/v1/users/{{createdUserId}}/disable
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}
+
+docs {
+  Admin-only. Sets `is_active = false`. The disabled user can still authenticate but
+  is flagged inactive (see auth flow for the active-only check, if any). Reversible
+  via POST /api/v1/users/{id}/enable. Soft-deleted users return 404.
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Users — enable
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/api/v1/users/{{createdUserId}}/enable
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}
+
+docs {
+  Admin-only. Reverses a previous disable. Idempotent (calling twice in a row is a no-op).
+}

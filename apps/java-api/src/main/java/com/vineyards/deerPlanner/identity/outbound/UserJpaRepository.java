@@ -23,4 +23,8 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, String> {
   @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("UPDATE UserEntity u SET u.lastLoginAt = :now WHERE u.id = :id")
   void recordLogin(@Param("id") String id, @Param("now") Instant now);
+
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE UserEntity u SET u.isActive = :active WHERE u.id = :id")
+  int setActive(@Param("id") String id, @Param("active") boolean active);
 }

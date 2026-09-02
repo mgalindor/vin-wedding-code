@@ -1,0 +1,23 @@
+meta {
+  name: Users — list
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/v1/users
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}
+
+docs {
+  Admin-only listing of every non-soft-deleted user, active or disabled.
+}

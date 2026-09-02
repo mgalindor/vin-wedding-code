@@ -16,6 +16,7 @@ src/requests/
 ├── environments/
 │   └── local.bru                ← {{host}}, {{adminUsername}}, {{adminPassword}}
 ├── auth/                        ← login + userinfo (2)
+├── users/                       ← user CRUD + disable/enable (7)
 ├── templates/                   ← invitation templates (2)
 ├── events/                      ← CRUD + archive (6)
 ├── event-payloads/              ← locations / program / contacts (3)
@@ -27,7 +28,7 @@ src/requests/
 └── public-flow/                 ← public reads + RSVP submit (8)
 ```
 
-Total: 51 requests.
+Total: 58 requests.
 
 ## Prerequisites
 
@@ -83,6 +84,7 @@ You can read a captured variable inside a `tests` block via `bru.getVar("name")`
 | Concern | Folder | Notes |
 |---|---|---|
 | Authentication | `auth/` | OAuth-style password grant, JWT subject lookup |
+| User management | `users/` | Admin CRUD on users + disable/enable; owner self-edit |
 | Template catalogue | `templates/` | List + lookup; captures `templateId` for later |
 | Event lifecycle | `events/` | Create, get, list, patch, archive, delete |
 | Generic payloads | `event-payloads/` | locations / program / contacts |

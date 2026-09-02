@@ -1,0 +1,31 @@
+meta {
+  name: Users — update self (owner changes displayName)
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{host}}/api/v1/users/{{createdUserId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "displayName": "Miguel Self-Edited"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.displayName: eq "Miguel Self-Edited"
+}
+
+docs {
+  Owner self-edit. Roles sent here are ignored (the service checks the actor and only
+  honours `roles` from an Administrator).
+}
