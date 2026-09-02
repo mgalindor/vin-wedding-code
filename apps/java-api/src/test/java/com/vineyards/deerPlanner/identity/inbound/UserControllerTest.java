@@ -19,6 +19,7 @@ import com.vineyards.deerPlanner.identity.facade.dto.UpdateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UserResponse;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter;
 import jakarta.servlet.FilterChain;
 import java.time.Instant;
 import java.util.EnumSet;
@@ -47,6 +48,8 @@ class UserControllerTest {
    * untouched.
    */
   @MockitoBean JwtAuthenticationFilter jwtFilter;
+
+  @MockitoBean TokenBucketRateLimiter rateLimiter;
 
   @BeforeEach
   void passThroughJwtFilter() throws Exception {

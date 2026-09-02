@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.vineyards.deerPlanner.shared.security.JwksController;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -39,6 +40,7 @@ class JwksControllerTest {
   @Autowired MockMvc mvc;
 
   @MockitoBean JwtAuthenticatorInPort jwtAuthenticator;
+  @MockitoBean TokenBucketRateLimiter rateLimiter;
 
   @Test
   void jwks_whenCalled_returnsPublicJwksDocument() throws Exception {

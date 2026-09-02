@@ -36,6 +36,15 @@ public class SecurityConfig {
   }
 
   /**
+   * Per-IP rate limiter for the public auth endpoints. Default 10 requests per minute per key. Bump
+   * up for tests by overriding the bean.
+   */
+  @Bean
+  public com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter tokenBucketRateLimiter() {
+    return new com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter(10);
+  }
+
+  /**
    * The application's single SecurityFilterChain. {@code @Order(HIGHEST_PRECEDENCE)} + {@code
    * securityMatcher("/**)} make sure no other chain (notably Spring Boot's default or any
    * autoconfigured one from {@code spring-boot-starter-oauth2-resource-server}) can shadow this one
@@ -46,7 +55,10 @@ public class SecurityConfig {
   @Bean
   @Order(Ordered.HIGHEST_PRECEDENCE)
   public SecurityFilterChain securityFilterChain(
-      HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter, JsonMapper jsonMapper)
+      HttpSecurity http,
+      JwtAuthenticationFilter jwtAuthenticationFilter,
+      com.vineyards.deerPlanner.shared.security.TokenRateLimitFilter tokenRateLimitFilter,
+      JsonMapper jsonMapper)
       throws Exception {
     http.securityMatcher("/**")
         .csrf(AbstractHttpConfigurer::disable)
@@ -97,6 +109,7 @@ public class SecurityConfig {
                                 HttpServletResponse.SC_FORBIDDEN,
                                 "Forbidden",
                                 "You do not have permission to access this resource")))
+        .addFilterBefore(tokenRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

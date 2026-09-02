@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.vineyards.deerPlanner.identity.facade.AuthenticateResponse;
 import com.vineyards.deerPlanner.identity.facade.IdentityInPort;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -33,6 +34,7 @@ class AuthControllerTest {
   // the web slice; supply a no-op JwtAuthenticatorInPort so the filter's @RequiredArgsConstructor
   // can resolve its only dependency.
   @MockitoBean JwtAuthenticatorInPort jwtAuthenticator;
+  @MockitoBean TokenBucketRateLimiter rateLimiter;
 
   @Test
   void postToken_whenCredentialsValid_returns200WithBearerTokens() throws Exception {

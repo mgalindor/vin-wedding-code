@@ -20,6 +20,7 @@ import com.vineyards.deerPlanner.invitation.facade.dto.PublicInvitationDto;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,7 @@ class PublicInvitationControllerTest {
   @MockitoBean JwtAuthenticatorInPort jwtAuthenticator;
   @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
   @MockitoBean JwtDecoder jwtDecoder;
+  @MockitoBean TokenBucketRateLimiter rateLimiter;
 
   // ============== GET /{slug} ==============
 

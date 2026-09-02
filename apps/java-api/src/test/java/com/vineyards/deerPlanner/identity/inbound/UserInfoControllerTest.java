@@ -13,6 +13,7 @@ import com.vineyards.deerPlanner.identity.facade.IdentityInPort;
 import com.vineyards.deerPlanner.identity.facade.UserProfileResponse;
 import com.vineyards.deerPlanner.shared.exceptions.UserNotFoundException;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
+import com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter;
 import jakarta.servlet.FilterChain;
 import java.time.Instant;
 import java.util.Set;
@@ -40,6 +41,7 @@ class UserInfoControllerTest {
   // straight to the next filter Ã¢â‚¬â€ that way the SecurityContext populated by the
   // spring-security-test jwt() post-processor reaches the controller untouched.
   @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
+  @MockitoBean TokenBucketRateLimiter rateLimiter;
 
   @BeforeEach
   void passThroughJwtFilter() throws Exception {

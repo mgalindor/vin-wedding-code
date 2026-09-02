@@ -19,6 +19,7 @@ import com.vineyards.deerPlanner.events.facade.dto.WeddingParentsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingStoryPayloadDto;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -43,6 +44,7 @@ class WeddingEventControllerTest {
 
   @MockitoBean WeddingEventInPort weddingApi;
   @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
+  @MockitoBean TokenBucketRateLimiter rateLimiter;
   @MockitoBean JwtAuthenticatorInPort jwtAuthenticator;
   @MockitoBean JwtDecoder jwtDecoder;
 

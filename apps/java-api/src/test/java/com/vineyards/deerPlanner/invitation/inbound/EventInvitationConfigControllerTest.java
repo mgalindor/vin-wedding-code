@@ -17,6 +17,7 @@ import com.vineyards.deerPlanner.invitation.facade.dto.EventInvitationConfigDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.UpdateInvitationConfigDto;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -46,6 +47,7 @@ class EventInvitationConfigControllerTest {
   @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
   @MockitoBean JwtAuthenticatorInPort jwtAuthenticator;
   @MockitoBean JwtDecoder jwtDecoder;
+  @MockitoBean TokenBucketRateLimiter rateLimiter;
 
   @BeforeEach
   void passThroughJwtFilter() throws Exception {

@@ -28,6 +28,7 @@ import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupPrimaryDto;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
+import com.vineyards.deerPlanner.shared.security.TokenBucketRateLimiter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -59,6 +60,7 @@ class GuestGroupsControllerTest {
   @MockitoBean GuestInPort guestApi;
   @MockitoBean EventInPort eventApi;
   @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
+  @MockitoBean TokenBucketRateLimiter rateLimiter;
   @MockitoBean JwtAuthenticatorInPort jwtAuthenticator;
   @MockitoBean JwtDecoder jwtDecoder;
 
