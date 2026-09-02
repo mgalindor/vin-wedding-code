@@ -30,6 +30,12 @@ public interface UserOutPort {
   void setActive(String id, boolean active);
 
   /**
+   * Updates only the password hash. Used by the self-service password change flow so the caller
+   * doesn't have to re-supply every other mutable field.
+   */
+  void updatePassword(String id, String passwordHash);
+
+  /**
    * Returns every non-soft-deleted user, active or not. Admin-only listing — no pagination in MVP.
    */
   List<User> findAll();

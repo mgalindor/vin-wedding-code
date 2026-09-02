@@ -1,5 +1,6 @@
 package com.vineyards.deerPlanner.identity.application;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.vineyards.deerPlanner.identity.application.port.UserOutPort;
 import com.vineyards.deerPlanner.identity.domain.User;
 import com.vineyards.deerPlanner.identity.facade.AuthenticateResponse;
@@ -7,6 +8,7 @@ import com.vineyards.deerPlanner.identity.facade.IdentityInPort;
 import com.vineyards.deerPlanner.identity.facade.UserProfileResponse;
 import com.vineyards.deerPlanner.shared.exceptions.InvalidCredentialsException;
 import com.vineyards.deerPlanner.shared.exceptions.UserNotFoundException;
+import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
 import com.vineyards.deerPlanner.shared.security.JwtIssuerOutPort;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,6 +33,7 @@ public class IdentityService implements IdentityInPort {
 
   private final UserOutPort userRepository;
   private final JwtIssuerOutPort jwtIssuer;
+  private final JwtAuthenticatorInPort jwtAuthenticator;
   private final PasswordEncoder passwordEncoder;
 
   @Override
@@ -51,21 +54,43 @@ public class IdentityService implements IdentityInPort {
     }
 
     userRepository.recordLogin(user.getId());
-
     Set<String> roleNames = roleNames(user.getRoles());
-    String accessToken =
-        jwtIssuer.issueAccessToken(
-            user.getId(), user.getUsername(), user.getDisplayName(), user.getEmail(), roleNames);
-    String refreshToken = jwtIssuer.issueRefreshToken(user.getId(), user.getUsername(), roleNames);
-
     log.info(
         "user.login userId={} username={} roles={}", user.getId(), user.getUsername(), roleNames);
+    return issueTokens(user, roleNames);
+  }
 
-    return AuthenticateResponse.bearer(
-        accessToken,
-        jwtIssuer.accessTokenTtlSeconds(),
-        refreshToken,
-        jwtIssuer.refreshTokenTtlSeconds());
+  @Override
+  @Transactional
+  public AuthenticateResponse refresh(String refreshToken) {
+    if (refreshToken == null || refreshToken.isBlank()) {
+      throw new InvalidCredentialsException();
+    }
+    JWTClaimsSet claims = jwtAuthenticator.verifyRefreshToken(refreshToken);
+    String userId = claims.getSubject();
+    User user =
+        userRepository.findById(userId).orElseThrow(() -> new InvalidCredentialsException());
+    if (!user.isActive()) {
+      log.debug("Refresh denied — user disabled userId={}", userId);
+      throw new InvalidCredentialsException();
+    }
+    Set<String> roleNames = roleNames(user.getRoles());
+    log.info("user.refresh userId={} username={}", user.getId(), user.getUsername());
+    return issueTokens(user, roleNames);
+  }
+
+  @Override
+  @Transactional
+  public void changeOwnPassword(String userId, String currentPassword, String newPassword) {
+    User user =
+        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+    if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+      log.debug("Password change rejected — wrong current password userId={}", userId);
+      throw new InvalidCredentialsException();
+    }
+    String hash = passwordEncoder.encode(newPassword);
+    userRepository.updatePassword(user.getId(), hash);
+    log.info("user.password-changed-self userId={}", user.getId());
   }
 
   @Override
@@ -75,6 +100,18 @@ public class IdentityService implements IdentityInPort {
         .findActiveById(userId)
         .map(UserProfileResponse::from)
         .orElseThrow(() -> new UserNotFoundException(userId));
+  }
+
+  private AuthenticateResponse issueTokens(User user, Set<String> roleNames) {
+    String accessToken =
+        jwtIssuer.issueAccessToken(
+            user.getId(), user.getUsername(), user.getDisplayName(), user.getEmail(), roleNames);
+    String refreshToken = jwtIssuer.issueRefreshToken(user.getId(), user.getUsername(), roleNames);
+    return AuthenticateResponse.bearer(
+        accessToken,
+        jwtIssuer.accessTokenTtlSeconds(),
+        refreshToken,
+        jwtIssuer.refreshTokenTtlSeconds());
   }
 
   private static String normalize(String value) {

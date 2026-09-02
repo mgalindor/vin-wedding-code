@@ -2,6 +2,7 @@ package com.vineyards.deerPlanner.identity.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.vineyards.deerPlanner.identity.application.port.UserOutPort;
 import com.vineyards.deerPlanner.identity.domain.Role;
 import com.vineyards.deerPlanner.identity.domain.User;
@@ -16,6 +18,7 @@ import com.vineyards.deerPlanner.identity.facade.AuthenticateResponse;
 import com.vineyards.deerPlanner.identity.facade.UserProfileResponse;
 import com.vineyards.deerPlanner.shared.exceptions.InvalidCredentialsException;
 import com.vineyards.deerPlanner.shared.exceptions.UserNotFoundException;
+import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
 import com.vineyards.deerPlanner.shared.security.JwtIssuerOutPort;
 import java.time.Instant;
 import java.util.EnumSet;
@@ -35,6 +38,7 @@ class IdentityServiceTest {
 
   @Mock UserOutPort userRepository;
   @Mock JwtIssuerOutPort jwtIssuer;
+  @Mock JwtAuthenticatorInPort jwtAuthenticator;
 
   private PasswordEncoder encoder;
   private IdentityService service;
@@ -54,7 +58,7 @@ class IdentityServiceTest {
   @BeforeEach
   void setUp() {
     encoder = new BCryptPasswordEncoder(12);
-    service = new IdentityService(userRepository, jwtIssuer, encoder);
+    service = new IdentityService(userRepository, jwtIssuer, jwtAuthenticator, encoder);
   }
 
   private User activeUser(Set<Role> roles) {
@@ -211,6 +215,102 @@ class IdentityServiceTest {
       assertThatThrownBy(() -> service.getProfile(USER_ID))
           .isInstanceOf(UserNotFoundException.class)
           .hasMessageContaining(USER_ID);
+    }
+  }
+
+  // ============================================================
+  // Refresh
+  // ============================================================
+
+  @Nested
+  class Refresh {
+    @Test
+    void refresh_whenClaimsAreValid_returnsNewTokenPair() {
+      User user = activeUser(EnumSet.of(Role.EventOrganizer));
+      user.setActive(true);
+      JWTClaimsSet claims = new JWTClaimsSet.Builder().subject(USER_ID).build();
+      when(jwtAuthenticator.verifyRefreshToken("valid-refresh")).thenReturn(claims);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+      stubTokenIssuance();
+
+      AuthenticateResponse response = service.refresh("valid-refresh");
+
+      assertThat(response.accessToken()).isEqualTo("access.jwt");
+      assertThat(response.refreshToken()).isEqualTo("refresh.jwt");
+      verify(jwtIssuer).issueAccessToken(eq(USER_ID), eq(USERNAME), any(), any(), anySet());
+      verify(jwtIssuer).issueRefreshToken(eq(USER_ID), eq(USERNAME), anySet());
+    }
+
+    @Test
+    void refresh_whenUserIsDisabled_throwsInvalidCredentials() {
+      User user = activeUser(EnumSet.of(Role.EventOrganizer));
+      user.setActive(false);
+      JWTClaimsSet claims = new JWTClaimsSet.Builder().subject(USER_ID).build();
+      when(jwtAuthenticator.verifyRefreshToken("valid-refresh")).thenReturn(claims);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+
+      assertThatThrownBy(() -> service.refresh("valid-refresh"))
+          .isInstanceOf(InvalidCredentialsException.class);
+      verify(jwtIssuer, never())
+          .issueAccessToken(anyString(), anyString(), anyString(), anyString(), anySet());
+    }
+
+    @Test
+    void refresh_whenUserDoesNotExist_throwsInvalidCredentials() {
+      JWTClaimsSet claims = new JWTClaimsSet.Builder().subject(USER_ID).build();
+      when(jwtAuthenticator.verifyRefreshToken("valid-refresh")).thenReturn(claims);
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> service.refresh("valid-refresh"))
+          .isInstanceOf(InvalidCredentialsException.class);
+    }
+
+    @Test
+    void refresh_whenTokenIsBlank_throwsInvalidCredentials() {
+      assertThatThrownBy(() -> service.refresh("")).isInstanceOf(InvalidCredentialsException.class);
+      verify(jwtAuthenticator, never()).verifyRefreshToken(anyString());
+    }
+  }
+
+  // ============================================================
+  // Change own password
+  // ============================================================
+
+  @Nested
+  class ChangeOwnPassword {
+
+    @Test
+    void changeOwnPassword_whenCurrentPasswordIsCorrect_hashesAndPersistsNew() {
+      User user = activeUser(EnumSet.of(Role.EventOrganizer));
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+
+      service.changeOwnPassword(USER_ID, PASSWORD, "FreshPass1234!");
+
+      org.mockito.ArgumentCaptor<String> hashCaptor =
+          org.mockito.ArgumentCaptor.forClass(String.class);
+      verify(userRepository).updatePassword(eq(USER_ID), hashCaptor.capture());
+      String storedHash = hashCaptor.getValue();
+      assertThat(storedHash).startsWith("$2a$");
+      assertThat(encoder.matches("FreshPass1234!", storedHash)).isTrue();
+    }
+
+    @Test
+    void changeOwnPassword_whenCurrentPasswordIsWrong_throwsInvalidCredentials() {
+      User user = activeUser(EnumSet.of(Role.EventOrganizer));
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+
+      assertThatThrownBy(() -> service.changeOwnPassword(USER_ID, "WRONG", "NewPass1234!"))
+          .isInstanceOf(InvalidCredentialsException.class);
+      verify(userRepository, never()).updatePassword(anyString(), anyString());
+    }
+
+    @Test
+    void changeOwnPassword_whenUserDoesNotExist_throwsUserNotFound() {
+      when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> service.changeOwnPassword(USER_ID, PASSWORD, "NewPass1234!"))
+          .isInstanceOf(UserNotFoundException.class);
+      verify(userRepository, never()).updatePassword(anyString(), anyString());
     }
   }
 }

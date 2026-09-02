@@ -117,6 +117,13 @@ public class UserRepositoryAdapter implements UserOutPort {
   }
 
   @Override
+  @Transactional
+  public void updatePassword(String id, String passwordHash) {
+    int rows = userJpa.updatePassword(id, passwordHash);
+    log.info("user.password-changed userId={} matched={}", id, rows > 0);
+  }
+
+  @Override
   public List<User> findAll() {
     return userJpa.findAll().stream().map(this::toDomain).collect(Collectors.toUnmodifiableList());
   }

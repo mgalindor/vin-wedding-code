@@ -60,7 +60,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             authorize ->
                 authorize
-                    .requestMatchers("/oauth/token", "/oauth/userinfo")
+                    .requestMatchers("/oauth/token", "/oauth/refresh", "/oauth/userinfo")
                     .permitAll()
                     .requestMatchers("/.well-known/**")
                     .permitAll()

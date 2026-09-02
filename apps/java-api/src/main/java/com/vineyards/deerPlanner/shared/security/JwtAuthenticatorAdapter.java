@@ -18,6 +18,11 @@ public class JwtAuthenticatorAdapter implements JwtAuthenticatorInPort {
   }
 
   @Override
+  public JWTClaimsSet verifyRefreshToken(String token) {
+    return jwtService.verifyRefreshToken(token);
+  }
+
+  @Override
   public String getJwksJson() {
     return jwtService.getJwksJson();
   }

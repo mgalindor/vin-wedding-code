@@ -102,9 +102,24 @@ public class JwtService implements JwtIssuerOutPort {
       return processor.process(jwt, null);
     } catch (ParseException | com.nimbusds.jose.proc.BadJOSEException | JOSEException e) {
       // Processor.process() throws BadJOSEException for verification failures and
-      // JOSEException for lower-level errors â€” collapse both into one mapped exception.
+      // JOSEException for lower-level errors — collapse both into one mapped exception.
       throw new JwtVerificationException("Invalid or expired token: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * Verifies a refresh token. Same signature / expiry check as {@link #verifyAccessToken} plus an
+   * audience assertion that the token was issued with {@code aud=refresh}. Without this check a
+   * leaked access token could be replayed against the refresh endpoint to extend a session
+   * indefinitely.
+   */
+  public JWTClaimsSet verifyRefreshToken(String token) {
+    JWTClaimsSet claims = verifyAccessToken(token);
+    List<String> audience = claims.getAudience();
+    if (audience == null || !audience.contains(REFRESH_AUDIENCE)) {
+      throw new JwtVerificationException("Token is not a refresh token (audience mismatch)", null);
+    }
+    return claims;
   }
 
   public String getJwksJson() {
