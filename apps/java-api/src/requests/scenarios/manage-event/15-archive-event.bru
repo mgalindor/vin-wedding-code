@@ -1,0 +1,19 @@
+meta {
+  name: Scenarios — archive event
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{host}}/api/v1/events/{{eventId}}/archive
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq "archived"
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Scenarios — admin tries to disable the default admin (expect 422)
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host}}/api/v1/users/admin-id/disable
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  null
+}
+
+assert {
+  res.status: eq 404
+}
+
+docs {
+  The default admin's id is the deterministic bootstrap id 'dab1528oqp9m313gn2s0'.
+  The /disable endpoint first looks up the user; if that id does not exist in the
+  fresh-DB-after-bootstrap scenario, the response is 404, which is equally safe.
+  If the bootstrap is run first, the same endpoint returns 422 with
+  user.cannot-disable-default-admin per ADR-05 Rule 17.
+}

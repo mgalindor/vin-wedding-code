@@ -1,0 +1,36 @@
+meta {
+  name: Scenarios — add a third guest to the family group
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{host}}/api/v1/events/{{eventId}}/guests
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "groupId": "{{groupId}}",
+    "firstName": "Lucía",
+    "lastName": "García",
+    "email": "lucia@example.com",
+    "phone": "+525553332211",
+    "dietaryNotes": "Vegetarian"
+  }
+}
+
+vars:post-response {
+  guestId3: res.body.id
+}
+
+assert {
+  res.status: eq 201
+  res.body.dietaryNotes: eq "Vegetarian"
+  res.body.rsvpStatus: eq "pending"
+}

@@ -1,0 +1,39 @@
+meta {
+  name: Scenarios — get full event (verify every payload)
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+tests {
+  test("every payload populated by the previous steps is present", function() {
+    const b = res.getBody();
+    expect(b.locations.entries).to.have.length(2);
+    expect(b.program.days[0].items).to.have.length(3);
+    expect(b.contacts.entries).to.have.length(2);
+    expect(b.weddingDetail.partner1Name).to.equal("Maya");
+    expect(b.weddingDetail.partner2Name).to.equal("Luis");
+    expect(b.landing.preTitle).to.be.a("string");
+    expect(b.story.body).to.be.a("string");
+    expect(b.dressCode.entries).to.have.length(2);
+    expect(b.giftRegistry.links).to.have.length(2);
+    expect(b.parents.partner1Names).to.have.length(2);
+    expect(b.accommodation.entries).to.have.length(1);
+  });
+}
+
+assert {
+  res.status: eq 200
+  res.body.locations.entries.length: eq 2
+  res.body.program.days[0].items.length: eq 3
+  res.body.contacts.entries.length: eq 2
+  res.body.weddingDetail.partner1Name: eq "Maya"
+}

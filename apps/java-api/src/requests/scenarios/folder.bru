@@ -1,0 +1,22 @@
+meta {
+  name: scenarios
+  seq: 11
+}
+
+auth {
+  mode: inherit
+}
+
+docs {
+  End-to-end regression scenarios. Run with `bru run src/requests/scenarios --env local`
+  (or as part of the full collection, after auth/). Each scenario assumes
+  {{organizerToken}} is in scope from `auth/00-login.bru`.
+
+  - manage-users/  — user lifecycle: admin creates EventOrganizers, owner self-edit,
+                     role changes, disable/enable, password reset, negative-authorization
+                     checks (403/404/422).
+  - manage-event/  — event + guest lifecycle: create event, fill every payload
+                     (locations, program, contacts, wedding top-level + 6 sub-payloads),
+                     archive, then a fresh event with two guest groups, add/move/delete
+                     guests, RSVP (group + single + reset), cleanup.
+}

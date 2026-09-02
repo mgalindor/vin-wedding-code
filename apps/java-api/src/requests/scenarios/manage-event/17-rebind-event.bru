@@ -1,0 +1,29 @@
+meta {
+  name: Scenarios — rebind eventId for guest operations
+  type: http
+  seq: 18
+}
+
+vars:pre-request {
+  eventId: {{guestEventId}}
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: eq {{guestEventId}}
+}
+
+docs {
+  Trivial GET — its job is to re-establish {{eventId}} as the guest-phase event
+  for every request that follows (those use {{eventId}} from the parent folder
+  convention rather than the new {{guestEventId}}).
+}

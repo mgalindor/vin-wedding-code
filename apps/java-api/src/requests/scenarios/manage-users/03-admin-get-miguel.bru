@@ -1,0 +1,21 @@
+meta {
+  name: Scenarios — admin gets miguel
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/v1/users/{{miguelId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: eq {{miguelId}}
+  res.body.username: eq "miguel@deer"
+  res.body.displayName: eq "Miguel Galindo"
+}

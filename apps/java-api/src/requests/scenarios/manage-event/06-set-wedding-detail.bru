@@ -1,0 +1,30 @@
+meta {
+  name: Scenarios — set wedding top-level detail
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-detail
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "partner1Name": "Maya",
+    "partner2Name": "Luis",
+    "countdownEnabled": true
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.partner1Name: eq "Maya"
+  res.body.partner2Name: eq "Luis"
+  res.body.countdownEnabled: eq true
+}

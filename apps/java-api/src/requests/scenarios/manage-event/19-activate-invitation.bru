@@ -1,0 +1,36 @@
+meta {
+  name: Scenarios — activate invitation config
+  type: http
+  seq: 20
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/invitation-config
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "templateId": "{{templateId}}",
+    "slug": "guest-regression-2027",
+    "active": true,
+    "rsvpEnabled": true,
+    "deadline": "2027-10-15",
+    "rsvpDeadline": "2027-11-01"
+  }
+}
+
+vars:post-response {
+  slug: res.body.slug
+}
+
+assert {
+  res.status: eq 200
+  res.body.active: eq true
+  res.body.slug: eq "guest-regression-2027"
+}

@@ -1,0 +1,41 @@
+meta {
+  name: Scenarios — set locations payload
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/locations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "entries": [
+      {
+        "label": "Ceremony",
+        "name": "Parroquia San Miguel",
+        "address": "Av. Reforma 123",
+        "city": "CDMX",
+        "time": "16:00",
+        "notes": "Arrive 30 min early"
+      },
+      {
+        "label": "Reception",
+        "name": "Hacienda San Andrés",
+        "city": "CDMX",
+        "time": "19:00"
+      }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.locations.entries.length: eq 2
+}

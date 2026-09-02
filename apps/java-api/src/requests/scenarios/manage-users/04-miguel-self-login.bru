@@ -1,0 +1,32 @@
+meta {
+  name: Scenarios — miguel self-login
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host}}/oauth/token
+  body: json
+}
+
+body:json {
+  {
+    "grantType": "password",
+    "username": "miguel@deer",
+    "password": "InitialPass1!"
+  }
+}
+
+vars:post-response {
+  miguelToken: res.body.accessToken
+}
+
+assert {
+  res.status: eq 200
+  res.body.accessToken: isString
+}
+
+docs {
+  Captures miguel's access token as {{miguelToken}} for the next owner-edit
+  and negative-authorization checks.
+}

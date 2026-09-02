@@ -1,0 +1,34 @@
+meta {
+  name: Scenarios — miguel edits own profile
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{host}}/api/v1/users/{{miguelId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{miguelToken}}
+}
+
+body:json {
+  {
+    "displayName": "Miguel G. (Updated)",
+    "phone": "+529999888777",
+    "password": "MiguelPass2!"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.displayName: eq "Miguel G. (Updated)"
+  res.body.phone: eq "+529999888777"
+}
+
+docs {
+  Owner-edits-self path. Roles are not sent (they would be ignored anyway because
+  the actor is not an Administrator yet).
+}

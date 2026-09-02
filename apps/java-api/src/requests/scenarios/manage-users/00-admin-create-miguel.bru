@@ -1,0 +1,43 @@
+meta {
+  name: Scenarios — admin creates miguel
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "username": "miguel",
+    "displayName": "Miguel Galindo",
+    "email": "miguel@example.com",
+    "phone": "+521234567890",
+    "password": "InitialPass1!",
+    "roles": ["EventOrganizer"]
+  }
+}
+
+vars:post-response {
+  miguelId: res.body.id
+  miguelUsername: res.body.username
+}
+
+assert {
+  res.status: eq 201
+  res.body.id: isString
+  res.body.username: eq "miguel@deer"
+  res.body.roles[0]: eq "EventOrganizer"
+}
+
+docs {
+  Scenario seed: admin creates the first non-admin user that the rest of the
+  regression exercises. Username slug is appended with @deer by the backend.
+}

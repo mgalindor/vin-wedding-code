@@ -1,0 +1,19 @@
+meta {
+  name: Scenarios — miguel re-reads self to confirm edit
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{host}}/api/v1/users/{{miguelId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{miguelToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.displayName: eq "Miguel G. (Updated)"
+}

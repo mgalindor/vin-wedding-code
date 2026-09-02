@@ -1,0 +1,34 @@
+meta {
+  name: Scenarios — admin grants Administrator role to miguel
+  type: http
+  seq: 11
+}
+
+patch {
+  url: {{host}}/api/v1/users/{{miguelId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "roles": ["Administrator", "EventOrganizer"]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.roles: isDefined
+}
+
+tests {
+  test("miguel now holds both roles", function() {
+    const roles = res.getBody().roles;
+    expect(roles).to.include("Administrator");
+    expect(roles).to.include("EventOrganizer");
+  });
+}

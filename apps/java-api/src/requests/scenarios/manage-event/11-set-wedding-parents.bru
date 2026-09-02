@@ -1,0 +1,30 @@
+meta {
+  name: Scenarios — set wedding parents
+  type: http
+  seq: 12
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-parents
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "partner1Label": "Padres de la Novia",
+    "partner1Names": ["Roberto Garcia", "Maria Lopez"],
+    "partner2Label": "Padres del Novio",
+    "partner2Names": ["Juan Morales", "Carmen Diaz"]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.parents.partner1Names.length: eq 2
+  res.body.parents.partner2Names.length: eq 2
+}

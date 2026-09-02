@@ -1,0 +1,19 @@
+meta {
+  name: Scenarios — admin confirms miguel is now inactive
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{host}}/api/v1/users/{{miguelId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.isActive: eq false
+}

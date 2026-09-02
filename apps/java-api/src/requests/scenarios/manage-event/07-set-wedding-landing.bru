@@ -1,0 +1,26 @@
+meta {
+  name: Scenarios — set wedding landing
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-landing
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "preTitle": "Together with their families"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.landing.preTitle: eq "Together with their families"
+}

@@ -1,0 +1,34 @@
+meta {
+  name: Scenarios — admin creates roberto (non-admin target for negative tests)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "username": "roberto",
+    "displayName": "Roberto Pérez",
+    "email": "roberto@example.com",
+    "password": "RobertoPass1!",
+    "roles": ["EventOrganizer"]
+  }
+}
+
+vars:post-response {
+  robertoId: res.body.id
+}
+
+assert {
+  res.status: eq 201
+  res.body.username: eq "roberto@deer"
+}

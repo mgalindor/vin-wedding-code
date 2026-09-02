@@ -1,0 +1,26 @@
+meta {
+  name: Scenarios — set wedding story
+  type: http
+  seq: 9
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-story
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "body": "We met in college eight years ago and never looked back."
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.story.body: isString
+}

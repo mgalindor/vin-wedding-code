@@ -1,0 +1,33 @@
+meta {
+  name: Scenarios — non-admin tries to create a user (expect 403)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{miguelToken}}
+}
+
+body:json {
+  {
+    "username": "should-fail",
+    "displayName": "Should Fail",
+    "password": "Anything1234",
+    "roles": ["EventOrganizer"]
+  }
+}
+
+assert {
+  res.status: eq 403
+}
+
+docs {
+  Miguel is currently just an EventOrganizer — the @PreAuthorize on
+  POST /api/v1/users forbids non-admins. The endpoint never reaches the service.
+}

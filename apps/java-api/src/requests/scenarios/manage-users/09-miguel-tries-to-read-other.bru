@@ -1,0 +1,23 @@
+meta {
+  name: Scenarios — non-admin tries to read someone else (expect 404)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{host}}/api/v1/users/{{robertoId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{miguelToken}}
+}
+
+assert {
+  res.status: eq 404
+}
+
+docs {
+  Same authorization rule as editing: non-admins may only read themselves.
+  The service answers 404 (not 403) to avoid leaking that roberto exists.
+}

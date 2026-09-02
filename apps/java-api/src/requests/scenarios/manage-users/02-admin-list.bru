@@ -1,0 +1,29 @@
+meta {
+  name: Scenarios — admin lists users
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/api/v1/users
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+tests {
+  test("list includes the two scenario users", function() {
+    const items = res.getBody();
+    const usernames = items.map(u => u.username);
+    expect(usernames).to.include("miguel@deer");
+    expect(usernames).to.include("roberto@deer");
+    expect(usernames).to.include("admin@deer");
+  });
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}

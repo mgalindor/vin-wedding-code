@@ -25,10 +25,12 @@ src/requests/
 ├── guest-groups/                ← CRUD + primary + token + RSVP (8)
 ├── guests/                      ← CRUD + change group (7)
 ├── admin-rsvp/                  ← admin marks RSVP (4)
-└── public-flow/                 ← public reads + RSVP submit (8)
+└── scenarios/                   ← end-to-end regression suites (57)
+    ├── manage-users/            ← 19 requests, full user lifecycle
+    └── manage-event/            ← 38 requests, event + guest lifecycle
 ```
 
-Total: 58 requests.
+Total: 115 requests.
 
 ## Prerequisites
 
@@ -93,7 +95,7 @@ You can read a captured variable inside a `tests` block via `bru.getVar("name")`
 | Guest groups | `guest-groups/` | CRUD, primary setter (set + clear), token regen, group RSVP |
 | Guests | `guests/` | CRUD, change group, captures `guestId1` / `guestId2` |
 | Admin RSVP | `admin-rsvp/` | mark whole-group + individual + reset to pending |
-| Public flow | `public-flow/` | landing + group view + per-guest RSVP submit + 4 error cases |
+| Regression scenarios | `scenarios/` | end-to-end flows: user lifecycle + event + guest lifecycle; assumes {{organizerToken}} from `auth/` |
 
 ## Known limitations
 

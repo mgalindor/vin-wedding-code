@@ -1,0 +1,18 @@
+meta {
+  name: Scenarios — cleanup: disable roberto
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{host}}/api/v1/users/{{robertoId}}/disable
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}

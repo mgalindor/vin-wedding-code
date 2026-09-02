@@ -1,0 +1,33 @@
+meta {
+  name: Scenarios — set wedding accommodation
+  type: http
+  seq: 13
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-accommodation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "entries": [
+      {
+        "name": "Hotel Boutique Casa Blanca",
+        "description": "10 min from venue",
+        "url": "https://casablanca.example",
+        "priceHint": "$1,800 MXN/noche"
+      }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.accommodation.entries.length: eq 1
+}

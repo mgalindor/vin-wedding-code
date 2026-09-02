@@ -1,0 +1,18 @@
+meta {
+  name: Scenarios — cleanup: disable and remove the two scenario users
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{host}}/api/v1/users/{{miguelId}}/disable
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}

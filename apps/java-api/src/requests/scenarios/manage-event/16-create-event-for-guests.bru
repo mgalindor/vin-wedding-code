@@ -1,0 +1,36 @@
+meta {
+  name: Scenarios — create a fresh event for the guest phase
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host}}/api/v1/events
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "title": "Guest Regression Event",
+    "eventType": "wedding",
+    "eventDate": "2027-11-20"
+  }
+}
+
+vars:post-response {
+  guestEventId: res.body.id
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  A fresh event so the archived one from phase A doesn't interfere with
+  guest operations. Re-binds {{eventId}} locally for the rest of phase B.
+}

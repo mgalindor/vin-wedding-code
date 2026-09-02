@@ -1,0 +1,30 @@
+meta {
+  name: Scenarios — set wedding gift registry
+  type: http
+  seq: 11
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/wedding-gift-registry
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "links": [
+      { "label": "Liverpool", "url": "https://liverpool.com.mx/maya-luis" },
+      { "label": "Amazon", "url": "https://amazon.com.mx/wedding/maya-luis" }
+    ],
+    "notes": "BBVA 1234 5678 90 (Maya)"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.giftRegistry.links.length: eq 2
+}

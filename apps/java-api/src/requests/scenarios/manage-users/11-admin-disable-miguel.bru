@@ -1,0 +1,23 @@
+meta {
+  name: Scenarios — admin disables miguel
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{host}}/api/v1/users/{{miguelId}}/disable
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}
+
+docs {
+  Disabling is reversible via POST /enable. Disable sets is_active=false but
+  leaves the row queryable to admins.
+}

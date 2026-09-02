@@ -1,0 +1,26 @@
+meta {
+  name: Scenarios — admin resets guest back to pending (clears confirmed/declined)
+  type: http
+  seq: 33
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/guests/{{guestId2}}/rsvp
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "status": "pending"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.rsvpStatus: eq "pending"
+}

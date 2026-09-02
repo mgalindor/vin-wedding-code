@@ -1,0 +1,26 @@
+meta {
+  name: Scenarios — list my events
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{host}}/api/v1/events
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+tests {
+  test("scenario event is in the list", function() {
+    const items = res.getBody().items;
+    expect(items.find(e => e.id === bru.getVar("eventId"))).to.exist;
+  });
+}
+
+assert {
+  res.status: eq 200
+  res.body.items: isArray
+}
