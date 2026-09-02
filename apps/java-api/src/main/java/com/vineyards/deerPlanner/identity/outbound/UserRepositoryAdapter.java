@@ -124,6 +124,15 @@ public class UserRepositoryAdapter implements UserOutPort {
   }
 
   @Override
+  @Transactional
+  public void delete(String id) {
+    // Hibernate @SoftDelete translates this into an UPDATE setting deleted=true; the user
+    // disappears from every subsequent JPA query via the @SQLRestriction filter.
+    userJpa.deleteById(id);
+    log.info("user.deleted userId={}", id);
+  }
+
+  @Override
   public List<User> findAll() {
     return userJpa.findAll().stream().map(this::toDomain).collect(Collectors.toUnmodifiableList());
   }

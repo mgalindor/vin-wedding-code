@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -89,6 +90,13 @@ public class UserController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void enableUser(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
     userApi.enableUser(id, jwt.getSubject());
+  }
+
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('Administrator')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteUser(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+    userApi.deleteUser(id, jwt.getSubject());
   }
 
   private static boolean isAdmin(Jwt jwt) {

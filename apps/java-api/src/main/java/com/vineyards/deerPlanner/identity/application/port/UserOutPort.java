@@ -36,6 +36,12 @@ public interface UserOutPort {
   void updatePassword(String id, String passwordHash);
 
   /**
+   * Soft-deletes the user. Hibernate {@code @SoftDelete} translates the row delete into an update
+   * of the {@code deleted} column; the user disappears from every subsequent query.
+   */
+  void delete(String id);
+
+  /**
    * Returns every non-soft-deleted user, active or not. Admin-only listing — no pagination in MVP.
    */
   List<User> findAll();

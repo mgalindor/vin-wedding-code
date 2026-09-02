@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -216,5 +217,15 @@ class UserControllerTest {
         .andExpect(status().isNoContent());
 
     verify(userApi).enableUser(eq("user-id"), any());
+  }
+
+  // ---------- DELETE /api/v1/users/{id} ----------
+
+  @Test
+  void deleteUser_returns204() throws Exception {
+    mvc.perform(delete("/api/v1/users/user-id").with(jwt().jwt(j -> j.subject("admin-id"))))
+        .andExpect(status().isNoContent());
+
+    verify(userApi).deleteUser(eq("user-id"), any());
   }
 }

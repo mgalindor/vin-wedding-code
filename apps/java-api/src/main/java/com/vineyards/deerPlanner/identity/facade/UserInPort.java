@@ -25,4 +25,11 @@ public interface UserInPort {
   void disableUser(String userId, String actorUserId);
 
   void enableUser(String userId, String actorUserId);
+
+  /**
+   * Soft-deletes a user. Hibernate {@code @SoftDelete} translates the row delete into an update of
+   * the {@code deleted} column, and the global {@code @SQLRestriction} removes the row from every
+   * subsequent query — the user effectively disappears from the API. Admin-only.
+   */
+  void deleteUser(String userId, String actorUserId);
 }

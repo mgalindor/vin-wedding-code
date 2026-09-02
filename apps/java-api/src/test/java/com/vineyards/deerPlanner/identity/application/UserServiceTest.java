@@ -357,6 +357,44 @@ class UserServiceTest {
   }
 
   // ============================================================
+  // Delete
+  // ============================================================
+
+  @Nested
+  class Delete {
+
+    @Test
+    void deleteUser_whenTargetIsRegularUser_callsRepositoryDelete() {
+      User target = sampleUser(TARGET_ID, "alice@deer");
+      when(userRepository.findById(TARGET_ID)).thenReturn(Optional.of(target));
+
+      service.deleteUser(TARGET_ID, ADMIN_ID);
+
+      verify(userRepository).delete(TARGET_ID);
+    }
+
+    @Test
+    void deleteUser_whenTargetIsDefaultAdmin_throwsBusinessError() {
+      User admin = sampleUser(ADMIN_ID, DEFAULT_ADMIN_USERNAME);
+      when(userRepository.findById(ADMIN_ID)).thenReturn(Optional.of(admin));
+
+      assertThatThrownBy(() -> service.deleteUser(ADMIN_ID, ADMIN_ID))
+          .isInstanceOf(BusinessError.class)
+          .hasMessageContaining("user.cannot-delete-default-admin");
+      verify(userRepository, never()).delete(anyString());
+    }
+
+    @Test
+    void deleteUser_whenUserDoesNotExist_throwsNotFound() {
+      when(userRepository.findById(TARGET_ID)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> service.deleteUser(TARGET_ID, ADMIN_ID))
+          .isInstanceOf(ResourceNotFoundError.class);
+      verify(userRepository, never()).delete(anyString());
+    }
+  }
+
+  // ============================================================
   // List
   // ============================================================
 

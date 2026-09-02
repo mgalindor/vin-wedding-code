@@ -181,6 +181,24 @@ public class UserService implements UserInPort {
     changeActiveState(userId, true, actorUserId);
   }
 
+  @Override
+  @Transactional
+  public void deleteUser(String userId, String actorUserId) {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundError("user", userId));
+
+    if (user.getUsername().equalsIgnoreCase(props.getProtectedDefaultAdmin())) {
+      // Same Rule 17 protection as disable. Deleting the default admin would lock the
+      // platform out with no recovery path.
+      throw new BusinessError("user.cannot-delete-default-admin");
+    }
+
+    userRepository.delete(user.getId());
+    log.info("user.deleted userId={} actorUserId={}", user.getId(), actorUserId);
+  }
+
   private void changeActiveState(String userId, boolean target, String actorUserId) {
     User user =
         userRepository
