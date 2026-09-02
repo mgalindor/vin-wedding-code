@@ -24,16 +24,16 @@ public interface EventInPort {
 
   EventDto createEvent(CreateEventDto dto, String actorUserId);
 
-  EventDto getEvent(String eventId, String actorUserId);
+  EventDto getEvent(String eventId);
 
   /**
-   * Paginated list of the organiser's own events. {@code q} matches against title substring; {@code
-   * status} / {@code eventType} are exact matches; the date range narrows by eventDate. Null /
-   * blank filters are ignored. The {@code actorUserId} filter is always applied — this endpoint
-   * never returns other organisers' rows.
+   * Paginated list of events visible to the actor. Admins see every event; organisers see only
+   * their own. {@code q} matches against title substring; {@code status} / {@code eventType} are
+   * exact matches; the date range narrows by eventDate. Null / blank filters are ignored.
    */
   PagedEventsResponse listOwnEvents(
       String actorUserId,
+      boolean actorIsAdmin,
       String q,
       String status,
       String eventType,
@@ -41,17 +41,17 @@ public interface EventInPort {
       LocalDate eventDateTo,
       Pageable pageable);
 
-  EventDto updateEventMetadata(String eventId, UpdateEventDto dto, String actorUserId);
+  EventDto updateEventMetadata(String eventId, UpdateEventDto dto);
 
-  void deleteEvent(String eventId, String actorUserId);
+  void deleteEvent(String eventId);
 
-  EventDto archiveEvent(String eventId, String actorUserId);
+  EventDto archiveEvent(String eventId);
 
-  EventDto updateLocations(String eventId, LocationsPayloadDto dto, String actorUserId);
+  EventDto updateLocations(String eventId, LocationsPayloadDto dto);
 
-  EventDto updateProgram(String eventId, ProgramPayloadDto dto, String actorUserId);
+  EventDto updateProgram(String eventId, ProgramPayloadDto dto);
 
-  EventDto updateContacts(String eventId, ContactsPayloadDto dto, String actorUserId);
+  EventDto updateContacts(String eventId, ContactsPayloadDto dto);
 
   /** Internal use by other modules; no auth at this layer. */
   List<EventDto> findByOrganizer(String organizerUserId);

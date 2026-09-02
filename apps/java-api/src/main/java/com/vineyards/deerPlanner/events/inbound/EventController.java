@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
@@ -36,14 +37,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Generic event lifecycle endpoints. Authorisation is per-method: anyone with the {@code
+ * EventOrganizer} or {@code Administrator} role can reach the controller; the per-resource methods
+ * additionally require ownership unless the actor has the {@code Administrator} role — the
+ * {@code @eventSecurity} bean answers "is this username the organiser of this event id?".
+ */
 @Slf4j
 @RestController
 @PrimaryAdapter
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/v1/events")
-@PreAuthorize("hasRole('EventOrganizer')")
+@PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @SecurityRequirement(name = "bearerAuth")
 public class EventController {
+
+  private static final String ADMIN = "Administrator";
+  private static final String OWNER_EXPR =
+      "hasRole('Administrator') or @eventSecurity.isOwner(#id, authentication.name)";
 
   private final EventInPort eventApi;
 
@@ -56,8 +67,9 @@ public class EventController {
   }
 
   @GetMapping("/{id}")
-  public EventDto getEvent(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
-    return eventApi.getEvent(id, jwt.getSubject());
+  @PreAuthorize(OWNER_EXPR)
+  public EventDto getEvent(@PathVariable String id) {
+    return eventApi.getEvent(id);
   }
 
   @GetMapping
@@ -72,52 +84,55 @@ public class EventController {
       @PageableDefault(size = 20, sort = "eventDate", direction = Sort.Direction.DESC)
           Pageable pageable,
       @AuthenticationPrincipal Jwt jwt) {
+    boolean admin = isAdmin(jwt);
     return eventApi.listOwnEvents(
-        jwt.getSubject(), q, status, eventType, eventDateFrom, eventDateTo, pageable);
+        jwt.getSubject(), admin, q, status, eventType, eventDateFrom, eventDateTo, pageable);
   }
 
   @PatchMapping(path = "/{id}")
-  public EventDto updateMetadata(
-      @PathVariable String id,
-      @Valid @RequestBody UpdateEventDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return eventApi.updateEventMetadata(id, body, jwt.getSubject());
+  @PreAuthorize(OWNER_EXPR)
+  public EventDto updateMetadata(@PathVariable String id, @Valid @RequestBody UpdateEventDto body) {
+    return eventApi.updateEventMetadata(id, body);
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize(OWNER_EXPR)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteEvent(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
-    eventApi.deleteEvent(id, jwt.getSubject());
+  public void deleteEvent(@PathVariable String id) {
+    eventApi.deleteEvent(id);
   }
 
   @PostMapping("/{id}/archive")
-  public EventDto archiveEvent(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
-    return eventApi.archiveEvent(id, jwt.getSubject());
+  @PreAuthorize(OWNER_EXPR)
+  public EventDto archiveEvent(@PathVariable String id) {
+    return eventApi.archiveEvent(id);
   }
 
   // ----- Generic JSONB payloads (type-agnostic) -----
 
   @PutMapping(path = "/{id}/locations")
+  @PreAuthorize(OWNER_EXPR)
   public EventDto updateLocations(
-      @PathVariable String id,
-      @Valid @RequestBody LocationsPayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return eventApi.updateLocations(id, body, jwt.getSubject());
+      @PathVariable String id, @Valid @RequestBody LocationsPayloadDto body) {
+    return eventApi.updateLocations(id, body);
   }
 
   @PutMapping(path = "/{id}/program")
+  @PreAuthorize(OWNER_EXPR)
   public EventDto updateProgram(
-      @PathVariable String id,
-      @Valid @RequestBody ProgramPayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return eventApi.updateProgram(id, body, jwt.getSubject());
+      @PathVariable String id, @Valid @RequestBody ProgramPayloadDto body) {
+    return eventApi.updateProgram(id, body);
   }
 
   @PutMapping(path = "/{id}/contacts")
+  @PreAuthorize(OWNER_EXPR)
   public EventDto updateContacts(
-      @PathVariable String id,
-      @Valid @RequestBody ContactsPayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return eventApi.updateContacts(id, body, jwt.getSubject());
+      @PathVariable String id, @Valid @RequestBody ContactsPayloadDto body) {
+    return eventApi.updateContacts(id, body);
+  }
+
+  private static boolean isAdmin(Jwt jwt) {
+    List<String> roles = jwt.getClaimAsStringList("roles");
+    return roles != null && roles.contains(ADMIN);
   }
 }

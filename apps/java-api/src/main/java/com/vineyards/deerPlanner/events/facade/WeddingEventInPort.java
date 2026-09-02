@@ -23,29 +23,22 @@ public interface WeddingEventInPort {
   /**
    * Returns the current wedding detail. Creates a transient empty one in the response if no row.
    */
-  WeddingDetailDto getWeddingDetail(String eventId, String actorUserId);
+  WeddingDetailDto getWeddingDetail(String eventId);
 
   /** Partial update of {@code partner1Name} / {@code partner2Name} / {@code countdownEnabled}. */
-  WeddingDetailDto updateWeddingDetail(
-      String eventId, UpdateWeddingDetailDto dto, String actorUserId);
+  WeddingDetailDto updateWeddingDetail(String eventId, UpdateWeddingDetailDto dto);
 
-  WeddingDetailDto updateWeddingLanding(
-      String eventId, WeddingLandingPayloadDto dto, String actorUserId);
+  WeddingDetailDto updateWeddingLanding(String eventId, WeddingLandingPayloadDto dto);
 
-  WeddingDetailDto updateWeddingStory(
-      String eventId, WeddingStoryPayloadDto dto, String actorUserId);
+  WeddingDetailDto updateWeddingStory(String eventId, WeddingStoryPayloadDto dto);
 
-  WeddingDetailDto updateWeddingDressCode(
-      String eventId, WeddingDressCodePayloadDto dto, String actorUserId);
+  WeddingDetailDto updateWeddingDressCode(String eventId, WeddingDressCodePayloadDto dto);
 
-  WeddingDetailDto updateWeddingGiftRegistry(
-      String eventId, WeddingGiftRegistryPayloadDto dto, String actorUserId);
+  WeddingDetailDto updateWeddingGiftRegistry(String eventId, WeddingGiftRegistryPayloadDto dto);
 
-  WeddingDetailDto updateWeddingParents(
-      String eventId, WeddingParentsPayloadDto dto, String actorUserId);
+  WeddingDetailDto updateWeddingParents(String eventId, WeddingParentsPayloadDto dto);
 
-  WeddingDetailDto updateWeddingAccommodation(
-      String eventId, WeddingAccommodationPayloadDto dto, String actorUserId);
+  WeddingDetailDto updateWeddingAccommodation(String eventId, WeddingAccommodationPayloadDto dto);
 
   /**
    * Cross-context read for invitation rendering. No auth at this layer — the caller (invitation

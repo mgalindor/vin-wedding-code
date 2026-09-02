@@ -48,7 +48,7 @@ public class GuestService implements GuestInPort {
   @Override
   @Transactional(readOnly = true)
   public ListGuestGroupsResponse listGroups(String eventId, String actorUserId) {
-    eventApi.getEvent(eventId, actorUserId);
+    eventApi.getEvent(eventId);
     List<GuestGroup> groups = groupRepository.findByEventId(eventId);
     List<GuestGroupDto> items = groups.stream().map(GuestService::toDto).toList();
     return new ListGuestGroupsResponse(items, items.size());
@@ -64,14 +64,14 @@ public class GuestService implements GuestInPort {
                 () ->
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
-    eventApi.getEvent(group.getEventId(), actorUserId);
+    eventApi.getEvent(group.getEventId());
     return toDto(group);
   }
 
   @Override
   @Transactional
   public GuestGroupDto createGroup(String eventId, CreateGuestGroupDto dto, String actorUserId) {
-    eventApi.getEvent(eventId, actorUserId);
+    eventApi.getEvent(eventId);
 
     List<InlineGuestDto> inlineGuests = dto.guests() == null ? List.of() : dto.guests();
     if (inlineGuests.isEmpty()) {
@@ -182,7 +182,7 @@ public class GuestService implements GuestInPort {
                 () ->
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
-    eventApi.getEvent(current.getEventId(), actorUserId);
+    eventApi.getEvent(current.getEventId());
     GuestGroup updated = applyGroupPatch(current, dto);
     return toDto(groupRepository.save(updated));
   }
@@ -197,7 +197,7 @@ public class GuestService implements GuestInPort {
                 () ->
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
-    eventApi.getEvent(current.getEventId(), actorUserId);
+    eventApi.getEvent(current.getEventId());
     // guests FK has deleteCascade — group children go with it.
     groupRepository.deleteById(groupId);
     log.info("guest_group.deleted groupId={} actorUserId={}", groupId, actorUserId);
@@ -213,7 +213,7 @@ public class GuestService implements GuestInPort {
                 () ->
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
-    eventApi.getEvent(current.getEventId(), actorUserId);
+    eventApi.getEvent(current.getEventId());
     String newToken = UUID.randomUUID().toString();
     GuestGroup saved = groupRepository.save(current.withToken(newToken));
     log.info("guest_group.token_regenerated groupId={} actorUserId={}", groupId, actorUserId);
@@ -263,7 +263,7 @@ public class GuestService implements GuestInPort {
       String q,
       String actorUserId,
       org.springframework.data.domain.Pageable pageable) {
-    eventApi.getEvent(eventId, actorUserId);
+    eventApi.getEvent(eventId);
     List<GuestGroup> groups = groupRepository.findByEventId(eventId);
     org.springframework.data.jpa.domain.Specification<
             com.vineyards.deerPlanner.guests.outbound.GuestEntity>
@@ -316,7 +316,7 @@ public class GuestService implements GuestInPort {
   @Override
   @Transactional
   public GuestDto createGuest(String eventId, CreateGuestDto dto, String actorUserId) {
-    eventApi.getEvent(eventId, actorUserId);
+    eventApi.getEvent(eventId);
     groupRepository
         .findById(dto.groupId())
         .orElseThrow(
@@ -386,7 +386,7 @@ public class GuestService implements GuestInPort {
   @Transactional
   public GuestDto changeGuestGroup(
       String eventId, String guestId, ChangeGuestGroupDto dto, String actorUserId) {
-    eventApi.getEvent(eventId, actorUserId);
+    eventApi.getEvent(eventId);
     Guest current =
         guestRepository
             .findById(guestId)
@@ -559,7 +559,7 @@ public class GuestService implements GuestInPort {
                 () ->
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
-    eventApi.getEvent(group.getEventId(), actorUserId);
+    eventApi.getEvent(group.getEventId());
     return group;
   }
 
@@ -571,7 +571,7 @@ public class GuestService implements GuestInPort {
                 () ->
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
-    eventApi.getEvent(group.getEventId(), actorUserId);
+    eventApi.getEvent(group.getEventId());
   }
 
   private GuestGroup applyGroupPatch(GuestGroup current, UpdateGuestGroupDto dto) {

@@ -28,7 +28,7 @@ public class EventInvitationConfigService implements EventInvitationConfigInPort
   @Transactional(readOnly = true)
   public EventInvitationConfigDto getInvitationConfig(String eventId, String actorUserId) {
     // Ownership proof: the calling user must be able to read the event.
-    eventApi.getEvent(eventId, actorUserId);
+    eventApi.getEvent(eventId);
     EventInvitationConfig config =
         repository.findByEventId(eventId).orElseGet(() -> createDefaultConfig(eventId));
     return toDto(config);
@@ -38,7 +38,7 @@ public class EventInvitationConfigService implements EventInvitationConfigInPort
   @Transactional
   public EventInvitationConfigDto updateInvitationConfig(
       String eventId, UpdateInvitationConfigDto dto, String actorUserId) {
-    eventApi.getEvent(eventId, actorUserId);
+    eventApi.getEvent(eventId);
     EventInvitationConfig current =
         repository.findByEventId(eventId).orElseGet(() -> createDefaultConfig(eventId));
 

@@ -39,6 +39,9 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>JSONB payloads are mapped between their DTO and domain-payload forms via {@link
  * EventPayloadMapper}; the domain layer holds the typed object that Hibernate serialises to JSON.
+ *
+ * <p>Authorisation is enforced at the inbound layer via SpEL {@code @PreAuthorize} (admin OR
+ * owner). The service trusts the caller and loads events by id only.
  */
 @Service
 @Application
@@ -79,23 +82,26 @@ public class EventService implements EventInPort {
 
   @Override
   @Transactional(readOnly = true)
-  public EventDto getEvent(String eventId, String actorUserId) {
-    Event event = loadOwnedEvent(eventId, actorUserId);
-    return toDto(event);
+  public EventDto getEvent(String eventId) {
+    return toDto(loadEvent(eventId));
   }
 
   @Override
   @Transactional(readOnly = true)
   public PagedEventsResponse listOwnEvents(
       String actorUserId,
+      boolean actorIsAdmin,
       String q,
       String status,
       String eventType,
       LocalDate eventDateFrom,
       LocalDate eventDateTo,
       Pageable pageable) {
-    Specification<EventEntity> spec =
-        Specification.where((root, query, cb) -> cb.equal(root.get("organizerId"), actorUserId));
+    Specification<EventEntity> spec = Specification.unrestricted();
+    // Admins see every event; organisers see only their own.
+    if (!actorIsAdmin) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("organizerId"), actorUserId));
+    }
     if (q != null && !q.isBlank()) {
       String pattern = "%" + q.toLowerCase().trim() + "%";
       spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("title")), pattern));
@@ -133,8 +139,8 @@ public class EventService implements EventInPort {
 
   @Override
   @Transactional
-  public EventDto updateEventMetadata(String eventId, UpdateEventDto dto, String actorUserId) {
-    Event current = loadOwnedEvent(eventId, actorUserId);
+  public EventDto updateEventMetadata(String eventId, UpdateEventDto dto) {
+    Event current = loadEvent(eventId);
     if (dto.title() != null) current.setTitle(dto.title());
     if (dto.eventDate() != null) current.setEventDate(dto.eventDate());
     current.setUpdatedAt(Instant.now());
@@ -143,15 +149,15 @@ public class EventService implements EventInPort {
 
   @Override
   @Transactional
-  public void deleteEvent(String eventId, String actorUserId) {
-    loadOwnedEvent(eventId, actorUserId);
+  public void deleteEvent(String eventId) {
+    loadEvent(eventId);
     repository.deleteById(eventId);
   }
 
   @Override
   @Transactional
-  public EventDto archiveEvent(String eventId, String actorUserId) {
-    Event current = loadOwnedEvent(eventId, actorUserId);
+  public EventDto archiveEvent(String eventId) {
+    Event current = loadEvent(eventId);
     if (!current.getStatus().canTransitionTo(EventStatus.archived)) {
       throw new BusinessError(
           "invalid_status_transition",
@@ -163,24 +169,24 @@ public class EventService implements EventInPort {
 
   @Override
   @Transactional
-  public EventDto updateLocations(String eventId, LocationsPayloadDto dto, String actorUserId) {
-    Event current = loadOwnedEvent(eventId, actorUserId);
+  public EventDto updateLocations(String eventId, LocationsPayloadDto dto) {
+    Event current = loadEvent(eventId);
     current.setLocationsPayload(payloadMapper.toPayload(dto));
     return toDto(repository.save(current));
   }
 
   @Override
   @Transactional
-  public EventDto updateProgram(String eventId, ProgramPayloadDto dto, String actorUserId) {
-    Event current = loadOwnedEvent(eventId, actorUserId);
+  public EventDto updateProgram(String eventId, ProgramPayloadDto dto) {
+    Event current = loadEvent(eventId);
     current.setProgramPayload(payloadMapper.toPayload(dto));
     return toDto(repository.save(current));
   }
 
   @Override
   @Transactional
-  public EventDto updateContacts(String eventId, ContactsPayloadDto dto, String actorUserId) {
-    Event current = loadOwnedEvent(eventId, actorUserId);
+  public EventDto updateContacts(String eventId, ContactsPayloadDto dto) {
+    Event current = loadEvent(eventId);
     current.setContactsPayload(payloadMapper.toPayload(dto));
     return toDto(repository.save(current));
   }
@@ -203,19 +209,11 @@ public class EventService implements EventInPort {
     return repository.findById(eventId).map(this::toDto);
   }
 
-  private Event loadOwnedEvent(String eventId, String actorUserId) {
-    Event event =
-        repository
-            .findById(eventId)
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundError(
-                        "event_not_found", "Event " + eventId + " not found"));
-    if (!event.getOrganizerId().equals(actorUserId)) {
-      throw new BusinessError(
-          "not_event_owner", "Actor " + actorUserId + " is not the organiser of event " + eventId);
-    }
-    return event;
+  private Event loadEvent(String eventId) {
+    return repository
+        .findById(eventId)
+        .orElseThrow(
+            () -> new ResourceNotFoundError("event_not_found", "Event " + eventId + " not found"));
   }
 
   private EventDto toDto(Event event) {

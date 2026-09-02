@@ -17,7 +17,6 @@ import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import com.vineyards.deerPlanner.events.facade.mapper.EventPayloadMapper;
-import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -32,11 +31,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Authorisation is enforced at the inbound layer (SpEL @PreAuthorize + the {@code eventSecurity}
+ * bean). The service trusts the caller and only handles persistence + business invariants, so these
+ * tests focus on those concerns and no longer assert "only the organiser can mutate".
+ */
 @ExtendWith(MockitoExtension.class)
 class EventServiceTest {
 
   private static final String ORGANIZER_ID = "user-organizer-1";
-  private static final String OTHER_USER_ID = "user-not-organizer-2";
   private static final String EVENT_ID = "evt-1";
 
   @Mock EventOutPort repository;
@@ -69,9 +72,6 @@ class EventServiceTest {
       assertThat(saved.getStatus()).isEqualTo(EventStatus.draft);
       assertThat(saved.getTitle()).isEqualTo("Maya & Luis");
       assertThat(saved.getEventType()).isEqualTo(EventType.wedding);
-      assertThat(saved.getLocationsPayload()).isNull();
-      assertThat(saved.getProgramPayload()).isNull();
-      assertThat(saved.getContactsPayload()).isNull();
       assertThat(result.id()).isEqualTo(saved.getId());
     }
 
@@ -84,10 +84,6 @@ class EventServiceTest {
       EventDto result = service.createEvent(dto, ORGANIZER_ID);
 
       assertThat(result.eventType()).isEqualTo(EventType.birthday);
-      // No wedding payload is part of the base event DTO; that lives behind WeddingEventController.
-      assertThat(result.locations()).isNull();
-      assertThat(result.program()).isNull();
-      assertThat(result.contacts()).isNull();
     }
   }
 
@@ -95,11 +91,11 @@ class EventServiceTest {
   class Read {
 
     @Test
-    void getEvent_whenOrganizerMatches_returnsAggregate() {
+    void getEvent_whenPresent_returnsAggregate() {
       Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
 
-      EventDto result = service.getEvent(EVENT_ID, ORGANIZER_ID);
+      EventDto result = service.getEvent(EVENT_ID);
 
       assertThat(result.id()).isEqualTo(EVENT_ID);
       assertThat(result.status()).isEqualTo(EventStatus.draft);
@@ -109,19 +105,9 @@ class EventServiceTest {
     void getEvent_whenEventMissing_throwsNotFoundException() {
       when(repository.findById(EVENT_ID)).thenReturn(Optional.empty());
 
-      assertThatThrownBy(() -> service.getEvent(EVENT_ID, ORGANIZER_ID))
+      assertThatThrownBy(() -> service.getEvent(EVENT_ID))
           .isInstanceOf(ResourceNotFoundError.class)
           .hasMessageContaining(EVENT_ID);
-    }
-
-    @Test
-    void getEvent_whenCallerIsNotTheOrganizer_throwsBusinessError() {
-      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
-      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-
-      assertThatThrownBy(() -> service.getEvent(EVENT_ID, OTHER_USER_ID))
-          .isInstanceOf(BusinessError.class)
-          .hasMessageContaining("not_event_owner");
     }
   }
 
@@ -134,7 +120,7 @@ class EventServiceTest {
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
       when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
-      EventDto result = service.archiveEvent(EVENT_ID, ORGANIZER_ID);
+      EventDto result = service.archiveEvent(EVENT_ID);
 
       assertThat(result.status()).isEqualTo(EventStatus.archived);
     }
@@ -167,7 +153,7 @@ class EventServiceTest {
               any(com.vineyards.deerPlanner.events.domain.payload.LocationsPayload.class)))
           .thenReturn(dto);
 
-      EventDto result = service.updateLocations(EVENT_ID, dto, ORGANIZER_ID);
+      EventDto result = service.updateLocations(EVENT_ID, dto);
 
       assertThat(result.locations()).isNotNull();
       assertThat(result.locations().entries()).hasSize(1);
@@ -194,7 +180,7 @@ class EventServiceTest {
               any(com.vineyards.deerPlanner.events.domain.payload.ProgramPayload.class)))
           .thenReturn(dto);
 
-      EventDto result = service.updateProgram(EVENT_ID, dto, ORGANIZER_ID);
+      EventDto result = service.updateProgram(EVENT_ID, dto);
 
       assertThat(result.program()).isNotNull();
       assertThat(result.program().days()).hasSize(1);
@@ -218,7 +204,7 @@ class EventServiceTest {
               any(com.vineyards.deerPlanner.events.domain.payload.ContactsPayload.class)))
           .thenReturn(dto);
 
-      EventDto result = service.updateContacts(EVENT_ID, dto, ORGANIZER_ID);
+      EventDto result = service.updateContacts(EVENT_ID, dto);
 
       assertThat(result.contacts()).isNotNull();
       assertThat(result.contacts().entries().get(0).fullName()).isEqualTo("Ana Rodriguez");
@@ -244,7 +230,7 @@ class EventServiceTest {
 
       var partialDto = new UpdateEventDto("Maya & Luis — Updated Title", null);
 
-      EventDto result = service.updateEventMetadata(EVENT_ID, partialDto, ORGANIZER_ID);
+      EventDto result = service.updateEventMetadata(EVENT_ID, partialDto);
 
       assertThat(result.title()).isEqualTo("Maya & Luis — Updated Title");
       assertThat(result.eventDate()).isEqualTo(stored.getEventDate());
@@ -258,8 +244,7 @@ class EventServiceTest {
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
       when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
-      EventDto result =
-          service.updateEventMetadata(EVENT_ID, new UpdateEventDto(null, null), ORGANIZER_ID);
+      EventDto result = service.updateEventMetadata(EVENT_ID, new UpdateEventDto(null, null));
 
       assertThat(result.title()).isEqualTo(stored.getTitle());
       assertThat(result.eventDate()).isEqualTo(stored.getEventDate());
@@ -271,18 +256,18 @@ class EventServiceTest {
   class ListOwnEvents {
 
     @Test
-    void listOwnEvents_whenEventsExist_returnsItemsWrappedInResponse() {
+    void listOwnEvents_whenOrganiser_returnsOwnEventsFilteredByOrganizerId() {
       Event one = sampleEvent("evt-1", ORGANIZER_ID, EventStatus.draft);
       Event two = sampleEvent("evt-2", ORGANIZER_ID, EventStatus.published);
       when(repository.search(
-              org.mockito.ArgumentMatchers.any(
-                  org.springframework.data.jpa.domain.Specification.class),
-              org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class)))
+              any(org.springframework.data.jpa.domain.Specification.class),
+              any(org.springframework.data.domain.Pageable.class)))
           .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(one, two)));
 
       var response =
           service.listOwnEvents(
               ORGANIZER_ID,
+              false,
               null,
               null,
               null,
@@ -293,33 +278,6 @@ class EventServiceTest {
       assertThat(response.page().items()).hasSize(2);
       assertThat(response.page().total()).isEqualTo(2);
       assertThat(response.page().hasMore()).isFalse();
-      assertThat(response.page().items().get(0).id()).isEqualTo("evt-1");
-    }
-  }
-
-  @Nested
-  class OwnershipEnforcement {
-
-    @Test
-    void updateLocations_whenCallerIsNotOrganizer_throwsBusinessError() {
-      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
-      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-
-      var dto = new LocationsPayloadDto(List.of());
-
-      assertThatThrownBy(() -> service.updateLocations(EVENT_ID, dto, OTHER_USER_ID))
-          .isInstanceOf(BusinessError.class);
-    }
-
-    @Test
-    void deleteEvent_whenCallerIsNotOrganizer_throwsBusinessError() {
-      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
-      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-
-      assertThatThrownBy(() -> service.deleteEvent(EVENT_ID, OTHER_USER_ID))
-          .isInstanceOf(BusinessError.class);
-      org.mockito.Mockito.verify(repository, org.mockito.Mockito.never())
-          .deleteById(org.mockito.ArgumentMatchers.anyString());
     }
   }
 

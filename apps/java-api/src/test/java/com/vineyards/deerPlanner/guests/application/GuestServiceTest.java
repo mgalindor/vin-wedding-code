@@ -96,7 +96,7 @@ class GuestServiceTest {
   }
 
   private void verifyOwnershipPasses() {
-    when(eventApi.getEvent(eq(EVENT_ID), eq(ORGANIZER_ID)))
+    when(eventApi.getEvent(eq(EVENT_ID)))
         .thenReturn(
             new EventDto(
                 EVENT_ID,
@@ -129,7 +129,7 @@ class GuestServiceTest {
 
     @Test
     void listGroups_whenCallerIsNotOwner_throwsBusinessError() {
-      when(eventApi.getEvent(eq(EVENT_ID), eq("intruder")))
+      when(eventApi.getEvent(eq(EVENT_ID)))
           .thenThrow(new BusinessError("not_event_owner", "Not the event organiser"));
 
       assertThatThrownBy(() -> service.listGroups(EVENT_ID, "intruder"))
@@ -326,7 +326,7 @@ class GuestServiceTest {
 
     @Test
     void listGuests_whenEventDoesNotExist_throwsResourceNotFound() {
-      when(eventApi.getEvent(eq(EVENT_ID), any(String.class)))
+      when(eventApi.getEvent(eq(EVENT_ID)))
           .thenThrow(
               new ResourceNotFoundError("event_not_found", "Event " + EVENT_ID + " not found"));
 
@@ -345,7 +345,7 @@ class GuestServiceTest {
     @Test
     void deleteGroup_whenCallerIsNotOwner_doesNotInvokeRepository() {
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(sampleGroup(GROUP_ID)));
-      when(eventApi.getEvent(eq(EVENT_ID), eq("intruder")))
+      when(eventApi.getEvent(eq(EVENT_ID)))
           .thenThrow(new BusinessError("not_event_owner", "Not the event organiser"));
 
       assertThatThrownBy(() -> service.deleteGroup(GROUP_ID, "intruder"))

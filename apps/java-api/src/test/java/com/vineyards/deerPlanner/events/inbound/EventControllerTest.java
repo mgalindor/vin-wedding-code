@@ -121,8 +121,7 @@ class EventControllerTest {
 
   @Test
   void getEventById_whenEventExists_returns200WithEventDto() throws Exception {
-    when(eventApi.getEvent(eq("evt-1"), eq(ORGANIZER_ID)))
-        .thenReturn(sampleDto("evt-1", EventStatus.draft));
+    when(eventApi.getEvent(eq("evt-1"))).thenReturn(sampleDto("evt-1", EventStatus.draft));
 
     mvc.perform(get("/api/v1/events/{id}", "evt-1").with(authorizedUser()))
         .andExpect(status().isOk())
@@ -132,7 +131,7 @@ class EventControllerTest {
 
   @Test
   void getEventById_whenEventMissing_returns404ProblemDetail() throws Exception {
-    when(eventApi.getEvent(eq("missing"), eq(ORGANIZER_ID)))
+    when(eventApi.getEvent(eq("missing")))
         .thenThrow(new ResourceNotFoundError("event_not_found", "Event missing not found"));
 
     mvc.perform(get("/api/v1/events/{id}", "missing").with(authorizedUser()))
@@ -162,6 +161,7 @@ class EventControllerTest {
                 Instant.parse("2026-08-01T10:00:00Z")));
     when(eventApi.listOwnEvents(
             org.mockito.ArgumentMatchers.eq(ORGANIZER_ID),
+            org.mockito.ArgumentMatchers.eq(false),
             org.mockito.ArgumentMatchers.isNull(),
             org.mockito.ArgumentMatchers.isNull(),
             org.mockito.ArgumentMatchers.isNull(),
@@ -182,7 +182,7 @@ class EventControllerTest {
 
   @Test
   void patchEventById_withPartialDto_returns200WithUpdatedTitle() throws Exception {
-    when(eventApi.updateEventMetadata(eq("evt-1"), any(UpdateEventDto.class), eq(ORGANIZER_ID)))
+    when(eventApi.updateEventMetadata(eq("evt-1"), any(UpdateEventDto.class)))
         .thenReturn(sampleDto("evt-1", EventStatus.draft));
 
     mvc.perform(
@@ -202,13 +202,12 @@ class EventControllerTest {
     mvc.perform(delete("/api/v1/events/{id}", "evt-1").with(authorizedUser()))
         .andExpect(status().isNoContent());
 
-    org.mockito.Mockito.verify(eventApi).deleteEvent(eq("evt-1"), eq(ORGANIZER_ID));
+    org.mockito.Mockito.verify(eventApi).deleteEvent(eq("evt-1"));
   }
 
   @Test
   void archiveEventById_whenEventIsPublished_returns200WithArchivedStatus() throws Exception {
-    when(eventApi.archiveEvent(eq("evt-1"), eq(ORGANIZER_ID)))
-        .thenReturn(sampleDto("evt-1", EventStatus.archived));
+    when(eventApi.archiveEvent(eq("evt-1"))).thenReturn(sampleDto("evt-1", EventStatus.archived));
 
     mvc.perform(post("/api/v1/events/{id}/archive", "evt-1").with(authorizedUser()))
         .andExpect(status().isOk())
@@ -237,7 +236,7 @@ class EventControllerTest {
 
   @Test
   void putLocations_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateLocations(eq("evt-1"), any(LocationsPayloadDto.class), eq(ORGANIZER_ID)))
+    when(eventApi.updateLocations(eq("evt-1"), any(LocationsPayloadDto.class)))
         .thenReturn(sampleDto("evt-1", EventStatus.draft));
 
     mvc.perform(
@@ -255,7 +254,7 @@ class EventControllerTest {
         .andExpect(status().isOk());
 
     org.mockito.Mockito.verify(eventApi)
-        .updateLocations(eq("evt-1"), any(LocationsPayloadDto.class), eq(ORGANIZER_ID));
+        .updateLocations(eq("evt-1"), any(LocationsPayloadDto.class));
   }
 
   @Test
@@ -273,7 +272,7 @@ class EventControllerTest {
 
   @Test
   void putProgram_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateProgram(eq("evt-1"), any(ProgramPayloadDto.class), eq(ORGANIZER_ID)))
+    when(eventApi.updateProgram(eq("evt-1"), any(ProgramPayloadDto.class)))
         .thenReturn(sampleDto("evt-1", EventStatus.draft));
 
     mvc.perform(
@@ -297,7 +296,7 @@ class EventControllerTest {
 
   @Test
   void putContacts_withValidPayload_returns200() throws Exception {
-    when(eventApi.updateContacts(eq("evt-1"), any(ContactsPayloadDto.class), eq(ORGANIZER_ID)))
+    when(eventApi.updateContacts(eq("evt-1"), any(ContactsPayloadDto.class)))
         .thenReturn(sampleDto("evt-1", EventStatus.draft));
 
     mvc.perform(

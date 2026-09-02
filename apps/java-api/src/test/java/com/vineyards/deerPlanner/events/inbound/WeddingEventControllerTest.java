@@ -73,7 +73,7 @@ class WeddingEventControllerTest {
 
   @Test
   void getWeddingDetail_returns200WithDetail() throws Exception {
-    when(weddingApi.getWeddingDetail(eq("evt-1"), eq(ORGANIZER_ID))).thenReturn(sampleDetail());
+    when(weddingApi.getWeddingDetail(eq("evt-1"))).thenReturn(sampleDetail());
 
     mvc.perform(get("/api/v1/events/{id}/wedding-detail", "evt-1").with(authorizedUser()))
         .andExpect(status().isOk())
@@ -85,8 +85,7 @@ class WeddingEventControllerTest {
 
   @Test
   void putWeddingDetail_withPartialPayload_returns200() throws Exception {
-    when(weddingApi.updateWeddingDetail(eq("evt-1"), any(), eq(ORGANIZER_ID)))
-        .thenReturn(sampleDetail());
+    when(weddingApi.updateWeddingDetail(eq("evt-1"), any())).thenReturn(sampleDetail());
 
     mvc.perform(
             put("/api/v1/events/{id}/wedding-detail", "evt-1")
@@ -101,8 +100,7 @@ class WeddingEventControllerTest {
 
   @Test
   void putWeddingLanding_withValidPayload_returns200() throws Exception {
-    when(weddingApi.updateWeddingLanding(
-            eq("evt-1"), any(WeddingLandingPayloadDto.class), eq(ORGANIZER_ID)))
+    when(weddingApi.updateWeddingLanding(eq("evt-1"), any(WeddingLandingPayloadDto.class)))
         .thenReturn(sampleDetail());
 
     mvc.perform(
@@ -131,8 +129,7 @@ class WeddingEventControllerTest {
 
   @Test
   void putWeddingStory_whenBodyPresent_returns200() throws Exception {
-    when(weddingApi.updateWeddingStory(
-            eq("evt-1"), any(WeddingStoryPayloadDto.class), eq(ORGANIZER_ID)))
+    when(weddingApi.updateWeddingStory(eq("evt-1"), any(WeddingStoryPayloadDto.class)))
         .thenReturn(sampleDetail());
 
     mvc.perform(
@@ -162,7 +159,7 @@ class WeddingEventControllerTest {
   @Test
   void putWeddingGiftRegistry_withValidPayload_returns200() throws Exception {
     when(weddingApi.updateWeddingGiftRegistry(
-            eq("evt-1"), any(WeddingGiftRegistryPayloadDto.class), eq(ORGANIZER_ID)))
+            eq("evt-1"), any(WeddingGiftRegistryPayloadDto.class)))
         .thenReturn(sampleDetail());
 
     mvc.perform(
@@ -183,8 +180,7 @@ class WeddingEventControllerTest {
 
   @Test
   void putWeddingParents_withValidPayload_returns200() throws Exception {
-    when(weddingApi.updateWeddingParents(
-            eq("evt-1"), any(WeddingParentsPayloadDto.class), eq(ORGANIZER_ID)))
+    when(weddingApi.updateWeddingParents(eq("evt-1"), any(WeddingParentsPayloadDto.class)))
         .thenReturn(sampleDetail());
 
     mvc.perform(
@@ -204,7 +200,7 @@ class WeddingEventControllerTest {
   @Test
   void putWeddingAccommodation_withValidPayload_returns200() throws Exception {
     when(weddingApi.updateWeddingAccommodation(
-            eq("evt-1"), any(WeddingAccommodationPayloadDto.class), eq(ORGANIZER_ID)))
+            eq("evt-1"), any(WeddingAccommodationPayloadDto.class)))
         .thenReturn(sampleDetail());
 
     mvc.perform(

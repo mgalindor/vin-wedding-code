@@ -15,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -29,76 +27,76 @@ import org.springframework.web.bind.annotation.RestController;
  * and is the single owner of the wedding detail row. Future event-type extensions (birthday,
  * anniversary, corporate) follow the same shape — one controller per type, all under the same
  * parent path.
+ *
+ * <p>Same authorisation model as {@link EventController}: class-level role gate plus per-method
+ * ownership check via the {@code @eventSecurity} SpEL bean.
  */
 @Slf4j
 @RestController
 @PrimaryAdapter
-@PreAuthorize("hasRole('EventOrganizer')")
+@PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/events/{eventId}")
 @SecurityRequirement(name = "bearerAuth")
 public class WeddingEventController {
 
+  private static final String OWNER_EXPR =
+      "hasRole('Administrator') or @eventSecurity.isOwner(#eventId, authentication.name)";
+
   private final WeddingEventInPort weddingApi;
 
   @GetMapping("/wedding-detail")
-  public WeddingDetailDto get(@PathVariable String eventId, @AuthenticationPrincipal Jwt jwt) {
-    return weddingApi.getWeddingDetail(eventId, jwt.getSubject());
+  @PreAuthorize(OWNER_EXPR)
+  public WeddingDetailDto get(@PathVariable String eventId) {
+    return weddingApi.getWeddingDetail(eventId);
   }
 
   @PutMapping("/wedding-detail")
+  @PreAuthorize(OWNER_EXPR)
   public WeddingDetailDto updateDetail(
-      @PathVariable String eventId,
-      @Valid @RequestBody UpdateWeddingDetailDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return weddingApi.updateWeddingDetail(eventId, body, jwt.getSubject());
+      @PathVariable String eventId, @Valid @RequestBody UpdateWeddingDetailDto body) {
+    return weddingApi.updateWeddingDetail(eventId, body);
   }
 
   @PutMapping("/wedding-landing")
+  @PreAuthorize(OWNER_EXPR)
   public WeddingDetailDto updateLanding(
-      @PathVariable String eventId,
-      @Valid @RequestBody WeddingLandingPayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return weddingApi.updateWeddingLanding(eventId, body, jwt.getSubject());
+      @PathVariable String eventId, @Valid @RequestBody WeddingLandingPayloadDto body) {
+    return weddingApi.updateWeddingLanding(eventId, body);
   }
 
   @PutMapping("/wedding-story")
+  @PreAuthorize(OWNER_EXPR)
   public WeddingDetailDto updateStory(
-      @PathVariable String eventId,
-      @Valid @RequestBody WeddingStoryPayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return weddingApi.updateWeddingStory(eventId, body, jwt.getSubject());
+      @PathVariable String eventId, @Valid @RequestBody WeddingStoryPayloadDto body) {
+    return weddingApi.updateWeddingStory(eventId, body);
   }
 
   @PutMapping("/wedding-dress-code")
+  @PreAuthorize(OWNER_EXPR)
   public WeddingDetailDto updateDressCode(
-      @PathVariable String eventId,
-      @Valid @RequestBody WeddingDressCodePayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return weddingApi.updateWeddingDressCode(eventId, body, jwt.getSubject());
+      @PathVariable String eventId, @Valid @RequestBody WeddingDressCodePayloadDto body) {
+    return weddingApi.updateWeddingDressCode(eventId, body);
   }
 
   @PutMapping("/wedding-gift-registry")
+  @PreAuthorize(OWNER_EXPR)
   public WeddingDetailDto updateGiftRegistry(
-      @PathVariable String eventId,
-      @Valid @RequestBody WeddingGiftRegistryPayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return weddingApi.updateWeddingGiftRegistry(eventId, body, jwt.getSubject());
+      @PathVariable String eventId, @Valid @RequestBody WeddingGiftRegistryPayloadDto body) {
+    return weddingApi.updateWeddingGiftRegistry(eventId, body);
   }
 
   @PutMapping("/wedding-parents")
+  @PreAuthorize(OWNER_EXPR)
   public WeddingDetailDto updateParents(
-      @PathVariable String eventId,
-      @Valid @RequestBody WeddingParentsPayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return weddingApi.updateWeddingParents(eventId, body, jwt.getSubject());
+      @PathVariable String eventId, @Valid @RequestBody WeddingParentsPayloadDto body) {
+    return weddingApi.updateWeddingParents(eventId, body);
   }
 
   @PutMapping("/wedding-accommodation")
+  @PreAuthorize(OWNER_EXPR)
   public WeddingDetailDto updateAccommodation(
-      @PathVariable String eventId,
-      @Valid @RequestBody WeddingAccommodationPayloadDto body,
-      @AuthenticationPrincipal Jwt jwt) {
-    return weddingApi.updateWeddingAccommodation(eventId, body, jwt.getSubject());
+      @PathVariable String eventId, @Valid @RequestBody WeddingAccommodationPayloadDto body) {
+    return weddingApi.updateWeddingAccommodation(eventId, body);
   }
 }

@@ -26,9 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Wedding-specific extension of {@link EventService}. Owns the {@code wedding_events} row,
  * including its creation, mutation and (eventually) deletion when an event type changes away from
- * wedding. Every method enforces two preconditions: (1) the calling user owns the event — delegated
- * to {@link EventInPort#getEvent}; (2) the event's type is actually {@code wedding}. The second
- * guard is what makes this a true extension rather than a free-form JSON store.
+ * wedding.
+ *
+ * <p>Authorisation (admin OR event organiser) is enforced by the inbound controller via SpEL
+ * {@code @PreAuthorize}. This service trusts the caller and only verifies the event-type guard: the
+ * wedding payloads only make sense for events of type {@code wedding}, so any other type is
+ * rejected with a domain error.
  */
 @Service
 @Application
@@ -44,8 +47,8 @@ public class WeddingEventService implements WeddingEventInPort {
 
   @Override
   @Transactional(readOnly = true)
-  public WeddingDetailDto getWeddingDetail(String eventId, String actorUserId) {
-    verifyWeddingEvent(eventId, actorUserId);
+  public WeddingDetailDto getWeddingDetail(String eventId) {
+    verifyWeddingEvent(eventId);
     return toDto(eventId, loadOrEmpty(eventId));
   }
 
@@ -59,9 +62,8 @@ public class WeddingEventService implements WeddingEventInPort {
 
   @Override
   @Transactional
-  public WeddingDetailDto updateWeddingDetail(
-      String eventId, UpdateWeddingDetailDto dto, String actorUserId) {
-    verifyWeddingEvent(eventId, actorUserId);
+  public WeddingDetailDto updateWeddingDetail(String eventId, UpdateWeddingDetailDto dto) {
+    verifyWeddingEvent(eventId);
     WeddingDetail current = loadOrEmpty(eventId);
     WeddingDetail updated =
         WeddingDetail.builder()
@@ -81,7 +83,7 @@ public class WeddingEventService implements WeddingEventInPort {
             .accommodationPayload(current.getAccommodationPayload())
             .build();
     repository.save(eventId, updated);
-    log.info("wedding_event.detail_updated eventId={} actorUserId={}", eventId, actorUserId);
+    log.info("wedding_event.detail_updated eventId={}", eventId);
     return toDto(eventId, updated);
   }
 
@@ -89,79 +91,61 @@ public class WeddingEventService implements WeddingEventInPort {
 
   @Override
   @Transactional
-  public WeddingDetailDto updateWeddingLanding(
-      String eventId, WeddingLandingPayloadDto dto, String actorUserId) {
+  public WeddingDetailDto updateWeddingLanding(String eventId, WeddingLandingPayloadDto dto) {
     return mutatePayload(
-        eventId, actorUserId, d -> d.setLandingPayload(payloadMapper.toPayload(dto)), "landing");
+        eventId, d -> d.setLandingPayload(payloadMapper.toPayload(dto)), "landing");
   }
 
   @Override
   @Transactional
-  public WeddingDetailDto updateWeddingStory(
-      String eventId, WeddingStoryPayloadDto dto, String actorUserId) {
-    return mutatePayload(
-        eventId, actorUserId, d -> d.setStoryPayload(payloadMapper.toPayload(dto)), "story");
+  public WeddingDetailDto updateWeddingStory(String eventId, WeddingStoryPayloadDto dto) {
+    return mutatePayload(eventId, d -> d.setStoryPayload(payloadMapper.toPayload(dto)), "story");
   }
 
   @Override
   @Transactional
-  public WeddingDetailDto updateWeddingDressCode(
-      String eventId, WeddingDressCodePayloadDto dto, String actorUserId) {
+  public WeddingDetailDto updateWeddingDressCode(String eventId, WeddingDressCodePayloadDto dto) {
     return mutatePayload(
-        eventId,
-        actorUserId,
-        d -> d.setDressCodePayload(payloadMapper.toPayload(dto)),
-        "dressCode");
+        eventId, d -> d.setDressCodePayload(payloadMapper.toPayload(dto)), "dressCode");
   }
 
   @Override
   @Transactional
   public WeddingDetailDto updateWeddingGiftRegistry(
-      String eventId, WeddingGiftRegistryPayloadDto dto, String actorUserId) {
+      String eventId, WeddingGiftRegistryPayloadDto dto) {
     return mutatePayload(
-        eventId,
-        actorUserId,
-        d -> d.setGiftRegistryPayload(payloadMapper.toPayload(dto)),
-        "giftRegistry");
+        eventId, d -> d.setGiftRegistryPayload(payloadMapper.toPayload(dto)), "giftRegistry");
   }
 
   @Override
   @Transactional
-  public WeddingDetailDto updateWeddingParents(
-      String eventId, WeddingParentsPayloadDto dto, String actorUserId) {
+  public WeddingDetailDto updateWeddingParents(String eventId, WeddingParentsPayloadDto dto) {
     return mutatePayload(
-        eventId, actorUserId, d -> d.setParentsPayload(payloadMapper.toPayload(dto)), "parents");
+        eventId, d -> d.setParentsPayload(payloadMapper.toPayload(dto)), "parents");
   }
 
   @Override
   @Transactional
   public WeddingDetailDto updateWeddingAccommodation(
-      String eventId, WeddingAccommodationPayloadDto dto, String actorUserId) {
+      String eventId, WeddingAccommodationPayloadDto dto) {
     return mutatePayload(
-        eventId,
-        actorUserId,
-        d -> d.setAccommodationPayload(payloadMapper.toPayload(dto)),
-        "accommodation");
+        eventId, d -> d.setAccommodationPayload(payloadMapper.toPayload(dto)), "accommodation");
   }
 
   // ============== Helpers ==============
 
   private WeddingDetailDto mutatePayload(
-      String eventId, String actorUserId, Consumer<WeddingDetail> mutator, String section) {
-    verifyWeddingEvent(eventId, actorUserId);
+      String eventId, Consumer<WeddingDetail> mutator, String section) {
+    verifyWeddingEvent(eventId);
     WeddingDetail current = loadOrEmpty(eventId);
     mutator.accept(current);
     repository.save(eventId, current);
-    log.info(
-        "wedding_event.payload_updated eventId={} section={} actorUserId={}",
-        eventId,
-        section,
-        actorUserId);
+    log.info("wedding_event.payload_updated eventId={} section={}", eventId, section);
     return toDto(eventId, current);
   }
 
-  private void verifyWeddingEvent(String eventId, String actorUserId) {
-    var event = eventApi.getEvent(eventId, actorUserId);
+  private void verifyWeddingEvent(String eventId) {
+    var event = eventApi.getEvent(eventId);
     if (event.eventType() != EventType.wedding) {
       throw new BusinessError(
           "not_wedding_event",
