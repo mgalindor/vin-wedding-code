@@ -2,6 +2,7 @@ package com.vineyards.deerPlanner.invitation.inbound;
 
 import com.vineyards.deerPlanner.invitation.facade.InvitationTemplateInPort;
 import com.vineyards.deerPlanner.invitation.facade.dto.ListInvitationTemplatesResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @RequiredArgsConstructor
 @Slf4j
+@SecurityRequirement(name = "bearerAuth")
 public class InvitationTemplatesController {
 
   private final InvitationTemplateInPort templateApi;

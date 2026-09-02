@@ -9,6 +9,7 @@ import com.vineyards.deerPlanner.events.facade.dto.WeddingGiftRegistryPayloadDto
 import com.vineyards.deerPlanner.events.facade.dto.WeddingLandingPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingParentsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingStoryPayloadDto;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('EventOrganizer')")
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/events/{eventId}")
+@SecurityRequirement(name = "bearerAuth")
 public class WeddingEventController {
 
   private final WeddingEventInPort weddingApi;

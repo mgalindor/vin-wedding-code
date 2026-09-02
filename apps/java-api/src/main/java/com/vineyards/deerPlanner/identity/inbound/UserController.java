@@ -5,6 +5,7 @@ import com.vineyards.deerPlanner.identity.facade.dto.CreateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UpdateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UserResponse;
 import com.vineyards.deerPlanner.shared.web.PagedResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -47,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PrimaryAdapter
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/v1/users")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
   private static final String ADMIN = "Administrator";

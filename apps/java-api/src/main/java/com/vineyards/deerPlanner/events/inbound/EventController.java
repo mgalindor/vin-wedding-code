@@ -8,6 +8,7 @@ import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.LocalDate;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/v1/events")
 @PreAuthorize("hasRole('EventOrganizer')")
+@SecurityRequirement(name = "bearerAuth")
 public class EventController {
 
   private final EventInPort eventApi;

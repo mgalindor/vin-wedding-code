@@ -7,6 +7,7 @@ import com.vineyards.deerPlanner.guests.facade.dto.ListGuestGroupsResponse;
 import com.vineyards.deerPlanner.guests.facade.dto.RsvpUpdateDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.UpdateGuestGroupPrimaryDto;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @PreAuthorize("hasAnyRole('EventOrganizer', 'Administrator')")
 @RequiredArgsConstructor
 @Slf4j
+@SecurityRequirement(name = "bearerAuth")
 public class GuestGroupsController {
 
   private final GuestInPort guestApi;
