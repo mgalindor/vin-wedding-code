@@ -78,10 +78,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   remarks: Soft delete flag for Hibernate @SoftDelete. Rows are never physically removed.
-        - addCheckConstraint:
-            tableName: invitation_templates
-            constraintName: ck_invitation_templates_event_type
-            checkConstraint: "event_type IN ('wedding','birthday','anniversary','corporate','other')"
+        - sql:
+            sql: >
+              ALTER TABLE invitation_templates
+              ADD CONSTRAINT ck_invitation_templates_event_type
+              CHECK (event_type IN ('wedding','birthday','anniversary','corporate','other'));
         - createIndex:
             tableName: invitation_templates
             indexName: idx_invitation_templates_active
@@ -103,37 +104,37 @@ databaseChangeLog:
               INSERT INTO invitation_templates
                 (id, code, event_type, name, description, is_active, display_order, created_at, updated_at)
               VALUES
-                ('tpl-wedding-romantic-v1',   'wedding-romantic-v1',   'wedding',
+                ('dab16cgoqp9m313gnat0',   'wedding-romantic-v1',   'wedding',
                  'Romantic Garden', 'Elegant garden wedding template with blush palette and serif headings.',
                  true, 1, now(), now()),
-                ('tpl-wedding-classic-v1',    'wedding-classic-v1',    'wedding',
+                ('dab16tooqp9m313gnetg',    'wedding-classic-v1',    'wedding',
                  'Classic Hall',    'Traditional church-and-hall wedding template with gold accents.',
                  true, 2, now(), now()),
-                ('tpl-wedding-modern-v1',     'wedding-modern-v1',     'wedding',
+                ('dab16vooqp9m313gniu0',     'wedding-modern-v1',     'wedding',
                  'Modern Minimal',  'Contemporary minimalist template with monospace headings.',
                  true, 3, now(), now()),
-                ('tpl-wedding-beach-v1',      'wedding-beach-v1',      'wedding',
+                ('dab171goqp9m313gnmug',      'wedding-beach-v1',      'wedding',
                  'Beachside',       'Airy coastal template with sand-and-sea palette.',
                  true, 4, now(), now()),
-                ('tpl-birthday-colorful-v1',  'birthday-colorful-v1',  'birthday',
+                ('dab173goqp9m313gnqv0',  'birthday-colorful-v1',  'birthday',
                  'Colorful Fiesta', 'Vibrant birthday template with balloons and confetti.',
                  true, 1, now(), now()),
-                ('tpl-birthday-elegant-v1',   'birthday-elegant-v1',   'birthday',
+                ('dab1760oqp9m313go300',   'birthday-elegant-v1',   'birthday',
                  'Tea Party',       'Refined birthday template for an afternoon tea.',
                  true, 2, now(), now()),
-                ('tpl-birthday-kid-v1',      'birthday-kid-v1',      'birthday',
+                ('dab1788oqp9m313go70g',      'birthday-kid-v1',      'birthday',
                  'Kids Carnival',   'Bright playful template for a children birthday.',
                  true, 3, now(), now()),
-                ('tpl-anniversary-gold-v1',   'anniversary-gold-v1',   'anniversary',
+                ('dab17a8oqp9m313gob10',   'anniversary-gold-v1',   'anniversary',
                  'Gold Jubilee',    'Golden-themed anniversary template.',
                  true, 1, now(), now()),
-                ('tpl-corporate-conf-v1',    'corporate-conf-v1',    'corporate',
+                ('dab17c0oqp9m313gof1g',    'corporate-conf-v1',    'corporate',
                  'Conference',      'Professional conference invitation template.',
                  true, 1, now(), now()),
-                ('tpl-corporate-launch-v1',  'corporate-launch-v1',  'corporate',
+                ('dab17dooqp9m313goj20',  'corporate-launch-v1',  'corporate',
                  'Product Launch',  'Sleek launch event template.',
                  true, 2, now(), now()),
-                ('tpl-other-generic-v1',     'other-generic-v1',     'other',
+                ('dab17fgoqp9m313gon2g',     'other-generic-v1',     'other',
                  'Generic Event',   'Neutral template for any non-cataloged event type.',
                  true, 1, now(), now());
             remarks: >

@@ -2,8 +2,8 @@ services:
   postgres:
     image: postgres:17
     environment:
-      POSTGRES_USER: wendy
-      POSTGRES_PASSWORD: wendy
-      POSTGRES_DB: wendy
+      POSTGRES_USER: deer_planner
+      POSTGRES_PASSWORD: pa55word
+      POSTGRES_DB: deer_planner
     ports:
       - "5432:5432"

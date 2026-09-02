@@ -18,6 +18,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -186,6 +187,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   protected ProblemDetail onUserNotFound(UserNotFoundException ex, WebRequest request) {
     return createProblemDetail(
         ex, HttpStatus.NOT_FOUND, "user_not_found", "user_not_found", null, request);
+  }
+
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  protected ProblemDetail onAuthorizationDenied(
+      AuthorizationDeniedException ex, WebRequest request) {
+    return createProblemDetail(
+        ex, HttpStatus.FORBIDDEN, "Access Denied", "access_denied", null, request);
   }
 
   @ExceptionHandler(Exception.class)
