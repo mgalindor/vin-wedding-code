@@ -3,6 +3,7 @@ package com.vineyards.deerPlanner.events.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -17,12 +18,12 @@ import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import com.vineyards.deerPlanner.events.facade.mapper.EventPayloadMapper;
+import com.vineyards.deerPlanner.identity.facade.UserInPort;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,19 +45,20 @@ class EventServiceTest {
 
   @Mock EventOutPort repository;
   @Mock EventPayloadMapper payloadMapper;
+  @Mock UserInPort userApi;
 
   EventService service;
 
   @BeforeEach
   void setUp() {
-    service = new EventService(repository, payloadMapper);
+    service = new EventService(repository, payloadMapper, userApi);
   }
 
   @Nested
   class CreateEvent {
 
     @Test
-    void createEvent_persistsWithDraftStatusAndUuidId() {
+    void createEvent_persistsWithDraftStatusAndIdLeftNullForXidGenerator() {
       var dto = new CreateEventDto("Maya & Luis", EventType.wedding, LocalDate.now().plusDays(180));
 
       ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
@@ -66,13 +68,13 @@ class EventServiceTest {
 
       verify(repository).save(captor.capture());
       Event saved = captor.getValue();
-      assertThat(saved.getId()).isNotBlank();
-      assertThat(UUID.fromString(saved.getId())).isNotNull();
+      // id is intentionally null here — the @XidId BeforeExecutionGenerator assigns the Xid at
+      // INSERT time inside the adapter. The service must not pre-populate it.
+      assertThat(saved.getId()).isNull();
       assertThat(saved.getOrganizerId()).isEqualTo(ORGANIZER_ID);
       assertThat(saved.getStatus()).isEqualTo(EventStatus.draft);
       assertThat(saved.getTitle()).isEqualTo("Maya & Luis");
       assertThat(saved.getEventType()).isEqualTo(EventType.wedding);
-      assertThat(result.id()).isEqualTo(saved.getId());
     }
 
     @Test
@@ -256,28 +258,66 @@ class EventServiceTest {
   class ListOwnEvents {
 
     @Test
-    void listOwnEvents_whenOrganiser_returnsOwnEventsFilteredByOrganizerId() {
+    void listOwnEvents_whenOrganiser_passesFilterScopedToOrganizer() {
       Event one = sampleEvent("evt-1", ORGANIZER_ID, EventStatus.draft);
       Event two = sampleEvent("evt-2", ORGANIZER_ID, EventStatus.published);
+      org.mockito.ArgumentCaptor<com.vineyards.deerPlanner.events.application.port.EventFilter>
+          filterCaptor =
+              org.mockito.ArgumentCaptor.forClass(
+                  com.vineyards.deerPlanner.events.application.port.EventFilter.class);
       when(repository.search(
-              any(org.springframework.data.jpa.domain.Specification.class),
-              any(org.springframework.data.domain.Pageable.class)))
+              filterCaptor.capture(), any(org.springframework.data.domain.Pageable.class)))
           .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(one, two)));
 
       var response =
           service.listOwnEvents(
               ORGANIZER_ID,
               false,
-              null,
-              null,
-              null,
-              null,
-              null,
+              "birth",
+              "draft",
+              "wedding",
+              java.time.LocalDate.of(2027, 1, 1),
+              java.time.LocalDate.of(2027, 12, 31),
               org.springframework.data.domain.Pageable.unpaged());
 
       assertThat(response.page().items()).hasSize(2);
       assertThat(response.page().total()).isEqualTo(2);
       assertThat(response.page().hasMore()).isFalse();
+
+      com.vineyards.deerPlanner.events.application.port.EventFilter passed =
+          filterCaptor.getValue();
+      assertThat(passed.organizerId()).isEqualTo(ORGANIZER_ID);
+      assertThat(passed.q()).isEqualTo("birth");
+      assertThat(passed.status()).isEqualTo("draft");
+      assertThat(passed.eventType()).isEqualTo("wedding");
+      assertThat(passed.eventDateFrom()).isEqualTo(java.time.LocalDate.of(2027, 1, 1));
+      assertThat(passed.eventDateTo()).isEqualTo(java.time.LocalDate.of(2027, 12, 31));
+    }
+
+    @Test
+    void listOwnEvents_whenAdmin_passesFilterWithNullOrganizer() {
+      when(repository.search(
+              any(com.vineyards.deerPlanner.events.application.port.EventFilter.class),
+              any(org.springframework.data.domain.Pageable.class)))
+          .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
+
+      service.listOwnEvents(
+          ORGANIZER_ID,
+          true,
+          null,
+          null,
+          null,
+          null,
+          null,
+          org.springframework.data.domain.Pageable.unpaged());
+
+      org.mockito.ArgumentCaptor<com.vineyards.deerPlanner.events.application.port.EventFilter>
+          filterCaptor =
+              org.mockito.ArgumentCaptor.forClass(
+                  com.vineyards.deerPlanner.events.application.port.EventFilter.class);
+      org.mockito.Mockito.verify(repository)
+          .search(filterCaptor.capture(), any(org.springframework.data.domain.Pageable.class));
+      assertThat(filterCaptor.getValue().organizerId()).isNull();
     }
   }
 
@@ -294,5 +334,72 @@ class EventServiceTest {
         null,
         Instant.now(),
         Instant.now());
+  }
+
+  // ============================================================
+  // Reassign organiser (admin only — authorisation enforced at the controller)
+  // ============================================================
+
+  @Nested
+  class ReassignOrganizer {
+
+    @Test
+    void reassignOrganizer_whenNewOrganizerIsActive_persistsAndReturnsUpdatedEvent() {
+      Event stored = sampleEvent(EVENT_ID, "old-org", EventStatus.draft);
+      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
+      when(userApi.existsActiveUser("new-org")).thenReturn(true);
+      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      var dto = new com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto("new-org");
+      var result = service.reassignOrganizer(EVENT_ID, dto, "admin-1");
+
+      ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
+      verify(repository).save(captor.capture());
+      assertThat(captor.getValue().getOrganizerId()).isEqualTo("new-org");
+      assertThat(result.organizerId()).isEqualTo("new-org");
+    }
+
+    @Test
+    void reassignOrganizer_whenNewOrganizerIsBlank_throwsBusinessError() {
+      var dto = new com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto("   ");
+
+      assertThatThrownBy(() -> service.reassignOrganizer(EVENT_ID, dto, "admin-1"))
+          .isInstanceOf(com.vineyards.deerPlanner.shared.exceptions.BusinessError.class)
+          .hasMessageContaining("organizer_id_required");
+      verify(repository, never()).save(any(Event.class));
+    }
+
+    @Test
+    void reassignOrganizer_whenNewOrganizerDoesNotExist_throwsNotFound() {
+      when(userApi.existsActiveUser("ghost")).thenReturn(false);
+
+      var dto = new com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto("ghost");
+      assertThatThrownBy(() -> service.reassignOrganizer(EVENT_ID, dto, "admin-1"))
+          .isInstanceOf(com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError.class);
+      verify(repository, never()).findById(any(String.class));
+    }
+
+    @Test
+    void reassignOrganizer_whenEventDoesNotExist_throwsNotFound() {
+      when(userApi.existsActiveUser("new-org")).thenReturn(true);
+      when(repository.findById("missing")).thenReturn(Optional.empty());
+
+      var dto = new com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto("new-org");
+      assertThatThrownBy(() -> service.reassignOrganizer("missing", dto, "admin-1"))
+          .isInstanceOf(com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError.class);
+    }
+
+    @Test
+    void reassignOrganizer_whenSameOrganizer_isIdempotentNoSave() {
+      Event stored = sampleEvent(EVENT_ID, "same-org", EventStatus.draft);
+      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
+      when(userApi.existsActiveUser("same-org")).thenReturn(true);
+
+      var dto = new com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto("same-org");
+      var result = service.reassignOrganizer(EVENT_ID, dto, "admin-1");
+
+      assertThat(result.organizerId()).isEqualTo("same-org");
+      verify(repository, never()).save(any(Event.class));
+    }
   }
 }

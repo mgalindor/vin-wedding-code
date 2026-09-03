@@ -6,6 +6,7 @@ import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import java.time.LocalDate;
 import java.util.List;
@@ -52,6 +53,13 @@ public interface EventInPort {
   EventDto updateProgram(String eventId, ProgramPayloadDto dto);
 
   EventDto updateContacts(String eventId, ContactsPayloadDto dto);
+
+  /**
+   * Admin-only: reassigns the organiser of an existing event. The new organiser must be an
+   * existing, active user (validated via {@code UserInPort.existsActiveUser}). Throws {@code
+   * ResourceNotFoundError} if either the event or the target user is missing.
+   */
+  EventDto reassignOrganizer(String eventId, ReassignOrganizerDto dto, String actorUserId);
 
   /** Internal use by other modules; no auth at this layer. */
   List<EventDto> findByOrganizer(String organizerUserId);

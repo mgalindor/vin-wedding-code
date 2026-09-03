@@ -1,5 +1,6 @@
 package com.vineyards.deerPlanner.events.outbound;
 
+import com.vineyards.deerPlanner.events.application.port.EventFilter;
 import com.vineyards.deerPlanner.events.application.port.EventOutPort;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
@@ -32,6 +33,7 @@ public class EventRepositoryAdapter implements EventOutPort {
   @Transactional
   public Event save(Event event) {
     EventEntity entity = toEntity(event);
+    entity.setId(null); // ensure new entity for INSERT, not UPDATE
     EventEntity saved = eventJpa.save(entity);
     return toDomain(saved);
   }
@@ -44,8 +46,42 @@ public class EventRepositoryAdapter implements EventOutPort {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<Event> search(Specification<EventEntity> spec, Pageable pageable) {
-    return eventJpa.findAll(spec, pageable).map(this::toDomain);
+  public Page<Event> search(EventFilter filter, Pageable pageable) {
+    return eventJpa.findAll(toSpecification(filter), pageable).map(this::toDomain);
+  }
+
+  /**
+   * Translates the technology-agnostic {@link EventFilter} into a JPA {@link Specification}. Lives
+   * in the adapter because {@code Specification} is a JPA construct and must not leak into the
+   * application or port layers.
+   */
+  private static Specification<EventEntity> toSpecification(EventFilter filter) {
+    Specification<EventEntity> spec = Specification.unrestricted();
+    if (filter.organizerId() != null) {
+      spec = spec.and((root, q, cb) -> cb.equal(root.get("organizerId"), filter.organizerId()));
+    }
+    if (filter.q() != null && !filter.q().isBlank()) {
+      String pattern = "%" + filter.q().toLowerCase().trim() + "%";
+      spec = spec.and((root, q, cb) -> cb.like(cb.lower(root.get("title")), pattern));
+    }
+    if (filter.status() != null && !filter.status().isBlank()) {
+      spec = spec.and((root, q, cb) -> cb.equal(root.get("status"), filter.status()));
+    }
+    if (filter.eventType() != null && !filter.eventType().isBlank()) {
+      spec = spec.and((root, q, cb) -> cb.equal(root.get("eventType"), filter.eventType()));
+    }
+    if (filter.eventDateFrom() != null) {
+      spec =
+          spec.and(
+              (root, q, cb) ->
+                  cb.greaterThanOrEqualTo(root.get("eventDate"), filter.eventDateFrom()));
+    }
+    if (filter.eventDateTo() != null) {
+      spec =
+          spec.and(
+              (root, q, cb) -> cb.lessThanOrEqualTo(root.get("eventDate"), filter.eventDateTo()));
+    }
+    return spec;
   }
 
   @Override

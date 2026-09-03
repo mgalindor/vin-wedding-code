@@ -49,4 +49,10 @@ public interface UserOutPort {
   org.springframework.data.domain.Page<User> search(
       org.springframework.data.jpa.domain.Specification<UserEntity> spec,
       org.springframework.data.domain.Pageable pageable);
+
+  /**
+   * Lightweight existence check for cross-module flows. Returns false for unknown, soft-deleted, or
+   * disabled users. Implemented via {@code findActiveById(...).isPresent()}.
+   */
+  boolean existsActiveById(String id);
 }

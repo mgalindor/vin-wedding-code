@@ -85,10 +85,10 @@ public class UserRepositoryAdapter implements UserOutPort {
     }
     UserEntity saved = userJpa.save(existing);
 
-    // Roles are a full replacement — the API takes a Set, not a delta.
-    List<UserRoleEntity> existingRoles = userRoleJpa.findByIdUserId(saved.getId());
-    userRoleJpa.deleteAll(existingRoles);
-    userRoleJpa.flush();
+    // Roles are a full replacement — the API takes a Set, not a delta. Bulk delete via
+    // @Modifying @Query runs the DELETE in its own statement, so the subsequent INSERT batch
+    // can't trip the unique constraint on (user_id, role) when the new set overlaps the old.
+    userRoleJpa.deleteAllRolesForUser(saved.getId());
     Instant grantedAt = Instant.now();
     for (Role role : user.getRoles()) {
       UserRoleEntity roleEntity =
@@ -129,6 +129,11 @@ public class UserRepositoryAdapter implements UserOutPort {
     // disappears from every subsequent JPA query via the @SQLRestriction filter.
     userJpa.deleteById(id);
     log.info("user.deleted userId={}", id);
+  }
+
+  @Override
+  public boolean existsActiveById(String id) {
+    return userJpa.findActiveById(id).isPresent();
   }
 
   @Override

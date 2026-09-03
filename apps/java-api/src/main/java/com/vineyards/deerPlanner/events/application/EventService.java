@@ -1,5 +1,6 @@
 package com.vineyards.deerPlanner.events.application;
 
+import com.vineyards.deerPlanner.events.application.port.EventFilter;
 import com.vineyards.deerPlanner.events.application.port.EventOutPort;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
@@ -11,9 +12,10 @@ import com.vineyards.deerPlanner.events.facade.dto.EventSummaryDto;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import com.vineyards.deerPlanner.events.facade.mapper.EventPayloadMapper;
-import com.vineyards.deerPlanner.events.outbound.EventEntity;
+import com.vineyards.deerPlanner.identity.facade.UserInPort;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.web.PagedResponse;
@@ -21,13 +23,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,15 +51,14 @@ public class EventService implements EventInPort {
 
   private final EventOutPort repository;
   private final EventPayloadMapper payloadMapper;
+  private final UserInPort userApi;
 
   @Override
   @Transactional
   public EventDto createEvent(CreateEventDto dto, String actorUserId) {
-    String id = UUID.randomUUID().toString();
     Instant now = Instant.now();
     Event event =
         Event.builder()
-            .id(id)
             .organizerId(actorUserId)
             .eventType(dto.eventType())
             .title(dto.title())
@@ -97,31 +96,14 @@ public class EventService implements EventInPort {
       LocalDate eventDateFrom,
       LocalDate eventDateTo,
       Pageable pageable) {
-    Specification<EventEntity> spec = Specification.unrestricted();
-    // Admins see every event; organisers see only their own.
-    if (!actorIsAdmin) {
-      spec = spec.and((root, query, cb) -> cb.equal(root.get("organizerId"), actorUserId));
-    }
-    if (q != null && !q.isBlank()) {
-      String pattern = "%" + q.toLowerCase().trim() + "%";
-      spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("title")), pattern));
-    }
-    if (status != null && !status.isBlank()) {
-      spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
-    }
-    if (eventType != null && !eventType.isBlank()) {
-      spec = spec.and((root, query, cb) -> cb.equal(root.get("eventType"), eventType));
-    }
-    if (eventDateFrom != null) {
-      spec =
-          spec.and(
-              (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("eventDate"), eventDateFrom));
-    }
-    if (eventDateTo != null) {
-      spec =
-          spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("eventDate"), eventDateTo));
-    }
-    Page<Event> page = repository.search(spec, pageable);
+    // Admin scope: pass no organizerId (null = unfiltered). Organiser scope: scope to the actor.
+    // The adapter translates the technology-agnostic EventFilter into a JPA Specification.
+    EventFilter filter =
+        actorIsAdmin
+            ? EventFilter.unscoped(q, status, eventType, eventDateFrom, eventDateTo)
+            : EventFilter.forOrganizer(
+                actorUserId, q, status, eventType, eventDateFrom, eventDateTo);
+    Page<Event> page = repository.search(filter, pageable);
     PagedResponse<EventSummaryDto> mapped = PagedResponse.from(page, EventService::toSummary);
     return new PagedEventsResponse(mapped);
   }
@@ -198,6 +180,36 @@ public class EventService implements EventInPort {
     // apply (the calling module has already authenticated with Spring Security). The
     // repository scopes results to the organiser; we still assert the boundary here.
     return repository.findByOrganizerId(organizerUserId).stream().map(this::toDto).toList();
+  }
+
+  @Override
+  @Transactional
+  public EventDto reassignOrganizer(String eventId, ReassignOrganizerDto dto, String actorUserId) {
+    // Validate the target user is real, active, and not soft-deleted. The DTO already
+    // guarantees non-blank, but @NotBlank doesn't cover whitespace-only strings.
+    String newOrganizerId = dto.organizerId() == null ? "" : dto.organizerId().trim();
+    if (newOrganizerId.isEmpty()) {
+      throw new BusinessError("organizer_id_required", "organizerId is required");
+    }
+    if (!userApi.existsActiveUser(newOrganizerId)) {
+      throw new ResourceNotFoundError("user", newOrganizerId);
+    }
+    Event event = loadEvent(eventId);
+    String oldOrganizerId = event.getOrganizerId();
+    if (oldOrganizerId.equals(newOrganizerId)) {
+      // Idempotent no-op — return the current state without an UPDATE on the row.
+      return toDto(event);
+    }
+    event.setOrganizerId(newOrganizerId);
+    event.setUpdatedAt(Instant.now());
+    Event saved = repository.save(event);
+    log.info(
+        "event.organizer_reassigned eventId={} oldOrganizerId={} newOrganizerId={} actorUserId={}",
+        saved.getId(),
+        oldOrganizerId,
+        newOrganizerId,
+        actorUserId);
+    return toDto(saved);
   }
 
   @Override

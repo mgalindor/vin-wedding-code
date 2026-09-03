@@ -1,0 +1,34 @@
+meta {
+  name: Events — reassign organiser (admin only)
+  type: http
+  seq: 18
+}
+
+patch {
+  url: {{host}}/api/v1/events/{{eventId}}/organizer
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "organizerId": "dacbl3otjbinbhfolrog"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isString
+  res.body.organizerId: eq "dacbl3otjbinbhfolrog"
+}
+
+docs {
+  Admin reassigns the organiser of an existing event. The new organiserId must point
+  at an existing active user — here we reassign to the admin's own id (idempotent no-op
+  path: service detects old == new and skips the save). Returns 404 if the event or the
+  new organiser is missing.
+}

@@ -38,4 +38,11 @@ public interface UserInPort {
    * subsequent query — the user effectively disappears from the API. Admin-only.
    */
   void deleteUser(String userId, String actorUserId);
+
+  /**
+   * Lightweight existence check used by cross-module flows (e.g. event reassignment) that need to
+   * verify a user is a real, active target before binding them to a foreign key. Returns {@code
+   * false} for unknown, soft-deleted, or disabled users.
+   */
+  boolean existsActiveUser(String userId);
 }

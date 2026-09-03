@@ -235,6 +235,12 @@ public class UserService implements UserInPort {
     log.info("user.deleted userId={} actorUserId={}", user.getId(), actorUserId);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public boolean existsActiveUser(String userId) {
+    return userRepository.existsActiveById(userId);
+  }
+
   private void changeActiveState(String userId, boolean target, String actorUserId) {
     User user =
         userRepository

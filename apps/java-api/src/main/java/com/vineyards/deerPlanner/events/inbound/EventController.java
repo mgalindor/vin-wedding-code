@@ -7,6 +7,7 @@ import com.vineyards.deerPlanner.events.facade.dto.EventDto;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
+import com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -106,6 +107,15 @@ public class EventController {
   @PreAuthorize(OWNER_EXPR)
   public EventDto archiveEvent(@PathVariable String id) {
     return eventApi.archiveEvent(id);
+  }
+
+  @PatchMapping(path = "/{id}/organizer")
+  @PreAuthorize("hasRole('Administrator')")
+  public EventDto reassignOrganizer(
+      @PathVariable String id,
+      @Valid @RequestBody ReassignOrganizerDto body,
+      @AuthenticationPrincipal Jwt jwt) {
+    return eventApi.reassignOrganizer(id, body, jwt.getSubject());
   }
 
   // ----- Generic JSONB payloads (type-agnostic) -----
