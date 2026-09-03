@@ -15,9 +15,10 @@ auth:bearer {
 
 assert {
   res.status: eq 200
-  res.body: isArray
+  res.body.items: isArray
 }
 
 docs {
   Admin-only listing of every non-soft-deleted user, active or disabled.
+  Response is paginated: { items, page, size, total, totalPages, hasMore }.
 }
