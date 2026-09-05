@@ -14,9 +14,13 @@ auth:bearer {
   token: {{organizerToken}}
 }
 
+script:pre-request {
+  bru.setVar("scenarioEventTitle", "Boda Maya & Luis " + Date.now());
+}
+
 body:json {
   {
-    "title": "Boda Maya & Luis (Scenario)",
+    "title": "{{scenarioEventTitle}} (Scenario)",
     "eventType": "wedding",
     "eventDate": "2027-09-12"
   }
@@ -34,5 +38,7 @@ assert {
 
 docs {
   Captures the event id as {{eventId}} for the entire scenario. Runs after
-  auth/00-login.bru so {{organizerToken}} is in scope.
+  auth/00-login.bru so {{organizerToken}} is in scope. Title includes a per-run
+  timestamp (scenarioEventTitle) so 14-list-my-events.bru's title filter stays
+  deterministic even though the dev DB accumulates events across reruns.
 }

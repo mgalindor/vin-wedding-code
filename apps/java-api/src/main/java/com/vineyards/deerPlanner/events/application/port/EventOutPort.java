@@ -13,7 +13,11 @@ import org.springframework.data.domain.Pageable;
 @SecondaryPort
 public interface EventOutPort {
 
-  Event save(Event event);
+  /** First-time creation of an event row. Always inserts. */
+  Event create(Event event);
+
+  /** Persists changes to an already-existing event row. Always updates in place. */
+  Event update(Event event);
 
   Optional<Event> findById(String id);
 

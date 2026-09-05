@@ -1,0 +1,77 @@
+databaseChangeLog:
+  - comment: >
+      Event publication log for Spring Modulith's transactional outbox pattern.
+      Every @TransactionalEventListener registered in the app has a row written here
+      during the publishing transaction; the registry marks it COMPLETED once the
+      listener returns successfully (and increments completion_attempts on retries).
+      Required by spring-modulith-starter-jpa; Spring Boot does NOT create this table
+      on its own.
+
+  - changeSet:
+      id: 013-modulith-create-event-publication
+      author: deer-planner
+      labels: modulith, schema, events
+      changes:
+        - createTable:
+            tableName: event_publication
+            remarks: >
+              Outbox for transactional application events. Written by Spring Modulith
+              before commit; consumed after commit by the matching @TransactionalEventListener.
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: publication_date
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: listener_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: serialized_event
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completion_date
+                  type: timestamptz
+                  constraints:
+                    nullable: true
+              - column:
+                  name: last_resubmission_date
+                  type: timestamptz
+                  constraints:
+                    nullable: true
+              - column:
+                  name: completion_attempts
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: true
+                  remarks: 'PUBLISHED | PROCESSING | COMPLETED | FAILED | RESUBMITTED'
+
+        - createIndex:
+            tableName: event_publication
+            indexName: idx_event_publication_status_pubdate
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: publication_date

@@ -7,3 +7,12 @@ services:
       POSTGRES_DB: deer_planner
     ports:
       - "5432:5432"
+  grafana:
+    image: grafana/otel-lgtm:0.32.1
+    ports:
+      - "3000:3000" # Grafana UI - http://localhost:3000 (admin/admin)
+      - "4317:4317" # OpenTelemetry Collector - OTLP gRPC receiver (traces, metrics, logs)
+      - "4318:4318" # OpenTelemetry Collector - OTLP HTTP receiver (traces, metrics, logs)
+      - "3200:3200" # Tempo - distributed tracing backend (HTTP API)
+      - "4040:4040" # Pyroscope - continuous profiling backend (HTTP API)
+      - "9090:9090" # Prometheus - metrics scraping endpoint

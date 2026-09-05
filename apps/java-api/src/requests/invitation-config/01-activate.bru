@@ -14,10 +14,14 @@ auth:bearer {
   token: {{organizerToken}}
 }
 
+script:pre-request {
+  bru.setVar("invitationSlug", "maya-luis-" + Date.now());
+}
+
 body:json {
   {
     "templateId": "{{templateId}}",
-    "slug": "maya-luis-2027",
+    "slug": "{{invitationSlug}}",
     "active": true,
     "rsvpEnabled": true,
     "deadline": "2027-03-15",

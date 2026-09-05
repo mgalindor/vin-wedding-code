@@ -4,6 +4,7 @@ import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigOutPort;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
 import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigInPort;
+import com.vineyards.deerPlanner.invitation.facade.InvitationConfigUpdatedAuditedEvent;
 import com.vineyards.deerPlanner.invitation.facade.dto.EventInvitationConfigDto;
 import com.vineyards.deerPlanner.invitation.facade.dto.UpdateInvitationConfigDto;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ public class EventInvitationConfigService implements EventInvitationConfigInPort
 
   private final EventInvitationConfigOutPort repository;
   private final EventInPort eventApi;
+  private final ApplicationEventPublisher publisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -59,7 +62,20 @@ public class EventInvitationConfigService implements EventInvitationConfigInPort
       log.info("invitation.activated eventId={} actorUserId={}", eventId, actorUserId);
     }
 
-    return toDto(repository.save(updated));
+    EventInvitationConfig saved = repository.update(updated);
+    boolean activeBefore = current.isActive();
+    boolean activeAfter = saved.isActive();
+    if (activeBefore != activeAfter
+        || dto.templateId() != null
+        || dto.slug() != null
+        || dto.rsvpEnabled() != null
+        || dto.deadline() != null
+        || dto.rsvpDeadline() != null) {
+      publisher.publishEvent(
+          new InvitationConfigUpdatedAuditedEvent(
+              eventId, activeBefore, activeAfter, Instant.now()));
+    }
+    return toDto(saved);
   }
 
   private EventInvitationConfig applyPatch(
@@ -103,7 +119,7 @@ public class EventInvitationConfigService implements EventInvitationConfigInPort
             .slug("event-" + eventId.substring(0, Math.min(8, eventId.length())))
             .updatedAt(Instant.now())
             .build();
-    return repository.save(defaults);
+    return repository.create(defaults);
   }
 
   static EventInvitationConfigDto toDto(EventInvitationConfig c) {

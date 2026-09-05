@@ -1,0 +1,26 @@
+meta {
+  name: Admin RSVP — delete Familia guest group (cleanup)
+  type: http
+  seq: 44
+}
+
+delete {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}
+
+docs {
+  Moved here from guest-groups/07-delete.bru (out of guest-groups/) because the Familia
+  group and its guests (FK deleteCascade) are read/mutated by admin-rsvp/'s own RSVP
+  tests, which run after guest-groups/ per folder.bru seq ordering — deleting it inside
+  guest-groups/ itself made every admin-rsvp/ request 404. Runs last in admin-rsvp/,
+  right before the final event delete.
+}

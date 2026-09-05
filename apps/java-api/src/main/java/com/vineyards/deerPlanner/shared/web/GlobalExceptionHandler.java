@@ -196,6 +196,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ex, HttpStatus.FORBIDDEN, "Access Denied", "access_denied", null, request);
   }
 
+  @ExceptionHandler(IllegalArgumentException.class)
+  protected ProblemDetail onIllegalArgument(IllegalArgumentException ex, WebRequest request) {
+    return createProblemDetail(ex, HttpStatus.BAD_REQUEST, ex.getMessage(), null, null, request);
+  }
+
   @ExceptionHandler(Exception.class)
   protected ProblemDetail onUnhandled(Exception ex, WebRequest request) {
     log.error("Unhandled error", ex);

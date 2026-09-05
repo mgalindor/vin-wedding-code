@@ -37,7 +37,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -52,8 +51,14 @@ class GuestServiceTest {
   @Mock GuestGroupOutPort groupRepository;
   @Mock GuestOutPort guestRepository;
   @Mock EventInPort eventApi;
+  @Mock org.springframework.context.ApplicationEventPublisher publisher;
 
-  @InjectMocks GuestService service;
+  GuestService service;
+
+  @BeforeEach
+  void setUp() {
+    service = new GuestService(groupRepository, guestRepository, eventApi, publisher);
+  }
 
   private static GuestGroup sampleGroup(String id) {
     return new GuestGroup(
@@ -148,7 +153,8 @@ class GuestServiceTest {
       assertThatThrownBy(() -> service.createGroup(EVENT_ID, dto, ORGANIZER_ID))
           .isInstanceOf(BusinessError.class)
           .hasMessageContaining("primary_guest_required");
-      verify(groupRepository, never()).save(any(GuestGroup.class));
+      verify(groupRepository, never()).create(any(GuestGroup.class));
+      verify(groupRepository, never()).update(any(GuestGroup.class));
       verify(guestRepository, never()).save(any(Guest.class));
     }
 
@@ -181,7 +187,8 @@ class GuestServiceTest {
     @Test
     void createGroup_withExactlyOnePrimary_setsPrimaryGuestIdToThatGuest() {
       verifyOwnershipPasses();
-      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(groupRepository.create(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(groupRepository.update(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
       when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
 
       var maria = new InlineGuestDto("Maria", "Morales", null, null, null, null);
@@ -212,7 +219,7 @@ class GuestServiceTest {
       verifyOwnershipPasses();
       GuestGroup current = sampleGroup(GROUP_ID);
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(current));
-      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(groupRepository.update(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
 
       GuestGroupDto result = service.regenerateGroupToken(GROUP_ID, ORGANIZER_ID);
 
@@ -230,7 +237,7 @@ class GuestServiceTest {
       Guest guest = sampleGuest(GUEST_ID, GROUP_ID);
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
       when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.of(guest));
-      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(groupRepository.update(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
 
       GuestGroupDto result =
           service.updatePrimaryGuest(
@@ -244,7 +251,7 @@ class GuestServiceTest {
       verifyOwnershipPasses();
       GuestGroup group = sampleGroup(GROUP_ID).toBuilder().primaryGuestId("someone").build();
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
-      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(groupRepository.update(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
 
       GuestGroupDto result =
           service.updatePrimaryGuest(GROUP_ID, new UpdateGuestGroupPrimaryDto(null), ORGANIZER_ID);
@@ -369,7 +376,7 @@ class GuestServiceTest {
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(oldGroup));
       when(groupRepository.findById(NEW_GROUP_ID)).thenReturn(Optional.of(newGroup));
       when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
-      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(groupRepository.update(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
 
       GuestDto result =
           service.changeGuestGroup(
@@ -377,7 +384,7 @@ class GuestServiceTest {
 
       assertThat(result.groupId()).isEqualTo(NEW_GROUP_ID);
       ArgumentCaptor<GuestGroup> groupCaptor = ArgumentCaptor.forClass(GuestGroup.class);
-      verify(groupRepository, times(1)).save(groupCaptor.capture());
+      verify(groupRepository, times(1)).update(groupCaptor.capture());
       assertThat(groupCaptor.getValue().getPrimaryGuestId()).isNull();
       assertThat(newGroup.getPrimaryGuestId()).isNull();
     }
@@ -396,7 +403,7 @@ class GuestServiceTest {
           service.changeGuestGroup(EVENT_ID, GUEST_ID, new ChangeGuestGroupDto(null), ORGANIZER_ID);
 
       assertThat(result.groupId()).isNull();
-      verify(groupRepository, never()).save(any(GuestGroup.class));
+      verify(groupRepository, never()).update(any(GuestGroup.class));
     }
 
     @Test
@@ -407,14 +414,14 @@ class GuestServiceTest {
       when(guestRepository.findById(GUEST_ID)).thenReturn(Optional.of(current));
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(oldGroup));
       when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
-      when(groupRepository.save(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(groupRepository.update(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
 
       GuestDto result =
           service.changeGuestGroup(EVENT_ID, GUEST_ID, new ChangeGuestGroupDto(null), ORGANIZER_ID);
 
       assertThat(result.groupId()).isNull();
       ArgumentCaptor<GuestGroup> groupCaptor = ArgumentCaptor.forClass(GuestGroup.class);
-      verify(groupRepository, times(1)).save(groupCaptor.capture());
+      verify(groupRepository, times(1)).update(groupCaptor.capture());
       assertThat(groupCaptor.getValue().getPrimaryGuestId()).isNull();
     }
 
@@ -431,7 +438,7 @@ class GuestServiceTest {
 
       assertThat(result.groupId()).isEqualTo(GROUP_ID);
       verify(guestRepository, never()).save(any(Guest.class));
-      verify(groupRepository, never()).save(any(GuestGroup.class));
+      verify(groupRepository, never()).update(any(GuestGroup.class));
     }
 
     @Test

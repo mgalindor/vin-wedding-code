@@ -39,6 +39,7 @@ class IdentityServiceTest {
   @Mock UserOutPort userRepository;
   @Mock JwtIssuerOutPort jwtIssuer;
   @Mock JwtAuthenticatorInPort jwtAuthenticator;
+  @Mock org.springframework.context.ApplicationEventPublisher publisher;
 
   private PasswordEncoder encoder;
   private IdentityService service;
@@ -58,7 +59,7 @@ class IdentityServiceTest {
   @BeforeEach
   void setUp() {
     encoder = new BCryptPasswordEncoder(12);
-    service = new IdentityService(userRepository, jwtIssuer, jwtAuthenticator, encoder);
+    service = new IdentityService(userRepository, jwtIssuer, jwtAuthenticator, encoder, publisher);
   }
 
   private User activeUser(Set<Role> roles) {

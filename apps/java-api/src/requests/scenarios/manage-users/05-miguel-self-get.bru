@@ -16,5 +16,5 @@ auth:bearer {
 assert {
   res.status: eq 200
   res.body.id: eq {{miguelId}}
-  res.body.username: eq "miguel@deer"
+  res.body.username: eq "{{miguelUsername}}"
 }

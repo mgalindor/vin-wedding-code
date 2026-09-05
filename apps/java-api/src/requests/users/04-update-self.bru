@@ -16,13 +16,13 @@ auth:bearer {
 
 body:json {
   {
-    "displayName": "Miguel Self-Edited"
+    "displayName": "Dana Self-Edited"
   }
 }
 
 assert {
   res.status: eq 200
-  res.body.displayName: eq "Miguel Self-Edited"
+  res.body.displayName: eq "Dana Self-Edited"
 }
 
 docs {

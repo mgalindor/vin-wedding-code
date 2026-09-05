@@ -1,5 +1,6 @@
 package com.vineyards.deerPlanner.guests.application;
 
+import com.github.shamil.Xid;
 import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.guests.application.port.GuestGroupOutPort;
 import com.vineyards.deerPlanner.guests.application.port.GuestOutPort;
@@ -7,7 +8,18 @@ import com.vineyards.deerPlanner.guests.domain.Guest;
 import com.vineyards.deerPlanner.guests.domain.GuestGroup;
 import com.vineyards.deerPlanner.guests.domain.GuestRelationship;
 import com.vineyards.deerPlanner.guests.domain.RsvpStatus;
+import com.vineyards.deerPlanner.guests.facade.GuestCreatedAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestDeletedAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestGroupChangedAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestGroupCreatedAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestGroupDeletedAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestGroupPrimaryUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestGroupRsvpMarkedAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestGroupTokenRegeneratedAuditedEvent;
 import com.vineyards.deerPlanner.guests.facade.GuestInPort;
+import com.vineyards.deerPlanner.guests.facade.GuestRsvpMarkedAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestRsvpMarkedFromInvitationAuditedEvent;
+import com.vineyards.deerPlanner.guests.facade.GuestUpdatedAuditedEvent;
 import com.vineyards.deerPlanner.guests.facade.dto.ChangeGuestGroupDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestDto;
 import com.vineyards.deerPlanner.guests.facade.dto.CreateGuestGroupDto;
@@ -26,10 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +54,7 @@ public class GuestService implements GuestInPort {
   private final GuestGroupOutPort groupRepository;
   private final GuestOutPort guestRepository;
   private final EventInPort eventApi;
-
-  // ============== Groups ==============
+  private final ApplicationEventPublisher publisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -97,12 +108,25 @@ public class GuestService implements GuestInPort {
           "Only one inline guest may be marked primary=true; got " + markedPrimary.size());
     }
 
-    String newId = UUID.randomUUID().toString();
-    String token = UUID.randomUUID().toString();
+    String token = Xid.get().toString();
     int displayOrder = dto.displayOrder() != null ? dto.displayOrder() : 0;
     Instant now = Instant.now();
 
-    List<Guest> guests = persistInlineGuests(newId, inlineGuests, now);
+    GuestGroup group =
+        GuestGroup.builder()
+            .eventId(eventId)
+            .name(dto.name())
+            .relationship(GuestRelationship.fromString(dto.relationship()))
+            .sharedEmail(dto.sharedEmail())
+            .sharedPhone(dto.sharedPhone())
+            .invitationToken(token)
+            .displayOrder(displayOrder)
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+    GuestGroup savedGroup = groupRepository.create(group);
+
+    List<Guest> guests = persistInlineGuests(savedGroup.getId(), inlineGuests, now);
     // Map back to the position marked as primary to find the persisted guest's id. The validation
     // above already guarantees exactly one such entry, so this lookup is safe.
     String primaryGuestId =
@@ -116,21 +140,11 @@ public class GuestService implements GuestInPort {
                             + " earlier"))
             .getId();
 
-    GuestGroup group =
-        GuestGroup.builder()
-            .id(newId)
-            .eventId(eventId)
-            .name(dto.name())
-            .relationship(GuestRelationship.fromString(dto.relationship()))
-            .sharedEmail(dto.sharedEmail())
-            .sharedPhone(dto.sharedPhone())
-            .primaryGuestId(primaryGuestId)
-            .invitationToken(token)
-            .displayOrder(displayOrder)
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
-    GuestGroup saved = groupRepository.save(group);
+    GuestGroup saved =
+        groupRepository.update(savedGroup.toBuilder().primaryGuestId(primaryGuestId).build());
+    publisher.publishEvent(
+        new GuestGroupCreatedAuditedEvent(
+            eventId, saved.getId(), guests.size(), primaryGuestId, now));
     log.info(
         "guest_group.created groupId={} eventId={} actorUserId={} guests={} primaryGuestId={}",
         saved.getId(),
@@ -152,14 +166,13 @@ public class GuestService implements GuestInPort {
     for (InlineGuestDto g : inlineGuests) {
       Guest guest =
           Guest.builder()
-              .id(UUID.randomUUID().toString())
               .groupId(groupId)
               .firstName(g.firstName())
               .lastName(g.lastName())
               .email(g.email())
               .phone(g.phone())
               .dietaryNotes(g.dietaryNotes())
-              .invitationToken(UUID.randomUUID().toString())
+              .invitationToken(Xid.get().toString())
               .rsvpStatus(RsvpStatus.pending)
               .rsvpConfirmedAt(null)
               .rsvpMessage(null)
@@ -184,7 +197,15 @@ public class GuestService implements GuestInPort {
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
     eventApi.getEvent(current.getEventId());
     GuestGroup updated = applyGroupPatch(current, dto);
-    return toDto(groupRepository.save(updated));
+    List<String> changed = detectChangedGroupFields(current, updated);
+    if (changed.isEmpty()) {
+      return toDto(updated);
+    }
+    GuestGroup saved = groupRepository.update(updated);
+    publisher.publishEvent(
+        new com.vineyards.deerPlanner.guests.facade.GuestGroupUpdatedAuditedEvent(
+            saved.getEventId(), saved.getId(), changed, Instant.now()));
+    return toDto(saved);
   }
 
   @Override
@@ -197,9 +218,13 @@ public class GuestService implements GuestInPort {
                 () ->
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
-    eventApi.getEvent(current.getEventId());
+    String eventId = current.getEventId();
+    eventApi.getEvent(eventId);
+    int removed = guestRepository.findByGroupId(groupId).size();
     // guests FK has deleteCascade — group children go with it.
     groupRepository.deleteById(groupId);
+    publisher.publishEvent(
+        new GuestGroupDeletedAuditedEvent(eventId, groupId, removed, Instant.now()));
     log.info("guest_group.deleted groupId={} actorUserId={}", groupId, actorUserId);
   }
 
@@ -214,8 +239,11 @@ public class GuestService implements GuestInPort {
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
     eventApi.getEvent(current.getEventId());
-    String newToken = UUID.randomUUID().toString();
-    GuestGroup saved = groupRepository.save(current.withToken(newToken));
+    String newToken = Xid.get().toString();
+    GuestGroup saved = groupRepository.update(current.withToken(newToken));
+    publisher.publishEvent(
+        new GuestGroupTokenRegeneratedAuditedEvent(
+            saved.getEventId(), saved.getId(), Instant.now()));
     log.info("guest_group.token_regenerated groupId={} actorUserId={}", groupId, actorUserId);
     return toDto(saved);
   }
@@ -226,6 +254,7 @@ public class GuestService implements GuestInPort {
       String groupId, UpdateGuestGroupPrimaryDto dto, String actorUserId) {
     GuestGroup group = loadOwnedGroup(groupId, actorUserId);
     String newPrimaryId = dto.guestId();
+    String oldPrimaryId = group.getPrimaryGuestId();
 
     if (newPrimaryId != null) {
       Guest guest =
@@ -241,9 +270,16 @@ public class GuestService implements GuestInPort {
       }
     }
 
+    if (Objects.equals(oldPrimaryId, newPrimaryId)) {
+      return toDto(group);
+    }
+
     GuestGroup updated =
         group.toBuilder().primaryGuestId(newPrimaryId).updatedAt(Instant.now()).build();
-    GuestGroup saved = groupRepository.save(updated);
+    GuestGroup saved = groupRepository.update(updated);
+    publisher.publishEvent(
+        new GuestGroupPrimaryUpdatedAuditedEvent(
+            saved.getEventId(), saved.getId(), oldPrimaryId, newPrimaryId, Instant.now()));
     log.info(
         "guest_group.primary_updated groupId={} primaryGuestId={} actorUserId={}",
         groupId,
@@ -317,18 +353,22 @@ public class GuestService implements GuestInPort {
   @Transactional
   public GuestDto createGuest(String eventId, CreateGuestDto dto, String actorUserId) {
     eventApi.getEvent(eventId);
-    groupRepository
-        .findById(dto.groupId())
-        .orElseThrow(
-            () ->
-                new ResourceNotFoundError(
-                    "guest_group_not_found", "Guest group " + dto.groupId() + " not found"));
-    String newId = UUID.randomUUID().toString();
-    String token = UUID.randomUUID().toString();
+    GuestGroup group =
+        groupRepository
+            .findById(dto.groupId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundError(
+                        "guest_group_not_found", "Guest group " + dto.groupId() + " not found"));
+    if (!eventId.equals(group.getEventId())) {
+      throw new ResourceNotFoundError(
+          "guest_group_not_found",
+          "Guest group " + dto.groupId() + " not found in event " + eventId);
+    }
+    String token = Xid.get().toString();
     Instant now = Instant.now();
     Guest guest =
         Guest.builder()
-            .id(newId)
             .groupId(dto.groupId())
             .firstName(dto.firstName())
             .lastName(dto.lastName())
@@ -344,6 +384,8 @@ public class GuestService implements GuestInPort {
             .updatedAt(now)
             .build();
     Guest saved = guestRepository.save(guest);
+    publisher.publishEvent(
+        new GuestCreatedAuditedEvent(eventId, saved.getId(), saved.getGroupId(), now));
     log.info(
         "guest.created guestId={} groupId={} actorUserId={}",
         saved.getId(),
@@ -364,7 +406,15 @@ public class GuestService implements GuestInPort {
                         "guest_not_found", "Guest " + guestId + " not found"));
     verifyGuestOwnership(current.getGroupId(), actorUserId);
     Guest updated = applyGuestPatch(current, dto);
-    return toDto(guestRepository.save(updated));
+    List<String> changed = detectChangedGuestFields(current, updated);
+    if (changed.isEmpty()) {
+      return toDto(updated);
+    }
+    Guest saved = guestRepository.save(updated);
+    String eventId = resolveEventIdForGuest(saved.getGroupId());
+    publisher.publishEvent(
+        new GuestUpdatedAuditedEvent(eventId, saved.getId(), changed, Instant.now()));
+    return toDto(saved);
   }
 
   @Override
@@ -377,8 +427,10 @@ public class GuestService implements GuestInPort {
                 () ->
                     new ResourceNotFoundError(
                         "guest_not_found", "Guest " + guestId + " not found"));
+    String eventId = resolveEventIdForGuest(current.getGroupId());
     verifyGuestOwnership(current.getGroupId(), actorUserId);
     guestRepository.deleteById(guestId);
+    publisher.publishEvent(new GuestDeletedAuditedEvent(eventId, guestId, Instant.now()));
     log.info("guest.deleted guestId={} actorUserId={}", guestId, actorUserId);
   }
 
@@ -444,10 +496,12 @@ public class GuestService implements GuestInPort {
       if (oldGroup != null && guestId.equals(oldGroup.getPrimaryGuestId())) {
         GuestGroup cleared =
             oldGroup.toBuilder().primaryGuestId(null).updatedAt(Instant.now()).build();
-        groupRepository.save(cleared);
+        groupRepository.update(cleared);
       }
     }
 
+    publisher.publishEvent(
+        new GuestGroupChangedAuditedEvent(eventId, guestId, oldGroupId, newGroupId, Instant.now()));
     log.info(
         "guest.group_changed guestId={} oldGroupId={} newGroupId={} actorUserId={}",
         guestId,
@@ -469,6 +523,9 @@ public class GuestService implements GuestInPort {
       Guest updated = applyRsvpPatch(guest, dto, now);
       guestRepository.save(updated);
     }
+    publisher.publishEvent(
+        new GuestGroupRsvpMarkedAuditedEvent(
+            group.getEventId(), groupId, dto.status().name(), guests.size(), now));
     log.info(
         "guest_group.rsvp_marked groupId={} status={} actorUserId={} guestsAffected={}",
         groupId,
@@ -484,6 +541,10 @@ public class GuestService implements GuestInPort {
     Guest current = loadOwnedGuest(guestId, actorUserId);
     Guest updated = applyRsvpPatch(current, dto, Instant.now());
     Guest saved = guestRepository.save(updated);
+    String eventId = resolveEventIdForGuest(saved.getGroupId());
+    publisher.publishEvent(
+        new GuestRsvpMarkedAuditedEvent(
+            eventId, saved.getId(), dto.status().name(), Instant.now()));
     log.info(
         "guest.rsvp_marked guestId={} status={} actorUserId={}",
         guestId,
@@ -506,6 +567,10 @@ public class GuestService implements GuestInPort {
                         "guest_not_found", "Guest " + guestId + " not found"));
     Guest updated = applyRsvpPatch(current, dto, Instant.now());
     Guest saved = guestRepository.save(updated);
+    String eventId = resolveEventIdForGuest(saved.getGroupId());
+    publisher.publishEvent(
+        new GuestRsvpMarkedFromInvitationAuditedEvent(
+            eventId, saved.getId(), dto.status().name(), Instant.now()));
     log.info("guest.rsvp_marked_from_invitation guestId={} status={}", guestId, dto.status());
     return toDto(saved);
   }
@@ -564,6 +629,15 @@ public class GuestService implements GuestInPort {
   }
 
   private void verifyGuestOwnership(String groupId, String actorUserId) {
+    // An unassigned guest (groupId == null, e.g. after changeGuestGroup(null)) has no group to
+    // resolve an event through. groupRepository.findById(null) would throw
+    // InvalidDataAccessApiUsageException (unhandled -> 500) instead of a clean result, so treat
+    // "no group" as "nothing further to verify" — the controller-level @PreAuthorize already
+    // requires EventOrganizer/Administrator, and the guest's existence was already confirmed by
+    // the caller.
+    if (groupId == null) {
+      return;
+    }
     GuestGroup group =
         groupRepository
             .findById(groupId)
@@ -572,6 +646,11 @@ public class GuestService implements GuestInPort {
                     new ResourceNotFoundError(
                         "guest_group_not_found", "Guest group " + groupId + " not found"));
     eventApi.getEvent(group.getEventId());
+  }
+
+  private String resolveEventIdForGuest(String groupId) {
+    if (groupId == null) return null;
+    return groupRepository.findById(groupId).map(GuestGroup::getEventId).orElse(null);
   }
 
   private GuestGroup applyGroupPatch(GuestGroup current, UpdateGuestGroupDto dto) {
@@ -588,6 +667,18 @@ public class GuestService implements GuestInPort {
         .build();
   }
 
+  private static List<String> detectChangedGroupFields(GuestGroup before, GuestGroup after) {
+    List<String> changed = new ArrayList<>();
+    if (!Objects.equals(before.getName(), after.getName())) changed.add("name");
+    if (before.getRelationship() != after.getRelationship()) changed.add("relationship");
+    if (!Objects.equals(before.getSharedEmail(), after.getSharedEmail()))
+      changed.add("sharedEmail");
+    if (!Objects.equals(before.getSharedPhone(), after.getSharedPhone()))
+      changed.add("sharedPhone");
+    if (before.getDisplayOrder() != after.getDisplayOrder()) changed.add("displayOrder");
+    return changed;
+  }
+
   private Guest applyGuestPatch(Guest current, UpdateGuestDto dto) {
     return current.toBuilder()
         .firstName(dto.firstName() != null ? dto.firstName() : current.getFirstName())
@@ -597,6 +688,17 @@ public class GuestService implements GuestInPort {
         .dietaryNotes(dto.dietaryNotes() != null ? dto.dietaryNotes() : current.getDietaryNotes())
         .updatedAt(Instant.now())
         .build();
+  }
+
+  private static List<String> detectChangedGuestFields(Guest before, Guest after) {
+    List<String> changed = new ArrayList<>();
+    if (!Objects.equals(before.getFirstName(), after.getFirstName())) changed.add("firstName");
+    if (!Objects.equals(before.getLastName(), after.getLastName())) changed.add("lastName");
+    if (!Objects.equals(before.getEmail(), after.getEmail())) changed.add("email");
+    if (!Objects.equals(before.getPhone(), after.getPhone())) changed.add("phone");
+    if (!Objects.equals(before.getDietaryNotes(), after.getDietaryNotes()))
+      changed.add("dietaryNotes");
+    return changed;
   }
 
   private Guest applyRsvpPatch(Guest current, RsvpUpdateDto dto, Instant now) {

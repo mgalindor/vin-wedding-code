@@ -42,6 +42,7 @@ class UserServiceTest {
   private static final String USERNAME_SUFFIX = "@deer";
 
   @Mock UserOutPort userRepository;
+  @Mock org.springframework.context.ApplicationEventPublisher publisher;
 
   private PasswordEncoder encoder;
   private IdentityProperties props;
@@ -53,7 +54,7 @@ class UserServiceTest {
     props = new IdentityProperties();
     props.setUsernameSuffix(USERNAME_SUFFIX);
     props.setProtectedDefaultAdmin(DEFAULT_ADMIN_USERNAME);
-    service = new UserService(userRepository, encoder, props);
+    service = new UserService(userRepository, encoder, props, publisher);
   }
 
   // ============================================================

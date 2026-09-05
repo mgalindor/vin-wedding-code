@@ -1,0 +1,18 @@
+meta {
+  name: Scenarios — delete the family group
+  type: http
+  seq: 37
+}
+
+delete {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}

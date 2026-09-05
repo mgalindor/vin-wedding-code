@@ -1,0 +1,26 @@
+meta {
+  name: Scenarios — set a different primary guest for the family group
+  type: http
+  seq: 29
+}
+
+put {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}/primary
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "guestId": "{{guestId2}}"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.primaryGuestId: eq "{{guestId2}}"
+}

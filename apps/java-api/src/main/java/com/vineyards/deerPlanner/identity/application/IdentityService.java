@@ -5,16 +5,20 @@ import com.vineyards.deerPlanner.identity.application.port.UserOutPort;
 import com.vineyards.deerPlanner.identity.domain.User;
 import com.vineyards.deerPlanner.identity.facade.AuthenticateResponse;
 import com.vineyards.deerPlanner.identity.facade.IdentityInPort;
+import com.vineyards.deerPlanner.identity.facade.UserLoggedInAuditedEvent;
+import com.vineyards.deerPlanner.identity.facade.UserPasswordChangedAuditedEvent;
 import com.vineyards.deerPlanner.identity.facade.UserProfileResponse;
 import com.vineyards.deerPlanner.shared.exceptions.InvalidCredentialsException;
 import com.vineyards.deerPlanner.shared.exceptions.UserNotFoundException;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
 import com.vineyards.deerPlanner.shared.security.JwtIssuerOutPort;
+import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +39,7 @@ public class IdentityService implements IdentityInPort {
   private final JwtIssuerOutPort jwtIssuer;
   private final JwtAuthenticatorInPort jwtAuthenticator;
   private final PasswordEncoder passwordEncoder;
+  private final ApplicationEventPublisher publisher;
 
   @Override
   @Transactional
@@ -55,6 +60,7 @@ public class IdentityService implements IdentityInPort {
 
     userRepository.recordLogin(user.getId());
     Set<String> roleNames = roleNames(user.getRoles());
+    publisher.publishEvent(new UserLoggedInAuditedEvent(user.getId(), roleNames, Instant.now()));
     log.info(
         "user.login userId={} username={} roles={}", user.getId(), user.getUsername(), roleNames);
     return issueTokens(user, roleNames);
@@ -90,6 +96,7 @@ public class IdentityService implements IdentityInPort {
     }
     String hash = passwordEncoder.encode(newPassword);
     userRepository.updatePassword(user.getId(), hash);
+    publisher.publishEvent(new UserPasswordChangedAuditedEvent(user.getId(), Instant.now()));
     log.info("user.password-changed-self userId={}", user.getId());
   }
 

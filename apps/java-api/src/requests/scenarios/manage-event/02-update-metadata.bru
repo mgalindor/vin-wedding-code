@@ -16,13 +16,13 @@ auth:bearer {
 
 body:json {
   {
-    "title": "Boda Maya & Luis — Final",
+    "title": "{{scenarioEventTitle}} — Final",
     "eventDate": "2027-09-19"
   }
 }
 
 assert {
   res.status: eq 200
-  res.body.title: eq "Boda Maya & Luis — Final"
+  res.body.title: eq "{{scenarioEventTitle}} — Final"
   res.body.eventDate: eq "2027-09-19"
 }

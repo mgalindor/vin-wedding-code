@@ -29,13 +29,13 @@ public interface EventInPort {
 
   /**
    * Paginated list of events visible to the actor. Admins see every event; organisers see only
-   * their own. {@code q} matches against title substring; {@code status} / {@code eventType} are
-   * exact matches; the date range narrows by eventDate. Null / blank filters are ignored.
+   * their own. {@code title} matches against title substring; {@code status} / {@code eventType}
+   * are exact matches; the date range narrows by eventDate. Null / blank filters are ignored.
    */
   PagedEventsResponse listOwnEvents(
       String actorUserId,
       boolean actorIsAdmin,
-      String q,
+      String title,
       String status,
       String eventType,
       LocalDate eventDateFrom,

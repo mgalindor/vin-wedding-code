@@ -1,0 +1,28 @@
+meta {
+  name: Admin RSVP — delete event (final cleanup)
+  type: http
+  seq: 45
+}
+
+delete {
+  url: {{host}}/api/v1/events/{{eventId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}
+
+docs {
+  Cleanup so the full-collection run (auth users templates events event-payloads wedding
+  invitation-config guest-groups guests admin-rsvp) is rerunnable. Moved here (out of
+  events/) because every folder from event-payloads/ through admin-rsvp/ shares the same
+  {{eventId}} captured by events/00-create.bru — deleting the event at the end of events/
+  itself (before those folders run) made every downstream folder 404. This must stay the
+  LAST request in the whole top-level chain (admin-rsvp/ is last per folder.bru seq
+  ordering, and this file has the highest seq within it).
+}

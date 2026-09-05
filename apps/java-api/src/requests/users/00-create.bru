@@ -14,11 +14,15 @@ auth:bearer {
   token: {{organizerToken}}
 }
 
+script:pre-request {
+  bru.setVar("newUsername", "danaperez" + Date.now());
+}
+
 body:json {
   {
-    "username": "miguel",
-    "displayName": "Miguel Doe",
-    "email": "miguel@example.com",
+    "username": "{{newUsername}}",
+    "displayName": "Dana Perez",
+    "email": "dana.perez@example.com",
     "phone": "+525512345678",
     "password": "Sup3rSecret!",
     "roles": ["EventOrganizer"]
@@ -32,8 +36,8 @@ vars:post-response {
 assert {
   res.status: eq 201
   res.body.id: isString
-  res.body.username: eq "miguel@deer"
-  res.body.displayName: eq "Miguel Doe"
+  res.body.username: eq "{{newUsername}}@deer"
+  res.body.displayName: eq "Dana Perez"
   res.body.roles[0]: eq "EventOrganizer"
 }
 

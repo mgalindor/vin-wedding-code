@@ -4,8 +4,10 @@ meta {
   seq: 18
 }
 
-vars:pre-request {
-  eventId: {{guestEventId}}
+script:pre-request {
+  // vars:pre-request template interpolation ({{guestEventId}}) was found to not reliably
+  // resolve here — use bru.setVar explicitly instead.
+  bru.setVar("eventId", bru.getVar("guestEventId"));
 }
 
 get {

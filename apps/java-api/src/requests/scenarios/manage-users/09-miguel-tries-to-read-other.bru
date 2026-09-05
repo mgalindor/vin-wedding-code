@@ -14,10 +14,12 @@ auth:bearer {
 }
 
 assert {
-  res.status: eq 404
+  res.status: eq 403
 }
 
 docs {
   Same authorization rule as editing: non-admins may only read themselves.
-  The service answers 404 (not 403) to avoid leaking that roberto exists.
+  UserController's @PreAuthorize ("hasRole('Administrator') or #id == authentication.name")
+  rejects at the security layer with 403 before the controller/service logic runs, so there
+  is no existence-masking to 404 here (unlike some other resource-ownership checks in this API).
 }

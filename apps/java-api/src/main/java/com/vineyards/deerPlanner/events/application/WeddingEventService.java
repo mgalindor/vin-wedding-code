@@ -4,7 +4,14 @@ import com.vineyards.deerPlanner.events.application.port.WeddingEventOutPort;
 import com.vineyards.deerPlanner.events.domain.EventType;
 import com.vineyards.deerPlanner.events.domain.WeddingDetail;
 import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.events.facade.WeddingAccommodationUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.WeddingDetailUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.WeddingDressCodeUpdatedAuditedEvent;
 import com.vineyards.deerPlanner.events.facade.WeddingEventInPort;
+import com.vineyards.deerPlanner.events.facade.WeddingGiftRegistryUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.WeddingLandingUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.WeddingParentsUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.WeddingStoryUpdatedAuditedEvent;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateWeddingDetailDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingAccommodationPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingDetailDto;
@@ -15,11 +22,15 @@ import com.vineyards.deerPlanner.events.facade.dto.WeddingParentsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.WeddingStoryPayloadDto;
 import com.vineyards.deerPlanner.events.facade.mapper.EventPayloadMapper;
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +53,7 @@ public class WeddingEventService implements WeddingEventInPort {
   private final WeddingEventOutPort repository;
   private final EventInPort eventApi;
   private final EventPayloadMapper payloadMapper;
+  private final ApplicationEventPublisher publisher;
 
   // ============== Reads ==============
 
@@ -64,17 +76,26 @@ public class WeddingEventService implements WeddingEventInPort {
   @Transactional
   public WeddingDetailDto updateWeddingDetail(String eventId, UpdateWeddingDetailDto dto) {
     verifyWeddingEvent(eventId);
-    WeddingDetail current = loadOrEmpty(eventId);
+    Optional<WeddingDetail> existing = repository.findByEventId(eventId);
+    WeddingDetail current = existing.orElseGet(WeddingEventService::emptyDetail);
+    List<String> changed = new ArrayList<>();
+    boolean partner1Changed =
+        dto.partner1Name() != null && !dto.partner1Name().equals(current.getPartner1Name());
+    boolean partner2Changed =
+        dto.partner2Name() != null && !dto.partner2Name().equals(current.getPartner2Name());
+    boolean countdownChanged =
+        dto.countdownEnabled() != null && dto.countdownEnabled() != current.isCountdownEnabled();
+
+    if (partner1Changed) changed.add("partner1Name");
+    if (partner2Changed) changed.add("partner2Name");
+    if (countdownChanged) changed.add("countdownEnabled");
+
     WeddingDetail updated =
         WeddingDetail.builder()
-            .partner1Name(
-                dto.partner1Name() != null ? dto.partner1Name() : current.getPartner1Name())
-            .partner2Name(
-                dto.partner2Name() != null ? dto.partner2Name() : current.getPartner2Name())
+            .partner1Name(partner1Changed ? dto.partner1Name() : current.getPartner1Name())
+            .partner2Name(partner2Changed ? dto.partner2Name() : current.getPartner2Name())
             .countdownEnabled(
-                dto.countdownEnabled() != null
-                    ? dto.countdownEnabled()
-                    : current.isCountdownEnabled())
+                countdownChanged ? dto.countdownEnabled() : current.isCountdownEnabled())
             .landingPayload(current.getLandingPayload())
             .storyPayload(current.getStoryPayload())
             .dressCodePayload(current.getDressCodePayload())
@@ -82,7 +103,14 @@ public class WeddingEventService implements WeddingEventInPort {
             .parentsPayload(current.getParentsPayload())
             .accommodationPayload(current.getAccommodationPayload())
             .build();
-    repository.save(eventId, updated);
+    if (existing.isPresent()) {
+      repository.update(eventId, updated);
+    } else {
+      repository.create(eventId, updated);
+    }
+    if (!changed.isEmpty()) {
+      publisher.publishEvent(new WeddingDetailUpdatedAuditedEvent(eventId, changed, Instant.now()));
+    }
     log.info("wedding_event.detail_updated eventId={}", eventId);
     return toDto(eventId, updated);
   }
@@ -93,20 +121,30 @@ public class WeddingEventService implements WeddingEventInPort {
   @Transactional
   public WeddingDetailDto updateWeddingLanding(String eventId, WeddingLandingPayloadDto dto) {
     return mutatePayload(
-        eventId, d -> d.setLandingPayload(payloadMapper.toPayload(dto)), "landing");
+        eventId,
+        d -> d.setLandingPayload(payloadMapper.toPayload(dto)),
+        "landing",
+        new WeddingLandingUpdatedAuditedEvent(eventId, Instant.now()));
   }
 
   @Override
   @Transactional
   public WeddingDetailDto updateWeddingStory(String eventId, WeddingStoryPayloadDto dto) {
-    return mutatePayload(eventId, d -> d.setStoryPayload(payloadMapper.toPayload(dto)), "story");
+    return mutatePayload(
+        eventId,
+        d -> d.setStoryPayload(payloadMapper.toPayload(dto)),
+        "story",
+        new WeddingStoryUpdatedAuditedEvent(eventId, Instant.now()));
   }
 
   @Override
   @Transactional
   public WeddingDetailDto updateWeddingDressCode(String eventId, WeddingDressCodePayloadDto dto) {
     return mutatePayload(
-        eventId, d -> d.setDressCodePayload(payloadMapper.toPayload(dto)), "dressCode");
+        eventId,
+        d -> d.setDressCodePayload(payloadMapper.toPayload(dto)),
+        "dressCode",
+        new WeddingDressCodeUpdatedAuditedEvent(eventId, Instant.now()));
   }
 
   @Override
@@ -114,14 +152,20 @@ public class WeddingEventService implements WeddingEventInPort {
   public WeddingDetailDto updateWeddingGiftRegistry(
       String eventId, WeddingGiftRegistryPayloadDto dto) {
     return mutatePayload(
-        eventId, d -> d.setGiftRegistryPayload(payloadMapper.toPayload(dto)), "giftRegistry");
+        eventId,
+        d -> d.setGiftRegistryPayload(payloadMapper.toPayload(dto)),
+        "giftRegistry",
+        new WeddingGiftRegistryUpdatedAuditedEvent(eventId, Instant.now()));
   }
 
   @Override
   @Transactional
   public WeddingDetailDto updateWeddingParents(String eventId, WeddingParentsPayloadDto dto) {
     return mutatePayload(
-        eventId, d -> d.setParentsPayload(payloadMapper.toPayload(dto)), "parents");
+        eventId,
+        d -> d.setParentsPayload(payloadMapper.toPayload(dto)),
+        "parents",
+        new WeddingParentsUpdatedAuditedEvent(eventId, Instant.now()));
   }
 
   @Override
@@ -129,17 +173,26 @@ public class WeddingEventService implements WeddingEventInPort {
   public WeddingDetailDto updateWeddingAccommodation(
       String eventId, WeddingAccommodationPayloadDto dto) {
     return mutatePayload(
-        eventId, d -> d.setAccommodationPayload(payloadMapper.toPayload(dto)), "accommodation");
+        eventId,
+        d -> d.setAccommodationPayload(payloadMapper.toPayload(dto)),
+        "accommodation",
+        new WeddingAccommodationUpdatedAuditedEvent(eventId, Instant.now()));
   }
 
   // ============== Helpers ==============
 
   private WeddingDetailDto mutatePayload(
-      String eventId, Consumer<WeddingDetail> mutator, String section) {
+      String eventId, Consumer<WeddingDetail> mutator, String section, Object auditEvent) {
     verifyWeddingEvent(eventId);
-    WeddingDetail current = loadOrEmpty(eventId);
+    Optional<WeddingDetail> existing = repository.findByEventId(eventId);
+    WeddingDetail current = existing.orElseGet(WeddingEventService::emptyDetail);
     mutator.accept(current);
-    repository.save(eventId, current);
+    if (existing.isPresent()) {
+      repository.update(eventId, current);
+    } else {
+      repository.create(eventId, current);
+    }
+    publisher.publishEvent(auditEvent);
     log.info("wedding_event.payload_updated eventId={} section={}", eventId, section);
     return toDto(eventId, current);
   }

@@ -13,7 +13,11 @@ public interface WeddingEventOutPort {
 
   Optional<WeddingDetail> findByEventId(String eventId);
 
-  void save(String eventId, WeddingDetail detail);
+  /** First-time creation of the wedding detail row for an event. Always inserts. */
+  void create(String eventId, WeddingDetail detail);
+
+  /** Persists changes to an already-existing wedding detail row. Always updates in place. */
+  void update(String eventId, WeddingDetail detail);
 
   void deleteByEventId(String eventId);
 }

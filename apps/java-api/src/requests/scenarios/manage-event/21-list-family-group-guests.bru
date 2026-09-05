@@ -1,0 +1,32 @@
+meta {
+  name: Scenarios — list the family group's guests (capture guestId1/guestId2)
+  type: http
+  seq: 22
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/guests?groupId={{groupId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+vars:post-response {
+  guestId1: res.body.page.items[0].id
+  guestId2: res.body.page.items[1].id
+}
+
+assert {
+  res.status: eq 200
+  res.body.page.items: isArray
+  res.body.page.items.length: eq 2
+}
+
+docs {
+  The guest-group create response (20-create-group-with-guests) does NOT embed the
+  inline-created guests — GuestGroupDto has no `guests` field. This step lists the
+  family group's guests to capture their real ids as {{guestId1}} (Juan, primary)
+  and {{guestId2}} (María) for the downstream patch/primary/RSVP/delete steps.
+}

@@ -57,6 +57,14 @@ public class EventController {
   private static final String OWNER_EXPR =
       "hasRole('Administrator') or @eventSecurity.isOwner(#id, authentication.name)";
 
+  /**
+   * Whitelist of properties that {@code sort} may reference. Mirrors the columns exposed by {@code
+   * EventEntity}; sorting by anything else (typos, unmapped/nested paths) would otherwise surface
+   * as an unhandled JPA {@code PropertyReferenceException} (HTTP 500) at query time.
+   */
+  private static final java.util.Set<String> SORTABLE_PROPERTIES =
+      java.util.Set.of("organizerId", "eventType", "title", "eventDate", "status", "createdAt");
+
   private final EventInPort eventApi;
 
   @PostMapping
@@ -75,7 +83,7 @@ public class EventController {
 
   @GetMapping
   public PagedEventsResponse listMyEvents(
-      @RequestParam(required = false) String q,
+      @RequestParam(required = false) String title,
       @RequestParam(required = false) String status,
       @RequestParam(required = false) String eventType,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -85,9 +93,23 @@ public class EventController {
       @PageableDefault(size = 20, sort = "eventDate", direction = Sort.Direction.DESC)
           Pageable pageable,
       @AuthenticationPrincipal Jwt jwt) {
+    validateSort(pageable.getSort());
     boolean admin = isAdmin(jwt);
     return eventApi.listOwnEvents(
-        jwt.getSubject(), admin, q, status, eventType, eventDateFrom, eventDateTo, pageable);
+        jwt.getSubject(), admin, title, status, eventType, eventDateFrom, eventDateTo, pageable);
+  }
+
+  private static void validateSort(Sort sort) {
+    sort.forEach(
+        order -> {
+          if (!SORTABLE_PROPERTIES.contains(order.getProperty())) {
+            throw new IllegalArgumentException(
+                "Invalid sort property '"
+                    + order.getProperty()
+                    + "'. Allowed values: "
+                    + SORTABLE_PROPERTIES);
+          }
+        });
   }
 
   @PatchMapping(path = "/{id}")

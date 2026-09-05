@@ -21,6 +21,7 @@ vars:post-response {
   organizerToken: res.body.accessToken
 }
 
+
 assert {
   res.status: eq 200
   res.body.accessToken: isString

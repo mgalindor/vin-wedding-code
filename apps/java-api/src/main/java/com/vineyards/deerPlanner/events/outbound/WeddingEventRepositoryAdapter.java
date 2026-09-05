@@ -28,8 +28,30 @@ public class WeddingEventRepositoryAdapter implements WeddingEventOutPort {
   }
 
   @Override
-  public void save(String eventId, WeddingDetail detail) {
+  public void create(String eventId, WeddingDetail detail) {
     jpa.save(toEntity(eventId, detail));
+  }
+
+  @Override
+  public void update(String eventId, WeddingDetail detail) {
+    // No @CreatedDate/@LastModifiedDate tracked on this entity, so load-and-mutate isn't strictly
+    // required for correctness here — but it keeps the contract consistent with the other
+    // adapters and avoids relying on merge() semantics for a natural-key entity.
+    WeddingEventEntity existing =
+        jpa.findById(eventId)
+            .orElseThrow(
+                () ->
+                    new IllegalStateException("wedding_event.update.not-found eventId=" + eventId));
+    existing.setPartner1Name(detail.getPartner1Name());
+    existing.setPartner2Name(detail.getPartner2Name());
+    existing.setCountdownEnabled(detail.isCountdownEnabled());
+    existing.setLandingPayload(detail.getLandingPayload());
+    existing.setStoryPayload(detail.getStoryPayload());
+    existing.setDressCodePayload(detail.getDressCodePayload());
+    existing.setGiftRegistryPayload(detail.getGiftRegistryPayload());
+    existing.setParentsPayload(detail.getParentsPayload());
+    existing.setAccommodationPayload(detail.getAccommodationPayload());
+    jpa.save(existing);
   }
 
   @Override

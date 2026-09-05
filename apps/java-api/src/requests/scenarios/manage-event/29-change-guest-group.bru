@@ -1,0 +1,26 @@
+meta {
+  name: Scenarios — move a guest (guestId3) to the friends group
+  type: http
+  seq: 30
+}
+
+patch {
+  url: {{host}}/api/v1/events/{{eventId}}/guests/{{guestId3}}/group
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "groupId": "{{secondGroupId}}"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.groupId: eq {{secondGroupId}}
+}

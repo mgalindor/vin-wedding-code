@@ -1,6 +1,7 @@
 package com.vineyards.deerPlanner.invitation.outbound;
 
 import com.vineyards.deerPlanner.shared.persistence.XidId;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
@@ -35,6 +36,7 @@ public class InvitationTemplateEntity {
 
   private String description;
 
+  @Column(name = "is_active")
   private boolean active = true;
 
   private int displayOrder = 0;

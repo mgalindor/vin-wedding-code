@@ -4,7 +4,15 @@ import com.vineyards.deerPlanner.events.application.port.EventFilter;
 import com.vineyards.deerPlanner.events.application.port.EventOutPort;
 import com.vineyards.deerPlanner.events.domain.Event;
 import com.vineyards.deerPlanner.events.domain.EventStatus;
+import com.vineyards.deerPlanner.events.facade.EventArchivedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.EventContactsUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.EventCreatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.EventDeletedAuditedEvent;
 import com.vineyards.deerPlanner.events.facade.EventInPort;
+import com.vineyards.deerPlanner.events.facade.EventLocationsUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.EventMetadataUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.EventOrganizerReassignedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.EventProgramUpdatedAuditedEvent;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
@@ -21,11 +29,13 @@ import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,6 +52,10 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Authorisation is enforced at the inbound layer via SpEL {@code @PreAuthorize} (admin OR
  * owner). The service trusts the caller and loads events by id only.
+ *
+ * <p>Each state-mutating use case publishes an audit event via {@link ApplicationEventPublisher}.
+ * The audit module subscribes with {@code @TransactionalEventListener(AFTER_COMMIT)} so audit rows
+ * land only when the business transaction committed.
  */
 @Service
 @Application
@@ -52,6 +66,7 @@ public class EventService implements EventInPort {
   private final EventOutPort repository;
   private final EventPayloadMapper payloadMapper;
   private final UserInPort userApi;
+  private final ApplicationEventPublisher publisher;
 
   @Override
   @Transactional
@@ -70,7 +85,10 @@ public class EventService implements EventInPort {
             .createdAt(now)
             .updatedAt(now)
             .build();
-    Event saved = repository.save(event);
+    Event saved = repository.create(event);
+    publisher.publishEvent(
+        new EventCreatedAuditedEvent(
+            saved.getId(), saved.getEventType().name(), saved.getTitle(), now));
     log.info(
         "event.created eventId={} type={} organizerId={}",
         saved.getId(),
@@ -123,10 +141,22 @@ public class EventService implements EventInPort {
   @Transactional
   public EventDto updateEventMetadata(String eventId, UpdateEventDto dto) {
     Event current = loadEvent(eventId);
-    if (dto.title() != null) current.setTitle(dto.title());
-    if (dto.eventDate() != null) current.setEventDate(dto.eventDate());
+    List<String> changed = new ArrayList<>();
+    if (dto.title() != null && !dto.title().equals(current.getTitle())) {
+      current.setTitle(dto.title());
+      changed.add("title");
+    }
+    if (dto.eventDate() != null && !dto.eventDate().equals(current.getEventDate())) {
+      current.setEventDate(dto.eventDate());
+      changed.add("eventDate");
+    }
     current.setUpdatedAt(Instant.now());
-    return toDto(repository.save(current));
+    Event saved = repository.update(current);
+    if (!changed.isEmpty()) {
+      publisher.publishEvent(
+          new EventMetadataUpdatedAuditedEvent(saved.getId(), changed, Instant.now()));
+    }
+    return toDto(saved);
   }
 
   @Override
@@ -134,6 +164,7 @@ public class EventService implements EventInPort {
   public void deleteEvent(String eventId) {
     loadEvent(eventId);
     repository.deleteById(eventId);
+    publisher.publishEvent(new EventDeletedAuditedEvent(eventId, Instant.now()));
   }
 
   @Override
@@ -146,7 +177,9 @@ public class EventService implements EventInPort {
           "Event cannot be archived from status " + current.getStatus());
     }
     current.setStatus(EventStatus.archived);
-    return toDto(repository.save(current));
+    Event saved = repository.update(current);
+    publisher.publishEvent(new EventArchivedAuditedEvent(saved.getId(), Instant.now()));
+    return toDto(saved);
   }
 
   @Override
@@ -154,7 +187,11 @@ public class EventService implements EventInPort {
   public EventDto updateLocations(String eventId, LocationsPayloadDto dto) {
     Event current = loadEvent(eventId);
     current.setLocationsPayload(payloadMapper.toPayload(dto));
-    return toDto(repository.save(current));
+    Event saved = repository.update(current);
+    int count = dto.entries() == null ? 0 : dto.entries().size();
+    publisher.publishEvent(
+        new EventLocationsUpdatedAuditedEvent(saved.getId(), count, Instant.now()));
+    return toDto(saved);
   }
 
   @Override
@@ -162,7 +199,9 @@ public class EventService implements EventInPort {
   public EventDto updateProgram(String eventId, ProgramPayloadDto dto) {
     Event current = loadEvent(eventId);
     current.setProgramPayload(payloadMapper.toPayload(dto));
-    return toDto(repository.save(current));
+    Event saved = repository.update(current);
+    publisher.publishEvent(new EventProgramUpdatedAuditedEvent(saved.getId(), Instant.now()));
+    return toDto(saved);
   }
 
   @Override
@@ -170,7 +209,9 @@ public class EventService implements EventInPort {
   public EventDto updateContacts(String eventId, ContactsPayloadDto dto) {
     Event current = loadEvent(eventId);
     current.setContactsPayload(payloadMapper.toPayload(dto));
-    return toDto(repository.save(current));
+    Event saved = repository.update(current);
+    publisher.publishEvent(new EventContactsUpdatedAuditedEvent(saved.getId(), Instant.now()));
+    return toDto(saved);
   }
 
   @Override
@@ -202,7 +243,10 @@ public class EventService implements EventInPort {
     }
     event.setOrganizerId(newOrganizerId);
     event.setUpdatedAt(Instant.now());
-    Event saved = repository.save(event);
+    Event saved = repository.update(event);
+    publisher.publishEvent(
+        new EventOrganizerReassignedAuditedEvent(
+            saved.getId(), oldOrganizerId, newOrganizerId, Instant.now()));
     log.info(
         "event.organizer_reassigned eventId={} oldOrganizerId={} newOrganizerId={} actorUserId={}",
         saved.getId(),

@@ -1,7 +1,7 @@
 meta {
   name: Events — reassign organiser (admin only)
   type: http
-  seq: 18
+  seq: 8
 }
 
 patch {
@@ -16,14 +16,14 @@ auth:bearer {
 
 body:json {
   {
-    "organizerId": "dacbl3otjbinbhfolrog"
+    "organizerId": "{{adminUserId}}"
   }
 }
 
 assert {
   res.status: eq 200
   res.body.id: isString
-  res.body.organizerId: eq "dacbl3otjbinbhfolrog"
+  res.body.organizerId: eq "{{adminUserId}}"
 }
 
 docs {

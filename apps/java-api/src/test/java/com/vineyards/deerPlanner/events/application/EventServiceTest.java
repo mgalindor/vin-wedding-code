@@ -46,12 +46,13 @@ class EventServiceTest {
   @Mock EventOutPort repository;
   @Mock EventPayloadMapper payloadMapper;
   @Mock UserInPort userApi;
+  @Mock org.springframework.context.ApplicationEventPublisher publisher;
 
   EventService service;
 
   @BeforeEach
   void setUp() {
-    service = new EventService(repository, payloadMapper, userApi);
+    service = new EventService(repository, payloadMapper, userApi, publisher);
   }
 
   @Nested
@@ -62,11 +63,11 @@ class EventServiceTest {
       var dto = new CreateEventDto("Maya & Luis", EventType.wedding, LocalDate.now().plusDays(180));
 
       ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.create(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       EventDto result = service.createEvent(dto, ORGANIZER_ID);
 
-      verify(repository).save(captor.capture());
+      verify(repository).create(captor.capture());
       Event saved = captor.getValue();
       // id is intentionally null here — the @XidId BeforeExecutionGenerator assigns the Xid at
       // INSERT time inside the adapter. The service must not pre-populate it.
@@ -81,7 +82,7 @@ class EventServiceTest {
     void createEvent_forBirthday_keepsEventTypeButNoWeddingDetail() {
       var dto =
           new CreateEventDto("Cumple de Sofía", EventType.birthday, LocalDate.now().plusDays(30));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.create(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       EventDto result = service.createEvent(dto, ORGANIZER_ID);
 
@@ -120,7 +121,7 @@ class EventServiceTest {
     void archiveEvent_fromPublished_succeeds() {
       Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.published);
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.update(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       EventDto result = service.archiveEvent(EVENT_ID);
 
@@ -135,7 +136,7 @@ class EventServiceTest {
     void updateLocations_withValidPayload_serialisesPayloadAndPersists() {
       Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.update(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       var dto =
           new LocationsPayloadDto(
@@ -166,7 +167,7 @@ class EventServiceTest {
     void updateProgram_withValidPayload_serialisesProgramPayload() {
       Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.update(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       var dto =
           new ProgramPayloadDto(
@@ -192,7 +193,7 @@ class EventServiceTest {
     void updateContacts_withValidPayload_serialisesContactsPayload() {
       Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.update(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       var dto =
           new ContactsPayloadDto(
@@ -222,7 +223,7 @@ class EventServiceTest {
       stored.setLocationsPayload(
           new com.vineyards.deerPlanner.events.domain.payload.LocationsPayload(List.of()));
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.update(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
       var existingDto =
           new LocationsPayloadDto(
               List.of(new LocationsPayloadDto.Entry("x", "n", "a", "c", null, "t", null)));
@@ -244,7 +245,7 @@ class EventServiceTest {
       Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
       Instant before = stored.getUpdatedAt();
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.update(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       EventDto result = service.updateEventMetadata(EVENT_ID, new UpdateEventDto(null, null));
 
@@ -287,7 +288,7 @@ class EventServiceTest {
       com.vineyards.deerPlanner.events.application.port.EventFilter passed =
           filterCaptor.getValue();
       assertThat(passed.organizerId()).isEqualTo(ORGANIZER_ID);
-      assertThat(passed.q()).isEqualTo("birth");
+      assertThat(passed.title()).isEqualTo("birth");
       assertThat(passed.status()).isEqualTo("draft");
       assertThat(passed.eventType()).isEqualTo("wedding");
       assertThat(passed.eventDateFrom()).isEqualTo(java.time.LocalDate.of(2027, 1, 1));
@@ -348,13 +349,13 @@ class EventServiceTest {
       Event stored = sampleEvent(EVENT_ID, "old-org", EventStatus.draft);
       when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
       when(userApi.existsActiveUser("new-org")).thenReturn(true);
-      when(repository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+      when(repository.update(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
       var dto = new com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto("new-org");
       var result = service.reassignOrganizer(EVENT_ID, dto, "admin-1");
 
       ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
-      verify(repository).save(captor.capture());
+      verify(repository).update(captor.capture());
       assertThat(captor.getValue().getOrganizerId()).isEqualTo("new-org");
       assertThat(result.organizerId()).isEqualTo("new-org");
     }
@@ -366,7 +367,7 @@ class EventServiceTest {
       assertThatThrownBy(() -> service.reassignOrganizer(EVENT_ID, dto, "admin-1"))
           .isInstanceOf(com.vineyards.deerPlanner.shared.exceptions.BusinessError.class)
           .hasMessageContaining("organizer_id_required");
-      verify(repository, never()).save(any(Event.class));
+      verify(repository, never()).update(any(Event.class));
     }
 
     @Test
@@ -399,7 +400,7 @@ class EventServiceTest {
       var result = service.reassignOrganizer(EVENT_ID, dto, "admin-1");
 
       assertThat(result.organizerId()).isEqualTo("same-org");
-      verify(repository, never()).save(any(Event.class));
+      verify(repository, never()).update(any(Event.class));
     }
   }
 }

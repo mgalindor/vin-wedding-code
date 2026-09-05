@@ -1,0 +1,124 @@
+databaseChangeLog:
+  - comment: >
+      Audit log for state-changing actions across bounded contexts.
+      Source: ADR-09 (audit bounded context), backend-java-blueprint.md §6 "Audit".
+      Append-only by convention — the application never issues UPDATE/DELETE on this table.
+      One row per audited action, written by @TransactionalEventListener(AFTER_COMMIT)
+      listeners in the audit bounded context.
+
+  - changeSet:
+      id: 012-audit-create-audit-events
+      author: deer-planner
+      labels: audit, schema
+      changes:
+        - createTable:
+            tableName: audit_events
+            remarks: Append-only audit log of state-changing actions.
+            columns:
+              - column:
+                  name: id
+                  type: varchar(20)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: XID minted by the application (same convention as other entities).
+              - column:
+                  name: occurred_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actor_user_id
+                  type: varchar(20)
+                  constraints:
+                    nullable: true
+                  remarks: >
+                    Nullable: not every actor is a user (system bootstrap, public invitation RSVP).
+                    No FK — the audit log must survive deletion of the actor.
+              - column:
+                  name: actor_kind
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: 'user | system | invitation — disambiguates non-user actors.'
+              - column:
+                  name: action
+                  type: varchar(60)
+                  constraints:
+                    nullable: false
+                  remarks: 'Dotted action name: event.created, guest.rsvp_marked, ...'
+              - column:
+                  name: resource_type
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+                  remarks: 'event | guest_group | guest | user | wedding_event | invitation_config'
+              - column:
+                  name: resource_id
+                  type: varchar(20)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: event_id
+                  type: varchar(20)
+                  constraints:
+                    nullable: true
+                  remarks: Denormalized for fast "all activity on event X" queries.
+              - column:
+                  name: payload
+                  type: jsonb
+                  constraints:
+                    nullable: true
+                  remarks: Action-specific context (counts, fields changed, old/new values).
+              - column:
+                  name: trace_id
+                  type: varchar(40)
+                  constraints:
+                    nullable: true
+                  remarks: Optional distributed trace id (populated when MDC carries one).
+
+        - sql:
+            splitStatements: false
+            sql: >
+              ALTER TABLE audit_events
+              ADD CONSTRAINT ck_audit_events_actor_kind
+              CHECK (actor_kind IN ('user', 'system', 'invitation'));
+
+        - createIndex:
+            tableName: audit_events
+            indexName: idx_audit_events_event_occurred
+            columns:
+              - column:
+                  name: event_id
+              - column:
+                  name: occurred_at
+            remarks: "Primary query — history of an event, newest first."
+
+        - createIndex:
+            tableName: audit_events
+            indexName: idx_audit_events_actor_occurred
+            columns:
+              - column:
+                  name: actor_user_id
+              - column:
+                  name: occurred_at
+            remarks: "What a given user did, newest first."
+
+        - createIndex:
+            tableName: audit_events
+            indexName: idx_audit_events_action
+            columns:
+              - column:
+                  name: action
+
+        - createIndex:
+            tableName: audit_events
+            indexName: idx_audit_events_resource
+            columns:
+              - column:
+                  name: resource_type
+              - column:
+                  name: resource_id
+              - column:
+                  name: occurred_at

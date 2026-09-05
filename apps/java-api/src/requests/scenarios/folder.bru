@@ -3,37 +3,23 @@ meta {
   seq: 11
 }
 
-auth {
-  mode: oauth2
-}
-
-auth:oauth2 {
-  grant_type: password
-  access_token_url: {{host}}/oauth/token
-  refresh_token_url: 
-  username: {{adminUsername}}
-  password: {{adminPassword}}
-  client_id: 
-  client_secret: 
-  scope: 
-  credentials_placement: body
-  credentials_id: credentials
-  token_source: access_token
-  token_placement: header
-  token_header_prefix: Bearer
-  auto_fetch_token: true
-  auto_refresh_token: false
+script:pre-request {
+  if (!bru.getVar("organizerToken")) {
+    await bru.runRequest("auth/00-login.bru");
+  }
 }
 
 docs {
-  End-to-end regression scenarios. Run with `bru run src/requests/scenarios --env local`
-  (or as part of the full collection, after auth/). Each scenario assumes
-  {{organizerToken}} is in scope from `auth/00-login.bru`.
-  
-  - manage-users/  — user lifecycle: admin creates EventOrganizers, owner self-edit,
+  End-to-end regression scenarios. Can be run standalone with
+  `bru run src/requests/scenarios --env local` (the folder-level
+  pre-request script above logs in automatically as {{adminUsername}}
+  and captures {{organizerToken}} if it is not already set), or as part
+  of the full collection, after auth/.
+
+  - manage-users/  - user lifecycle: admin creates EventOrganizers, owner self-edit,
                      role changes, disable/enable, password reset, negative-authorization
                      checks (403/404/422).
-  - manage-event/  — event + guest lifecycle: create event, fill every payload
+  - manage-event/  - event + guest lifecycle: create event, fill every payload
                      (locations, program, contacts, wedding top-level + 6 sub-payloads),
                      archive, then a fresh event with two guest groups, add/move/delete
                      guests, RSVP (group + single + reset), cleanup.

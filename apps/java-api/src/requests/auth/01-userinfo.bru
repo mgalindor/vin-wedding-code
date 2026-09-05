@@ -19,6 +19,10 @@ assert {
   res.body.username: isString
 }
 
+vars:post-response {
+  adminUserId: res.body.id
+}
+
 docs {
   Reads the profile of the currently authenticated user from the JWT subject.
 }

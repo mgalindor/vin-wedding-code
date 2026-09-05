@@ -28,8 +28,35 @@ public class EventInvitationConfigRepositoryAdapter implements EventInvitationCo
   }
 
   @Override
-  public EventInvitationConfig save(EventInvitationConfig config) {
-    return toDomain(jpa.save(toEntity(config)));
+  public EventInvitationConfig create(EventInvitationConfig config) {
+    // eventId is a natural key (not a generated id), so Spring Data's isNew() check always
+    // treats this entity as "not new" and calls merge() instead of persist() — even here, on
+    // first creation — which means @CreatedDate never fires. Set createdAt explicitly so the
+    // NOT NULL constraint is satisfied and the row records an accurate creation timestamp.
+    EventInvitationConfigEntity entity = toEntity(config);
+    entity.setCreatedAt(Instant.now());
+    return toDomain(jpa.save(entity));
+  }
+
+  @Override
+  public EventInvitationConfig update(EventInvitationConfig config) {
+    // Load the managed entity and mutate it in place instead of merging a fresh transient
+    // instance: this guarantees createdAt (never touched below) survives untouched, and lets
+    // @LastModifiedDate/@PreUpdate fire normally against the loaded row.
+    EventInvitationConfigEntity existing =
+        jpa.findById(config.getEventId())
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "invitation_config.update.not-found eventId=" + config.getEventId()));
+    existing.setTemplateId(config.getTemplateId());
+    existing.setActive(config.isActive());
+    existing.setPublishedAt(config.getPublishedAt());
+    existing.setDeadline(config.getDeadline());
+    existing.setRsvpEnabled(config.isRsvpEnabled());
+    existing.setRsvpDeadline(config.getRsvpDeadline());
+    existing.setSlug(config.getSlug());
+    return toDomain(jpa.save(existing));
   }
 
   @Override

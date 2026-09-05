@@ -19,7 +19,7 @@ assert {
 
 tests {
   test("all guests in Familia García confirmed", function() {
-    const items = res.getBody().items.filter(g => g.groupId === bru.getVar("groupId"));
+    const items = res.getBody().page.items.filter(g => g.groupId === bru.getVar("groupId"));
     expect(items.length).to.be.greaterThan(0);
     items.forEach(g => {
       expect(g.rsvpStatus).to.equal("confirmed");

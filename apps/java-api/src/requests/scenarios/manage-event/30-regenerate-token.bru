@@ -1,0 +1,23 @@
+meta {
+  name: Scenarios — regenerate invitation token (invalidates the previous one)
+  type: http
+  seq: 31
+}
+
+post {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}/regenerate-token
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+vars:post-response {
+  groupToken: res.body.invitationToken
+}
+
+assert {
+  res.status: eq 200
+  res.body.invitationToken: isString
+}

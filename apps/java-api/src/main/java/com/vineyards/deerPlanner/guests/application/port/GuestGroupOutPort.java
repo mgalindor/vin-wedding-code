@@ -10,7 +10,11 @@ import java.util.Optional;
  */
 public interface GuestGroupOutPort {
 
-  GuestGroup save(GuestGroup group);
+  /** First-time creation of a guest group row. Always inserts. */
+  GuestGroup create(GuestGroup group);
+
+  /** Persists changes to an already-existing guest group row. Always updates in place. */
+  GuestGroup update(GuestGroup group);
 
   Optional<GuestGroup> findById(String id);
 

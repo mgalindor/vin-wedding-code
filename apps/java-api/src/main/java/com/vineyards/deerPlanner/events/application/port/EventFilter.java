@@ -12,30 +12,34 @@ import java.time.LocalDate;
  * <ul>
  *   <li>{@code organizerId} — when non-null, restricts to events owned by this user. Pass {@code
  *       null} for admin scope (no ownership filter).
- *   <li>{@code q}, {@code status}, {@code eventType}, {@code eventDateFrom}, {@code eventDateTo} —
- *       all optional. Blank / null values are ignored by the adapter.
+ *   <li>{@code title}, {@code status}, {@code eventType}, {@code eventDateFrom}, {@code
+ *       eventDateTo} — all optional. Blank / null values are ignored by the adapter.
  * </ul>
  */
 public record EventFilter(
     String organizerId,
-    String q,
+    String title,
     String status,
     String eventType,
     LocalDate eventDateFrom,
     LocalDate eventDateTo) {
 
   public static EventFilter unscoped(
-      String q, String status, String eventType, LocalDate eventDateFrom, LocalDate eventDateTo) {
-    return new EventFilter(null, q, status, eventType, eventDateFrom, eventDateTo);
-  }
-
-  public static EventFilter forOrganizer(
-      String organizerId,
-      String q,
+      String title,
       String status,
       String eventType,
       LocalDate eventDateFrom,
       LocalDate eventDateTo) {
-    return new EventFilter(organizerId, q, status, eventType, eventDateFrom, eventDateTo);
+    return new EventFilter(null, title, status, eventType, eventDateFrom, eventDateTo);
+  }
+
+  public static EventFilter forOrganizer(
+      String organizerId,
+      String title,
+      String status,
+      String eventType,
+      LocalDate eventDateFrom,
+      LocalDate eventDateTo) {
+    return new EventFilter(organizerId, title, status, eventType, eventDateFrom, eventDateTo);
   }
 }

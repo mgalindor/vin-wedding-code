@@ -1,0 +1,32 @@
+meta {
+  name: Scenarios — confirm the deleted guest is gone from the group
+  type: http
+  seq: 36
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/guests?groupId={{groupId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+tests {
+  test("guestId1 is no longer in the group", function() {
+    const items = res.getBody().page.items;
+    const ids = items.map(g => g.id);
+    expect(ids).to.not.include(bru.getVar("guestId1"));
+  });
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  GuestGroupDto has no `guests` field, so this must list guests directly via the paginated
+  guests endpoint (same pattern as 21-list-family-group-guests) rather than reading
+  res.body.guests off the group resource.
+}

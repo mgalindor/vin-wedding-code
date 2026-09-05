@@ -1,8 +1,14 @@
 package com.vineyards.deerPlanner.identity.application;
 
 import com.vineyards.deerPlanner.identity.application.port.UserOutPort;
+import com.vineyards.deerPlanner.identity.domain.Role;
 import com.vineyards.deerPlanner.identity.domain.User;
+import com.vineyards.deerPlanner.identity.facade.UserCreatedAuditedEvent;
+import com.vineyards.deerPlanner.identity.facade.UserDeletedAuditedEvent;
+import com.vineyards.deerPlanner.identity.facade.UserDisabledAuditedEvent;
+import com.vineyards.deerPlanner.identity.facade.UserEnabledAuditedEvent;
 import com.vineyards.deerPlanner.identity.facade.UserInPort;
+import com.vineyards.deerPlanner.identity.facade.UserUpdatedAuditedEvent;
 import com.vineyards.deerPlanner.identity.facade.dto.CreateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UpdateUserDto;
 import com.vineyards.deerPlanner.identity.facade.dto.UserResponse;
@@ -10,11 +16,15 @@ import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import jakarta.persistence.criteria.Predicate;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -37,6 +47,7 @@ public class UserService implements UserInPort {
   private final UserOutPort userRepository;
   private final PasswordEncoder passwordEncoder;
   private final IdentityProperties props;
+  private final ApplicationEventPublisher publisher;
 
   // ---------- Create ----------
 
@@ -63,12 +74,16 @@ public class UserService implements UserInPort {
             .build();
 
     User created = userRepository.create(toCreate);
+    Set<String> roleNames = rolesAsStrings(created.getRoles());
+    publisher.publishEvent(
+        new UserCreatedAuditedEvent(
+            created.getId(), created.getUsername(), roleNames, Instant.now()));
     log.info(
         "user.created userId={} username={} actorUserId={} roles={}",
         created.getId(),
         created.getUsername(),
         actorUserId,
-        created.getRoles());
+        roleNames);
     return UserResponse.from(created);
   }
 
@@ -166,8 +181,7 @@ public class UserService implements UserInPort {
 
     // Roles are admin-only. If the caller is not an admin and tried to set them, ignore silently
     // (don't reject — the UI may send the field unconditionally).
-    Set<com.vineyards.deerPlanner.identity.domain.Role> roles =
-        isAdmin && dto.roles() != null ? dto.roles() : existing.getRoles();
+    Set<Role> roles = isAdmin && dto.roles() != null ? dto.roles() : existing.getRoles();
 
     User toUpdate =
         User.builder()
@@ -184,23 +198,26 @@ public class UserService implements UserInPort {
             .build();
 
     User updated = userRepository.update(toUpdate);
+    List<String> changed = changedFields(dto);
+    publisher.publishEvent(
+        new UserUpdatedAuditedEvent(updated.getId(), changed, ownerEditingSelf, Instant.now()));
     log.info(
         "user.updated userId={} actorUserId={} adminActor={} changedFields={}",
         updated.getId(),
         actorUserId,
         isAdmin,
-        changedFields(dto));
+        changed);
     return UserResponse.from(updated);
   }
 
-  private static String changedFields(UpdateUserDto dto) {
-    java.util.List<String> fields = new java.util.ArrayList<>();
+  private static List<String> changedFields(UpdateUserDto dto) {
+    List<String> fields = new ArrayList<>();
     if (dto.displayName() != null) fields.add("displayName");
     if (dto.email() != null) fields.add("email");
     if (dto.phone() != null) fields.add("phone");
     if (dto.password() != null) fields.add("password");
     if (dto.roles() != null) fields.add("roles");
-    return String.join(",", fields);
+    return fields;
   }
 
   // ---------- Disable / Enable ----------
@@ -208,13 +225,13 @@ public class UserService implements UserInPort {
   @Override
   @Transactional
   public void disableUser(String userId, String actorUserId) {
-    changeActiveState(userId, false, actorUserId);
+    changeActiveState(userId, false, actorUserId, true);
   }
 
   @Override
   @Transactional
   public void enableUser(String userId, String actorUserId) {
-    changeActiveState(userId, true, actorUserId);
+    changeActiveState(userId, true, actorUserId, false);
   }
 
   @Override
@@ -232,6 +249,7 @@ public class UserService implements UserInPort {
     }
 
     userRepository.delete(user.getId());
+    publisher.publishEvent(new UserDeletedAuditedEvent(user.getId(), Instant.now()));
     log.info("user.deleted userId={} actorUserId={}", user.getId(), actorUserId);
   }
 
@@ -241,7 +259,8 @@ public class UserService implements UserInPort {
     return userRepository.existsActiveById(userId);
   }
 
-  private void changeActiveState(String userId, boolean target, String actorUserId) {
+  private void changeActiveState(
+      String userId, boolean target, String actorUserId, boolean isDisable) {
     User user =
         userRepository
             .findById(userId)
@@ -263,16 +282,18 @@ public class UserService implements UserInPort {
     }
 
     userRepository.setActive(userId, target);
+    publisher.publishEvent(
+        isDisable
+            ? new UserDisabledAuditedEvent(userId, Instant.now())
+            : new UserEnabledAuditedEvent(userId, Instant.now()));
     log.info(
         "user.active-changed userId={} isActive={} actorUserId={}", userId, target, actorUserId);
   }
 
-  // Soft-deleted users are unreachable from this API: {@code UserEntity.@SoftDelete} adds a
-  // SQL restriction that filters them out of every JPA query, so {@code findById} returns empty
-  // and the operation falls through to {@link ResourceNotFoundError}. That matches the rule
-  // "no enable/disable of a soft-deleted user" without an extra branch here.
-
-  // ---------- Helpers ----------
+  private static Set<String> rolesAsStrings(Set<Role> roles) {
+    if (roles == null) return Set.of();
+    return roles.stream().map(Enum::name).collect(java.util.stream.Collectors.toUnmodifiableSet());
+  }
 
   /**
    * Appends the configured suffix to the slug supplied by the frontend and normalises the case.

@@ -14,9 +14,13 @@ auth:bearer {
   token: {{organizerToken}}
 }
 
+script:pre-request {
+  bru.setVar("miguelSlug", "miguel" + Date.now());
+}
+
 body:json {
   {
-    "username": "miguel",
+    "username": "{{miguelSlug}}",
     "displayName": "Miguel Galindo",
     "email": "miguel@example.com",
     "phone": "+521234567890",
@@ -33,11 +37,14 @@ vars:post-response {
 assert {
   res.status: eq 201
   res.body.id: isString
-  res.body.username: eq "miguel@deer"
+  res.body.username: eq "{{miguelSlug}}@deer"
   res.body.roles[0]: eq "EventOrganizer"
 }
 
 docs {
   Scenario seed: admin creates the first non-admin user that the rest of the
   regression exercises. Username slug is appended with @deer by the backend.
+  Slug is timestamped (miguel<epoch-ms>) so the scenario is rerunnable against
+  a persistent dev database — uk_users_username does not exclude soft-deleted
+  rows, so a fixed "miguel" slug would collide on the second run.
 }

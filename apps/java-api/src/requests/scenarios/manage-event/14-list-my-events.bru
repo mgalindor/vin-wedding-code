@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host}}/api/v1/events
+  url: {{host}}/api/v1/events?title={{scenarioEventTitleEncoded}}
   auth: bearer
 }
 
@@ -13,14 +13,25 @@ auth:bearer {
   token: {{organizerToken}}
 }
 
+script:pre-request {
+  bru.setVar("scenarioEventTitleEncoded", encodeURIComponent(bru.getVar("scenarioEventTitle")));
+}
+
 tests {
   test("scenario event is in the list", function() {
-    const items = res.getBody().items;
+    const items = res.getBody().page.items;
     expect(items.find(e => e.id === bru.getVar("eventId"))).to.exist;
   });
 }
 
 assert {
   res.status: eq 200
-  res.body.items: isArray
+  res.body.page.items: isArray
+}
+
+docs {
+  Filters by the per-run timestamped title (scenarioEventTitle, set in 00-create-event.bru)
+  to keep this deterministic — the dev DB accumulates many events with the same base title
+  across reruns, so an unfiltered/un-timestamped filter isn't guaranteed to land the
+  scenario's own event on the default first page.
 }

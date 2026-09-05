@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host}}/api/v1/users
+  url: {{host}}/api/v1/users?size=500
   auth: bearer
 }
 
@@ -15,10 +15,10 @@ auth:bearer {
 
 tests {
   test("list includes the two scenario users", function() {
-    const items = res.getBody();
+    const items = res.getBody().items;
     const usernames = items.map(u => u.username);
-    expect(usernames).to.include("miguel@deer");
-    expect(usernames).to.include("roberto@deer");
+    expect(usernames).to.include(bru.getVar("miguelUsername"));
+    expect(usernames).to.include(bru.getVar("robertoUsername"));
     expect(usernames).to.include("admin@deer");
   });
 }
@@ -26,4 +26,10 @@ tests {
 assert {
   res.status: eq 200
   res.body.items: isArray
+}
+
+docs {
+  Sorted createdAt DESC by default, so admin@deer (the oldest user, seeded at first boot)
+  falls off the default 20-row page as more test users accumulate across reruns of this
+  scenario. size=500 keeps this deterministic without needing per-user filtered lookups.
 }

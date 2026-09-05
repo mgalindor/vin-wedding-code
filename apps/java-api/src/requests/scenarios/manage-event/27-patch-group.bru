@@ -1,0 +1,28 @@
+meta {
+  name: Scenarios — patch the group (rename + reorder)
+  type: http
+  seq: 28
+}
+
+patch {
+  url: {{host}}/api/v1/events/{{eventId}}/guest-groups/{{groupId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+body:json {
+  {
+    "name": "Familia García (Updated)",
+    "displayOrder": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.name: eq "Familia García (Updated)"
+  res.body.displayOrder: eq 1
+}

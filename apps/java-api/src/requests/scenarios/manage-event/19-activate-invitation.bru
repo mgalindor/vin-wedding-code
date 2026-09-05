@@ -14,10 +14,17 @@ auth:bearer {
   token: {{organizerToken}}
 }
 
+script:pre-request {
+  // Use a run-unique slug: event_invitation_config rows aren't cascade-deleted when their
+  // parent event is soft-deleted, so a fixed slug collides with "slug_taken" (422) on any
+  // rerun against a persistent dev DB once a prior run has used it.
+  bru.setVar("invitationSlug", "guest-regression-" + Date.now());
+}
+
 body:json {
   {
     "templateId": "{{templateId}}",
-    "slug": "guest-regression-2027",
+    "slug": "{{invitationSlug}}",
     "active": true,
     "rsvpEnabled": true,
     "deadline": "2027-10-15",
@@ -32,5 +39,5 @@ vars:post-response {
 assert {
   res.status: eq 200
   res.body.active: eq true
-  res.body.slug: eq "guest-regression-2027"
+  res.body.slug: eq "{{invitationSlug}}"
 }

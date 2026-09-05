@@ -1,0 +1,31 @@
+meta {
+  name: Guest groups — list group guests (capture secondary guest)
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{host}}/api/v1/events/{{eventId}}/guests?groupId={{groupId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+script:post-response {
+  const items = res.getBody().page.items;
+  const other = items.find((g) => g.id !== bru.getVar("primaryGuestId"));
+  bru.setVar("guestId2", other ? other.id : null);
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  GuestGroupDto has no `guests` field, so the only way to find María (the non-primary
+  guest created inline alongside Juan in 00-create) is to list guests filtered by
+  groupId and pick the one that isn't primaryGuestId. Captures guestId2, used by
+  05-set-primary to reassign the group's primary contact.
+}

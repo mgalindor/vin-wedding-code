@@ -1,0 +1,18 @@
+meta {
+  name: Scenarios — delete a guest from the group
+  type: http
+  seq: 35
+}
+
+delete {
+  url: {{host}}/api/v1/events/{{eventId}}/guests/{{guestId1}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 204
+}

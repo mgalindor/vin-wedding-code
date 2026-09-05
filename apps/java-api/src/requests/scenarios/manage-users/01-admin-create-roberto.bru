@@ -14,9 +14,13 @@ auth:bearer {
   token: {{organizerToken}}
 }
 
+script:pre-request {
+  bru.setVar("robertoSlug", "roberto" + Date.now());
+}
+
 body:json {
   {
-    "username": "roberto",
+    "username": "{{robertoSlug}}",
     "displayName": "Roberto Pérez",
     "email": "roberto@example.com",
     "password": "RobertoPass1!",
@@ -26,9 +30,10 @@ body:json {
 
 vars:post-response {
   robertoId: res.body.id
+  robertoUsername: res.body.username
 }
 
 assert {
   res.status: eq 201
-  res.body.username: eq "roberto@deer"
+  res.body.username: eq "{{robertoSlug}}@deer"
 }

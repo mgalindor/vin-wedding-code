@@ -14,15 +14,15 @@ auth:bearer {
 }
 
 vars:post-response {
-  guestId1: res.body.items[0].id
-  guestId2: res.body.items[1].id
+  guestId1: res.body.page.items[0].id
+  guestId2: res.body.page.items[1].id
 }
 
 assert {
   res.status: eq 200
-  res.body.items: isArray
-  res.body.items.length: eq 2
-  res.body.items[0].rsvpStatus: eq "pending"
+  res.body.page.items: isArray
+  res.body.page.items.length: eq 2
+  res.body.page.items[0].rsvpStatus: eq "pending"
 }
 
 docs {
