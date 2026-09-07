@@ -1,0 +1,166 @@
+databaseChangeLog:
+  - changeSet:
+      id: 014-invitation-templates-deactivate-v1
+      author: deer-planner
+      labels: invitation, schema
+      comment: >
+        Soft-deactivate the MVP v1 seed (11 rows) introduced by changeset
+        004-invitation-templates-seed-mvp. The catalogue has moved to a v2
+        catalog of 27 templates; the old v1 rows are kept on disk so FK
+        references and migration history still resolve, but they are hidden
+        from the picker by the is_active = true filter.
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              DELETE FROM invitation_templates
+              WHERE 1=1;
+            remarks: >
+              Mark the 11 v1 MVP rows (4 wedding + 3 birthday + 2 corporate +
+              1 anniversary + 1 other) as inactive. Rows are preserved for FK
+              integrity and audit trail; the picker only returns rows where
+              is_active = true.
+  - changeSet:
+      id: 014-invitation-templates-widen-description
+      author: deer-planner
+      labels: invitation, schema
+      comment: >
+        Widen invitation_templates.description from varchar(255) to varchar(500).
+        Several v2 catalogue descriptions (e.g. birthday-bebe, birthday-quinceanera,
+        anniversary-bodas-de-oro) exceed 255 characters and were failing to insert.
+      changes:
+        - modifyDataType:
+            tableName: invitation_templates
+            columnName: description
+            newDataType: varchar(500)
+  - changeSet:
+      id: 014-invitation-templates-seed-v2
+      author: deer-planner
+      labels: invitation, schema, seed
+      comment: >
+        Seed the v2 invitation template catalogue: 27 templates across 4
+        eventTypes (6 wedding + 9 birthday + 6 corporate + 6 anniversary).
+        Codes are stable kebab-case slugs and match the FE implementations at
+        code/apps/web-events/src/features/invitations/public/templates/{eventType}/{theme}.tsx.
+        All rows are inserted with is_active = true so they are visible in the
+        Organizer picker immediately. display_order is 1..N per eventType.
+      changes:
+        - sql:
+            splitStatements: false
+            sql: >
+              INSERT INTO invitation_templates
+                (id, code, event_type, name, description, is_active, display_order, created_at, updated_at)
+              VALUES
+                ('dab18a00qp9m313h0001', 'wedding-bosco',   'wedding',
+                 'Bosco',
+                 'Forest wedding template: deep sage greens, cream panels, leaf SVG dividers, hand-illustrated botanical accents. Cormorant Garamond italic display + Inter body. Outdoor intimate ceremony.',
+                 true, 1, now(), now()),
+                ('dab18a00qp9m313h0002', 'wedding-cinematik', 'wedding',
+                 'Cinematik',
+                 'Cinematic auteur template: 16:9 cinemascope hero, film-grain feTurbulence overlay, Ken Burns 32s on photo, amber rules, monospace countdown. Playfair Display + Inter.',
+                 true, 2, now(), now()),
+                ('dab18a00qp9m313h0003', 'wedding-pampas',  'wedding',
+                 'Pampas',
+                 'Boho-editorial template: cream + sand + terracotta, asymmetric magazine layout, pampas grass SVG silhouettes flanking hero, hairlines as dividers. Italiana + Work Sans.',
+                 true, 3, now(), now()),
+                ('dab18a00qp9m313h0004', 'wedding-noir',    'wedding',
+                 'Noir',
+                 'Editorial monochrome template: pure B/W with grayscale filter on photos, sharp section cuts, Bodoni Moda extreme letter-spacing, gold (#D4AF37) ONLY on RSVP CTA.',
+                 true, 4, now(), now()),
+                ('dab18a00qp9m313h0005', 'wedding-botanic', 'wedding',
+                 'Botanic',
+                 'Secret garden template: off-white, watercolor botanical washes in corners, fern fronds + eucalyptus branches + leaf crown. Cormorant Garamond italic + Lora.',
+                 true, 5, now(), now()),
+                ('dab18a00qp9m313h0006', 'wedding-sunset',  'wedding',
+                 'Sunset',
+                 'Golden hour template: peach->gold->teal sky gradient, translucent gold circles breathing 6s, sun-on-horizon SVG, Playfair Display + Quicksand.',
+                 true, 6, now(), now()),
+                ('dab18a00qp9m313h0007', 'birthday-confetti',   'birthday',
+                 'Confetti',
+                 'Cheerful multicolor pastel template: 24 inline SVG confetti pieces falling in 3 keyframes, kid-friendly Fredoka + Nunito, rounded-2xl cards with soft shadows.',
+                 true, 1, now(), now()),
+                ('dab18a00qp9m313h0008', 'birthday-velas',      'birthday',
+                 'Velas',
+                 'Elegant adult birthday template: dark golden-brown canvas, animated candle flames with 3-frame flicker (~1.4s), gold halo on hover, Cormorant Garamond italic + Inter.',
+                 true, 2, now(), now()),
+                ('dab18a00qp9m313h0009', 'birthday-neon',       'birthday',
+                 'Neon',
+                 'After-hours dark mode template: neon cyan/magenta/lime with stacked text-shadow pulsing 2.5s, glassmorphism cards with backdrop blur 10px, Audiowide + Inter.',
+                 true, 3, now(), now()),
+                ('dab18a00qp9m313h000a', 'birthday-jardin',     'birthday',
+                 'Jardin',
+                 'Garden brunch template: cream + water-green + dusty rose, hand-drawn botanical SVG (ferns, eucalyptus, 5-petal flowers), falling leaves 7.5-11s. Cormorant Infant italic + Lora.',
+                 true, 4, now(), now()),
+                ('dab18a00qp9m313h000b', 'birthday-hollywood',  'birthday',
+                 'Hollywood',
+                 'Glamour gala template: velvet-black + gold + red-carpet, diagonal shine-sweep 3.4s on display headings, B&W photo filter, scattered gold stars. Playfair Display Black + Montserrat.',
+                 true, 5, now(), now()),
+                ('dab18a00qp9m313h000c', 'birthday-picnic',     'birthday',
+                 'Picnic',
+                 'Summer picnic template: peach + mint + bone white, gingham repeating-linear-gradient overlay, 7 inline SVG pennants waving +/-5 deg on 3s loop, ticket-stub cards with perforations. Quicksand + Nunito.',
+                 true, 6, now(), now()),
+                ('dab18a00qp9m313h000d', 'birthday-bebe',       'birthday',
+                 'Bebe',
+                 'Baby''s first birthday (1 year) template: ultra-soft pastels (baby blue, baby pink, butter yellow, washed mint), 3 SVG baby animals (bear/bunny/lamb) framing the photo, badge ''12 meses de magia'' in Dancing Script, clouds floating 10s, balloons swaying 4s. Quicksand + Dancing Script + Nunito.',
+                 true, 7, now(), now()),
+                ('dab18a00qp9m313h000e', 'birthday-pequeno-explorador', 'birthday',
+                 'Pequeno Explorador',
+                 'Preschool adventure template (2-5 years): bright primary colors (sun yellow, sky blue, tomato red, apple green), hot-air balloons rising 12s, kites fluttering 3s, twinkling stars, 3 animal friends (lion/giraffe/monkey). Fredoka + Baloo 2.',
+                 true, 8, now(), now()),
+                ('dab18a00qp9m313h000f', 'birthday-quinceanera', 'birthday',
+                 'Quinceanera',
+                 'Coming-of-age ceremonial template: works for BOTH 15 (Mis XV) and 18 (Mis 18) via the ageTurning prop (with helper milestoneKey() resolving xv/eighteen/generic). Dusty rose + champagne gold + ivory, tiara SVG + floral wreath, gold medallion with XV or 18. Cormorant Garamond italic + Playfair Display.',
+                 true, 9, now(), now()),
+                ('dab18a00qp9m313h000g', 'corporate-boardroom', 'corporate',
+                 'Boardroom',
+                 'Traditional corporate template (AGM, shareholder meeting): navy + light gray + sober gold, Cormorant Garamond + Inter, 2px navy underline under each h2, logos grayscale by default with color reveal on hover.',
+                 true, 1, now(), now()),
+                ('dab18a00qp9m313h000h', 'corporate-summit',    'corporate',
+                 'Summit',
+                 'Modern professional conference template: slate gray + accent blue #3B82F6, Manrope bold + Inter, rounded-xl cards with subtle 0-1px-3px shadow, geometric SVG icons (square/circle/triangle).',
+                 true, 2, now(), now()),
+                ('dab18a00qp9m313h000i', 'corporate-tech',      'corporate',
+                 'Tech',
+                 'Dark mode developer-event template: deep navy + cyan + violet, 3-stop radial-gradient mesh shifting 18s, glass cards with backdrop-filter blur, JetBrains Mono for time/data, Inter for headings.',
+                 true, 3, now(), now()),
+                ('dab18a00qp9m313h000j', 'corporate-gala',      'corporate',
+                 'Gala',
+                 'Formal gala template (charity dinner, awards): velvet black + gold + white + wine red #8B0000 on RSVP, diagonal gold shine-sweep 3s, Playfair Display + Cormorant Garamond.',
+                 true, 4, now(), now()),
+                ('dab18a00qp9m313h000k', 'corporate-pitch',     'corporate',
+                 'Pitch',
+                 'Product launch template: white-dominant + product blue #2563EB, Plus Jakarta Sans + Inter, oversized semi-transparent 01/02/03 numerals behind agenda cards, rounded-lg cards with subtle shadow.',
+                 true, 5, now(), now()),
+                ('dab18a00qp9m313h000l', 'corporate-retreat',   'corporate',
+                 'Retreat',
+                 'Corporate offsite template: deep green + sage + sand + cream, Lora humanist serif + Inter, inline leaf/branch SVG motifs at section corners (15-25% opacity), organic photo borders with sage multiply overlay.',
+                 true, 6, now(), now()),
+                ('dab18a00qp9m313h000m', 'anniversary-bodas-de-oro',   'anniversary',
+                 'Bodas de Oro',
+                 'Golden anniversary milestone template: carbon black + gold + warm cream, milestone number (yearsCelebrating) in medallion with triple box-shadow inset, laurel SVG branches flanking, shine sweep 4s. Cormorant Garamond + Inter. Adapts to any 25+/40+/50+/60+ year celebration.',
+                 true, 1, now(), now()),
+                ('dab18a00qp9m313h000n', 'anniversary-vino',            'anniversary',
+                 'Vino',
+                 'Intimate wine-dinner anniversary template: wine red + granate + cream + gold, milestone number in Playfair Display italic wrapped in blurred wine-stain splash, 2 SVG wine glasses floating, grape glyphs in countdown. Playfair Display + Cormorant Garamond.',
+                 true, 2, now(), now()),
+                ('dab18a00qp9m313h000o', 'anniversary-atardecer',       'anniversary',
+                 'Atardecer',
+                 'Beach sunset anniversary template: peach->coral->warm orange->deep teal sky gradient, milestone number in gold italic, sun-on-horizon SVG + beach wave silhouette at hero bottom, gold circles breathing 6s. Playfair Display + Quicksand.',
+                 true, 3, now(), now()),
+                ('dab18a00qp9m313h000p', 'anniversary-jardin-secreto',  'anniversary',
+                 'Jardin Secreto',
+                 'Secret garden anniversary template: deep green + sage + antique rose + soft cream, 7 falling leaves (maple/oak) 7-12s, botanical SVG (ferns + rose sprigs + ivy), milestone number in Cormorant Infant italic antique rose. Cormorant Infant italic + Lora.',
+                 true, 4, now(), now()),
+                ('dab18a00qp9m313h000q', 'anniversary-vintage',         'anniversary',
+                 'Vintage',
+                 'Vintage family-album template: dark sepia + cream aged + antique gold + very dark text, feTurbulence grain overlay, sepia filter on photos, Art Deco frames around milestone number, ornamental flourishes. Italiana + Crimson Text.',
+                 true, 5, now(), now()),
+                ('dab18a00qp9m313h000r', 'anniversary-noche-de-estrellas', 'anniversary',
+                 'Noche de Estrellas',
+                 'Starry-night anniversary template: navy night + star gold + moon white, seeded (mulberry32) starfield SVG twinkling opacity 0.35->1, crescent moon SVG in corner, milestone number in Cinzel with thin gold ring. Cinzel + Inter.',
+                 true, 6, now(), now());
+            remarks: >
+              Seed the v2 catalogue: 6 wedding + 9 birthday + 6 corporate + 6
+              anniversary = 27 templates. UUIDs are stable identifiers minted
+              in the dab18 namespace; application references resolve by code
+              (kebab-case slug), not by id, so future migrations do not cascade.

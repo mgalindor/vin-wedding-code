@@ -1,0 +1,24 @@
+meta {
+  name: Events — restore
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host}}/api/v1/events/{{eventId}}/restore
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{organizerToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq "draft"
+}
+
+docs {
+  archived → draft. Mirrors 04-archive but in the opposite direction.
+  Run 04-archive first if you need a freshly archived event to restore.
+}

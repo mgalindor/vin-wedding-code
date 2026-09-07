@@ -2,10 +2,12 @@ import { useMemo } from 'react';
 
 import {
   useApiClient,
+  type ContactEntry,
   type ContactsPayload,
   type CreateEventRequest,
   type EventDto,
   type EventInvitationConfig,
+  type EventLocation,
   type EventSummary,
   type EventType,
   type LocationsPayload,
@@ -25,10 +27,15 @@ export type {
   UpdateEventRequest,
   EventInvitationConfig,
   WeddingDetailDto,
+  EventLocation,
   LocationsPayload,
   ProgramPayload,
   ContactsPayload,
+  ContactEntry,
 };
+
+export type ListEventsSortField = 'eventDate' | 'createdAt';
+export type ListEventsSortDir = 'asc' | 'desc';
 
 export interface ListEventsInput {
   search?: string;
@@ -36,7 +43,20 @@ export interface ListEventsInput {
   eventType?: EventType;
   page?: number;
   size?: number;
-  sort?: 'date' | 'added';
+  /** Wire column name on `events` (BE sort param). */
+  sort?: ListEventsSortField;
+  /**
+   * Sort direction for `sort`. When omitted, falls back to the column's
+   * natural "newest first" default: `asc` for `eventDate`, `desc` for
+   * `createdAt`. The wire shape combines `sort` + `sortDir` into a single
+   * `sort=column,direction` param so the FE only owns one search arg.
+   */
+  sortDir?: ListEventsSortDir;
+}
+
+function defaultSortDir(sort: ListEventsSortField | undefined): ListEventsSortDir {
+  if (sort === 'createdAt') return 'desc';
+  return 'asc';
 }
 
 export interface EventsPage {
@@ -65,7 +85,10 @@ export function useEventsService() {
         if (input.eventType) search.set('eventType', input.eventType);
         search.set('page', String(input.page ?? 0));
         search.set('size', String(input.size ?? 20));
-        if (input.sort) search.set('sort', input.sort);
+        if (input.sort) {
+          const dir = input.sortDir ?? defaultSortDir(input.sort);
+          search.set('sort', `${input.sort},${dir}`);
+        }
         return api
           .get<{ page: EventsPage }>(`/events?${search.toString()}`)
           .then((r) => r.page);
@@ -104,17 +127,29 @@ export function useEventsService() {
           .then(normalizeEventDto);
       },
 
+      /** POST /api/v1/events/{id}/restore — archived → draft. */
+      restoreEvent(id: string): Promise<EventDto> {
+        return api
+          .post<EventDto>(`/events/${id}/restore`, undefined, { schema: EventDtoSchema })
+          .then(normalizeEventDto);
+      },
+
       // ----- Generic JSONB payloads (type-agnostic) -----
+      //
+      // The screens work in the FE in-memory shape (e.g. `items: [...]`).
+      // The BE writes a different shape (e.g. `entries: [...]`). The
+      // round-trip happens in two places: `wireFromLocations`, etc., at
+      // the call site so screens never have to know the wire shape.
 
       putLocations(id: string, dto: LocationsPayload): Promise<EventDto> {
         return api
-          .put<EventDto>(`/events/${id}/locations`, dto, { schema: EventDtoSchema })
+          .put<EventDto>(`/events/${id}/locations`, { entries: dto.items }, { schema: EventDtoSchema })
           .then(normalizeEventDto);
       },
 
       putProgram(id: string, dto: ProgramPayload): Promise<EventDto> {
         return api
-          .put<EventDto>(`/events/${id}/program`, dto, { schema: EventDtoSchema })
+          .put<EventDto>(`/events/${id}/program`, { days: [{ items: dto.items }] }, { schema: EventDtoSchema })
           .then(normalizeEventDto);
       },
 

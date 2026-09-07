@@ -1,0 +1,27 @@
+{
+  "title": "Invitation",
+  "subtitle": "Pick one of the fixed templates for this event type, set the public slug, and turn on the invitation. Guests will be able to read and RSVP.",
+  "templates": {
+    "title": "Template",
+    "subtitle": "Each event type ships with a curated set. The template fills with the data you capture from the other tabs.",
+    "empty": "No templates available for this event type yet."
+  },
+  "publicLink": {
+    "title": "Public link",
+    "description": "The slug becomes the public URL of the invitation. Lowercase kebab-case only.",
+    "preview": "Guests will visit:",
+    "regenerate": "Regenerate"
+  },
+  "settings": {
+    "title": "Invitation settings",
+    "active": "Invitation is live",
+    "activeDescription": "Guests can open the link, read all the modules, and RSVP.",
+    "inactive": "Invitation is offline",
+    "inactiveDescription": "The page is reachable but shows 'not yet active'. Useful while you prepare the data.",
+    "rsvpEnabled": "RSVP enabled",
+    "rsvpEnabledDescription": "Guests can confirm, decline, or add a message.",
+    "deadline": "RSVP deadline",
+    "deadlineHelper": "Optional. The invitation hides the RSVP form after this date.",
+    "saved": "Invitation updated"
+  }
+}

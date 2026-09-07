@@ -5,8 +5,8 @@ import {
   clearPersistedTokens,
   extractTraceId,
   readPersistedAccessToken,
-  type ApiErrorBody,
 } from './errors';
+import type { ApiErrorBody } from './types';
 
 export type { ApiErrorBody };
 export { ApiError, clearPersistedTokens, readPersistedAccessToken };
@@ -87,11 +87,12 @@ export class ApiClient {
         const traceId = response.headers.get('X-Trace-Id') ?? undefined;
         // Log to console — there's no Sentry yet. The traceId lets a
         // human correlate this with the BE deploy that caused the drift.
-        console.error('[api] schema drift', {
-          url,
-          traceId,
-          issues: parsed.error.issues,
-        });
+        // `dir` (instead of `error`) prints the issues array expanded so
+        // you can see path / message / expected without clicking.
+        // eslint-disable-next-line no-console
+        console.error('[api] schema drift', { url, traceId, raw });
+        // eslint-disable-next-line no-console
+        console.dir(parsed.error.issues, { depth: null });
         throw new ApiError(
           500,
           'schema_drift',

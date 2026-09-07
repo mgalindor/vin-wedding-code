@@ -13,6 +13,7 @@ import com.vineyards.deerPlanner.events.facade.EventLocationsUpdatedAuditedEvent
 import com.vineyards.deerPlanner.events.facade.EventMetadataUpdatedAuditedEvent;
 import com.vineyards.deerPlanner.events.facade.EventOrganizerReassignedAuditedEvent;
 import com.vineyards.deerPlanner.events.facade.EventProgramUpdatedAuditedEvent;
+import com.vineyards.deerPlanner.events.facade.EventRestoredAuditedEvent;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
@@ -179,6 +180,21 @@ public class EventService implements EventInPort {
     current.setStatus(EventStatus.archived);
     Event saved = repository.update(current);
     publisher.publishEvent(new EventArchivedAuditedEvent(saved.getId(), Instant.now()));
+    return toDto(saved);
+  }
+
+  @Override
+  @Transactional
+  public EventDto restoreEvent(String eventId) {
+    Event current = loadEvent(eventId);
+    if (!current.getStatus().canTransitionTo(EventStatus.draft)) {
+      throw new BusinessError(
+          "invalid_status_transition",
+          "Event cannot be restored from status " + current.getStatus());
+    }
+    current.setStatus(EventStatus.draft);
+    Event saved = repository.update(current);
+    publisher.publishEvent(new EventRestoredAuditedEvent(saved.getId(), Instant.now()));
     return toDto(saved);
   }
 

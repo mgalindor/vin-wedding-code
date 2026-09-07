@@ -26,9 +26,9 @@ describe('normalizeEventDto', () => {
     expect(normalized.program).toEqual({ items: [] });
   });
 
-  it('replaces a null contacts payload with an empty object', () => {
+  it('replaces a null contacts payload with an empty entries array', () => {
     const normalized = normalizeEventDto({ ...baseEvent, contacts: null });
-    expect(normalized.contacts).toEqual({});
+    expect(normalized.contacts).toEqual({ entries: [] });
   });
 
   it('preserves populated payloads as-is', () => {
@@ -36,7 +36,7 @@ describe('normalizeEventDto', () => {
       ...baseEvent,
       locations: { items: [{ label: 'Ceremony' }] },
       program: { items: [{ time: '18:00', title: 'Ceremony' }] },
-      contacts: { primaryContactName: 'Maya' },
+      contacts: { entries: [{ label: 'Primary', fullName: 'Maya' }] },
     };
     expect(normalizeEventDto(populated)).toEqual(populated);
   });
@@ -47,5 +47,47 @@ describe('normalizeEventDto', () => {
     expect(input.locations).toBeNull();
     expect(input.program).toBeNull();
     expect(input.contacts).toBeNull();
+  });
+
+  describe('wire → FE in-memory translation', () => {
+    it('flattens `{ entries: [...] }` from the BE to `items: [...]`', () => {
+      const wire: EventDto = {
+        ...baseEvent,
+        locations: {
+          // Force the wire shape to pass through the strict TS check
+          entries: [
+            { label: 'Ceremony', name: 'Chapel', address: '123 Main', mapsLink: 'https://…' },
+          ],
+        } as unknown as EventDto['locations'],
+      };
+      const normalized = normalizeEventDto(wire);
+      expect(normalized.locations?.items).toHaveLength(1);
+      expect(normalized.locations?.items[0]).toMatchObject({
+        label: 'Ceremony',
+        address: '123 Main',
+        mapUrl: 'https://…',
+      });
+    });
+
+    it('flattens `{ days: [...] }` to a single `items` list', () => {
+      const wire: EventDto = {
+        ...baseEvent,
+        program: {
+          days: [
+            {
+              date: '2027-04-15',
+              label: 'Wedding day',
+              items: [
+                { time: '18:00', title: 'Ceremony', detail: 'chapel' },
+                { time: '20:00', title: 'Reception', detail: 'garden' },
+              ],
+            },
+          ],
+        } as unknown as EventDto['program'],
+      };
+      const normalized = normalizeEventDto(wire);
+      expect(normalized.program?.items).toHaveLength(2);
+      expect(normalized.program?.items[0]).toMatchObject({ time: '18:00', title: 'Ceremony' });
+    });
   });
 });

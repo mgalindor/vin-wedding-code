@@ -1,0 +1,118 @@
+/*
+ * Deer Planner Web Portal — design tokens
+ * Mirrors 2-product/2.1-discovery/2.1.6-design/DESIGN.md front matter.
+ */
+
+@import "tailwindcss";
+
+@theme {
+  /* --- Surfaces (Warm Parchment family) --- */
+  --color-background: #ffffff;
+  --color-foreground: #1c1b1a;
+  --color-surface: #f9f8f7;
+  --color-surface-dim: #e8e6e4;
+  --color-surface-bright: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f2f0;
+  --color-surface-container: #eeeceb;
+  --color-surface-container-high: #e8e7e5;
+  --color-on-surface: #1c1b1a;
+  --color-on-surface-variant: #4d4635;
+  --color-outline: #7f7663;
+  --color-outline-variant: #d0c5af;
+
+  /* --- Primary — Antique Gold (CTA / focus / progress) --- */
+  --color-primary: #735c00;
+  --color-primary-container: #d4af37;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #554300;
+  --color-primary-fixed: #ffe088;
+  --color-primary-fixed-dim: #e9c349;
+  --color-on-primary-fixed: #241a00;
+  --color-on-primary-fixed-variant: #574500;
+
+  /* --- Secondary — Warm Ash (UI chrome) --- */
+  --color-secondary: #605e5c;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e5e2df;
+  --color-on-secondary-container: #666462;
+
+  /* --- Tertiary — Deep Slate Blue (editorial anchors) --- */
+  --color-tertiary: #4e6073;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #a2b5cb;
+
+  /* --- Status (RSVP badges, guest list) --- */
+  --color-status-confirmed-bg: #dcf5e8;
+  --color-status-confirmed-text: #1a5c35;
+  --color-status-pending-bg: #fff4e0;
+  --color-status-pending-text: #7c4f00;
+  --color-status-declined-bg: #eddfdd;
+  --color-status-declined-text: #5a3535;
+
+  /* --- Error --- */
+  --color-destructive: #ba1a1a;
+  --color-destructive-foreground: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #5a3535;
+
+  /* --- Form surfaces --- */
+  --color-muted: #f3f2f0;
+  --color-muted-foreground: #4d4635;
+  --color-accent: #f3f2f0;
+  --color-accent-foreground: #1c1b1a;
+  --color-border: #d0c5af;
+  --color-input: #d0c5af;
+  --color-ring: #735c00;
+
+  /* --- Shadow tokens --- */
+  --shadow-card: 0 2px 12px rgb(18 30 31 / 6%);
+  --shadow-card-hover: 0 4px 20px rgb(18 30 31 / 10%);
+
+  /* --- Typography --- */
+  --font-display: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
+
+  /* --- Radii --- */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom focus ring — single source so inputs, links and buttons match. */
+@layer utilities {
+  .ring-focus {
+    box-shadow: 0 0 0 3px rgb(115 92 0 / 12%);
+    border-color: var(--color-primary) !important;
+  }
+}

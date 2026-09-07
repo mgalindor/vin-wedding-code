@@ -1,0 +1,27 @@
+{
+  "title": "Invitación",
+  "subtitle": "Elige una de las plantillas fijas para este tipo de evento, define el slug público y activa la invitación. Los invitados podrán leer y confirmar.",
+  "templates": {
+    "title": "Plantilla",
+    "subtitle": "Cada tipo de evento incluye un set curado. La plantilla se llena con los datos que capturas en las otras pestañas.",
+    "empty": "Aún no hay plantillas disponibles para este tipo de evento."
+  },
+  "publicLink": {
+    "title": "Enlace público",
+    "description": "El slug se convierte en la URL pública de la invitación. Solo minúsculas con guiones.",
+    "preview": "Los invitados visitarán:",
+    "regenerate": "Regenerar"
+  },
+  "settings": {
+    "title": "Ajustes de la invitación",
+    "active": "Invitación activa",
+    "activeDescription": "Los invitados pueden abrir el enlace, leer todos los módulos y confirmar.",
+    "inactive": "Invitación inactiva",
+    "inactiveDescription": "La página es alcanzable pero muestra 'aún no activa'. Útil mientras preparas los datos.",
+    "rsvpEnabled": "RSVP habilitado",
+    "rsvpEnabledDescription": "Los invitados pueden confirmar, rechazar o agregar un mensaje.",
+    "deadline": "Fecha límite del RSVP",
+    "deadlineHelper": "Opcional. La invitación oculta el formulario de RSVP después de esta fecha.",
+    "saved": "Invitación actualizada"
+  }
+}

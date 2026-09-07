@@ -1,6 +1,6 @@
-import { Link, useParams } from '@tanstack/react-router';
+import { Link, useParams, useRouter } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Archive, ChevronRight, ExternalLink, Image as ImageIcon, Trash2, Users2 } from 'lucide-react';
+import { Archive, ArchiveRestore, ChevronRight, ExternalLink, Image as ImageIcon, Trash2, Users2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -99,10 +99,10 @@ function Overview({ event }: { event: EventDto }) {
                 icon={ImageIcon}
               />
             ) : null}
-            {event.contacts?.primaryContactName ? (
+            {event.contacts?.entries?.[0]?.fullName ? (
               <DataSummary
                 label={t('events:detail.contacts.title')}
-                value={event.contacts.primaryContactName}
+                value={event.contacts.entries[0].fullName ?? '✓'}
                 icon={ImageIcon}
               />
             ) : null}
@@ -150,7 +150,7 @@ function Overview({ event }: { event: EventDto }) {
                 <ExternalLink className="h-4 w-4" /> {t('events:detail.overview.actions.editBasics')}
               </Button>
             </Link>
-            <ArchiveButton eventId={event.id} />
+            <ArchiveButton eventId={event.id} status={event.status} />
             <DangerButton eventId={event.id} />
           </CardContent>
         </Card>
@@ -172,11 +172,12 @@ function NextStepRow({
   to: string;
   eventId: string;
 }) {
+  const router = useRouter();
   return (
-    <Link
-      to={to as never}
-      params={{ eventId }}
-      className="flex items-start gap-3 rounded-md border border-transparent p-3 transition-colors hover:border-[var(--color-primary-container)] hover:bg-[var(--color-surface-container-low)]"
+    <button
+      type="button"
+      onClick={() => router.navigate({ to: to as never, params: { eventId } as never })}
+      className="flex w-full items-start gap-3 rounded-md border border-transparent p-3 text-left transition-colors hover:border-[var(--color-primary-container)] hover:bg-[var(--color-surface-container-low)]"
     >
       <span
         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-fixed-dim)] text-xs font-bold text-[var(--color-on-primary-fixed-variant)]"
@@ -188,7 +189,7 @@ function NextStepRow({
         <div className="text-xs text-[var(--color-secondary)]">{description}</div>
       </div>
       <ChevronRight className="mt-1 h-4 w-4 text-[var(--color-secondary)]" />
-    </Link>
+    </button>
   );
 }
 
@@ -214,25 +215,33 @@ function DataSummary({
   );
 }
 
-function ArchiveButton({ eventId }: { eventId: string }) {
+function ArchiveButton({ eventId, status }: { eventId: string; status: EventDto['status'] }) {
   const { t } = useTranslation('events');
   const service = useEventsService();
+  const isArchived = status === 'archived';
 
-  const onArchive = async () => {
-    if (window.confirm(t('detail.overview.warnings.archiveConfirm'))) {
-      await service.archiveEvent(eventId);
-      location.reload();
-    }
+  const onClick = async () => {
+    const confirmKey = isArchived
+      ? 'detail.overview.warnings.restoreConfirm'
+      : 'detail.overview.warnings.archiveConfirm';
+    if (!window.confirm(t(confirmKey))) return;
+    await (isArchived ? service.restoreEvent(eventId) : service.archiveEvent(eventId));
+    location.reload();
   };
+
+  const Icon = isArchived ? ArchiveRestore : Archive;
+  const labelKey = isArchived
+    ? 'events:detail.overview.actions.restore'
+    : 'events:detail.overview.actions.archive';
 
   return (
     <Button
       variant="ghost"
       className="w-full justify-start text-[var(--color-secondary)]"
-      onClick={onArchive}
-      data-testid="event-archive"
+      onClick={onClick}
+      data-testid={isArchived ? 'event-restore' : 'event-archive'}
     >
-      <Archive className="h-4 w-4" /> {t('events:detail.overview.actions.archive')}
+      <Icon className="h-4 w-4" /> {t(labelKey)}
     </Button>
   );
 }

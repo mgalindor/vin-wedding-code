@@ -1,0 +1,19 @@
+{
+  "common": {
+    "unknown": "Something went wrong",
+    "network": "We couldn't reach the server. Check your connection and try again.",
+    "unauthorized": "Your session expired. Sign in again to continue.",
+    "forbidden": "You don't have access to this resource.",
+    "notFound": "We couldn't find what you were looking for.",
+    "validation": "Some fields need attention — review the messages below."
+  },
+  "http_400": "The request was rejected by the server.",
+  "http_401": "Please sign in again.",
+  "http_403": "You don't have permission for this action.",
+  "http_404": "Not found.",
+  "http_409": "There was a conflict with the current state of the data.",
+  "http_422": "Validation failed.",
+  "http_500": "Our server ran into an unexpected error. Try again in a moment.",
+  "http_503": "The service is temporarily unavailable.",
+  "traceId": "Reference code"
+}

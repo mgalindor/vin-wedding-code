@@ -1,0 +1,57 @@
+{
+  "title": "Planners",
+  "subtitle": "Gestiona los event organizers de tu organización. Invita a uno, cambia su rol, deshabilita el acceso sin eliminar su trabajo.",
+  "search": {
+    "placeholder": "Buscar por nombre, usuario o email"
+  },
+  "filters": {
+    "role": "Rol",
+    "all": "Todos",
+    "EventOrganizer": "Event organizer",
+    "Administrator": "Administrador",
+    "activeOnly": "Solo activos",
+    "inactiveOnly": "Solo desactivados"
+  },
+  "table": {
+    "name": "Nombre",
+    "username": "Usuario",
+    "email": "Email",
+    "role": "Rol",
+    "status": "Estado",
+    "lastLogin": "Último acceso",
+    "actions": "Acciones"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Deshabilitado"
+  },
+  "actions": {
+    "newPlanner": "Agregar planner",
+    "disable": "Deshabilitar",
+    "enable": "Re-habilitar",
+    "delete": "Eliminar"
+  },
+  "newUser": {
+    "title": "Agregar un event planner",
+    "subtitle": "Define credenciales y elige un rol. El planner se autentica con el usuario que elijas (se agrega automáticamente el sufijo @deer).",
+    "fields": {
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "username": "Usuario",
+      "email": "Email de trabajo",
+      "phone": "Teléfono",
+      "password": "Contraseña inicial",
+      "roles": "Roles"
+    },
+    "actions": {
+      "generatePassword": "Generar"
+    },
+    "errors": {
+      "passwordLength": "Mínimo 8 caracteres",
+      "usernameFormat": "Solo letras, dígitos, punto o guión",
+      "rolesRequired": "Selecciona al menos un rol"
+    },
+    "success": "Planner creado",
+    "copyCredentials": "Comparte estas credenciales con el planner — las necesita para iniciar sesión."
+  }
+}

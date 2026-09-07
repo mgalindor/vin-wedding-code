@@ -56,6 +56,11 @@ public class AuditListener {
   }
 
   @ApplicationModuleListener
+  public void on(com.vineyards.deerPlanner.events.facade.EventRestoredAuditedEvent e) {
+    persist(e.eventId(), e.eventId(), "event", "event.restored", Map.of(), e.occurredAt());
+  }
+
+  @ApplicationModuleListener
   public void on(com.vineyards.deerPlanner.events.facade.EventLocationsUpdatedAuditedEvent e) {
     persist(
         e.eventId(),

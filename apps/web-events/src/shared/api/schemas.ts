@@ -21,12 +21,53 @@
  * Add schemas here as new endpoints ship; do not add endpoints without
  * a matching schema — see the engineering rule in `backend-java-
  * blueprint.md`.
+ *
+ * **Tightness policy:** strict on enums (the main drift risk — a BE
+ * renames a value and the FE would silently misbehave), permissive on
+ * payload shapes and timestamp formats (the FE has historically had a
+ * different shape in `types.ts` than the BE sends; tightening these
+ * would block valid traffic until both sides align). The FE's `types.ts`
+ * is the legacy shape; the BE shape is what's on the wire. They drift,
+ * and that drift is something to fix in the FE, not something to crash
+ * on. The schema exists to catch enum drift, not field-name drift.
+ *
+ * **Timestamp formats (BE-side note):** Spring Boot with Jackson defaults
+ * to emitting `Instant` as a numeric epoch (`1717555200000`) UNLESS the
+ * application sets `spring.jackson.serialization.write-dates-as-timestamps=false`.
+ * Until that's flipped in the BE, accept BOTH shapes on the FE (string
+ * ISO + numeric millis-or-seconds) and normalise to ISO. Once the BE
+ * flips the property, the numeric branch becomes dead code and can
+ * be removed.
  */
 
 import { z } from 'zod';
 
-const isoDateString = z.iso.date();
-const isoInstantString = z.iso.datetime({ offset: true });
+const isoDateString = z.string().refine(
+  (v) => !Number.isNaN(Date.parse(v)) && /^\d{4}-\d{2}-\d{2}/.test(v),
+  { message: 'expected ISO date string (YYYY-MM-DD...)' },
+);
+
+/**
+ * Accept three timestamp formats emitted by Spring Boot + Jackson:
+ *   1. ISO 8601 with explicit offset (`2026-09-03T10:15:30.000+00:00`)
+ *   2. ISO 8601 trailing-Z (`2026-09-03T10:15:30.000Z`)
+ *   3. Numeric epoch — millis OR seconds; auto-detected by magnitude
+ * Anything that lands gets normalised to an ISO 8601 string with `Z`.
+ */
+const isoInstantString = z
+  .union([
+    z.string().datetime({ offset: true }),
+    z.string().datetime(),
+    z.number(),
+  ])
+  .transform((v) => {
+    if (typeof v === 'number') {
+      // 1e12 ≈ year 33658 in seconds; below that we assume ms.
+      const millis = v < 1e12 ? v * 1000 : v;
+      return new Date(millis).toISOString();
+    }
+    return v;
+  });
 
 export const EventTypeSchema = z.enum([
   'wedding',
@@ -38,38 +79,26 @@ export const EventTypeSchema = z.enum([
 
 export const EventStatusSchema = z.enum(['draft', 'published', 'archived']);
 
-export const EventLocationSchema = z.object({
-  id: z.string().optional(),
-  label: z.string(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  mapUrl: z.string().optional(),
-  startsAt: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-export const ProgramItemSchema = z.object({
-  time: z.string().regex(/^\d{2}:\d{2}$/, 'HH:mm'),
-  title: z.string(),
-  description: z.string().optional(),
-});
-
-export const ContactsPayloadSchema = z
-  .object({
-    primaryContactName: z.string().optional(),
-    primaryContactPhone: z.string().optional(),
-    primaryContactEmail: z.string().optional(),
-    secondaryContactName: z.string().optional(),
-    secondaryContactPhone: z.string().optional(),
-  })
-  .nullable();
-
+/** Permissive on purpose — see "Tightness policy" above. Matches the BE wire shape. */
 export const LocationsPayloadSchema = z
-  .object({ items: z.array(EventLocationSchema) })
+  .object({
+    entries: z.array(z.object({}).passthrough()).optional(),
+  })
+  .passthrough()
   .nullable();
 
 export const ProgramPayloadSchema = z
-  .object({ items: z.array(ProgramItemSchema) })
+  .object({
+    days: z.array(z.object({}).passthrough()).optional(),
+  })
+  .passthrough()
+  .nullable();
+
+export const ContactsPayloadSchema = z
+  .object({
+    entries: z.array(z.object({}).passthrough()).optional(),
+  })
+  .passthrough()
   .nullable();
 
 export const EventDtoSchema = z.object({

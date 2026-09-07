@@ -1,0 +1,48 @@
+{
+  "loading": "Loading…",
+  "brand": {
+    "title": "Deer Planner",
+    "subtitle": "Invitation platform"
+  },
+  "nav": {
+    "sections": {
+      "workspace": "Workspace",
+      "administration": "Administration"
+    },
+    "events": "Events",
+    "newEvent": "New event",
+    "users": "Event planners",
+    "profile": "My profile",
+    "help": "Help & shortcuts",
+    "logout": "Sign out"
+  },
+  "role": {
+    "admin": "Administrator",
+    "organizer": "Event organizer"
+  },
+  "home": {
+    "greeting": "Good to see you again",
+    "subtitle": "Pick up where you left off, or start a brand-new event. Your last few invitations live just below.",
+    "cta": "Start a new event",
+    "stats": {
+      "events": "Your events",
+      "eventsHelper": "Drafts and published",
+      "upcoming": "Upcoming this season",
+      "upcomingHelper": "Future-dated invitations",
+      "role": "Your role",
+      "roleAdmin": "Administrator",
+      "roleAdminHelper": "Full access — events, planners, settings",
+      "roleOrganizer": "Event organizer",
+      "roleOrganizerHelper": "Manage your events and guests"
+    },
+    "recent": "Recent activity",
+    "recentHelper": "Your three most recent events",
+    "viewAll": "View all",
+    "empty": "You haven't created any events yet — start with the button above.",
+    "adminCallout": {
+      "title": "Administrator section unlocked",
+      "body": "Manage the event planners in your organization, set their roles, and grant or revoke access without leaving the dashboard.",
+      "cta": "Open planner management"
+    }
+  }
+}

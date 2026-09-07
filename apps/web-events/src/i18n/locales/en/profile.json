@@ -1,0 +1,37 @@
+{
+  "title": "My profile",
+  "subtitle": "Update your personal information. The username and role are read-only — ask your administrator if they need to change.",
+  "sections": {
+    "identity": "Identity",
+    "security": "Security",
+    "preferences": "Preferences"
+  },
+  "fields": {
+    "displayName": "Display name",
+    "email": "Email",
+    "phone": "Phone",
+    "username": "Username",
+    "role": "Role",
+    "language": "Display language"
+  },
+  "actions": {
+    "save": "Save changes",
+    "changePassword": "Change password",
+    "saved": "Profile updated"
+  },
+  "password": {
+    "title": "Change your password",
+    "subtitle": "Pick something memorable but secret. 8 characters minimum, case-sensitive.",
+    "current": "Current password",
+    "next": "New password",
+    "confirm": "Confirm new password",
+    "errors": {
+      "match": "Passwords don't match",
+      "length": "At least 8 characters",
+      "currentWrong": "The current password you entered is incorrect",
+      "weak": "Pick a stronger password"
+    },
+    "success": "Password updated"
+  },
+  "languageHelp": "Switches every piece of UI copy immediately. You can change it back any time."
+}

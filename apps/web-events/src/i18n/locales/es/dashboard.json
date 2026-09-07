@@ -1,0 +1,48 @@
+{
+  "loading": "Cargando…",
+  "brand": {
+    "title": "Deer Planner",
+    "subtitle": "Plataforma de invitaciones"
+  },
+  "nav": {
+    "sections": {
+      "workspace": "Espacio de trabajo",
+      "administration": "Administración"
+    },
+    "events": "Eventos",
+    "newEvent": "Nuevo evento",
+    "users": "Event planners",
+    "profile": "Mi perfil",
+    "help": "Ayuda y atajos",
+    "logout": "Cerrar sesión"
+  },
+  "role": {
+    "admin": "Administrador",
+    "organizer": "Event organizer"
+  },
+  "home": {
+    "greeting": "Qué gusto verte de nuevo",
+    "subtitle": "Continúa justo donde lo dejaste, o comienza un evento nuevo. Tus últimas invitaciones están justo debajo.",
+    "cta": "Comenzar un evento",
+    "stats": {
+      "events": "Tus eventos",
+      "eventsHelper": "Borradores y publicados",
+      "upcoming": "Próximos esta temporada",
+      "upcomingHelper": "Invitaciones con fecha futura",
+      "role": "Tu rol",
+      "roleAdmin": "Administrador",
+      "roleAdminHelper": "Acceso total — eventos, planners, ajustes",
+      "roleOrganizer": "Event organizer",
+      "roleOrganizerHelper": "Gestiona tus eventos e invitados"
+    },
+    "recent": "Actividad reciente",
+    "recentHelper": "Tus tres eventos más recientes",
+    "viewAll": "Ver todos",
+    "empty": "Aún no has creado eventos — empieza con el botón de arriba.",
+    "adminCallout": {
+      "title": "Sección de administrador desbloqueada",
+      "body": "Gestiona los event organizers de tu organización, asigna roles y otorga o revoca acceso sin salir del panel.",
+      "cta": "Abrir gestión de planners"
+    }
+  }
+}

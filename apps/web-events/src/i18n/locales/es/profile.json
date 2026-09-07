@@ -1,0 +1,37 @@
+{
+  "title": "Mi perfil",
+  "subtitle": "Actualiza tu información personal. El usuario y rol son de solo lectura — pide a tu administrador si necesitan cambiar.",
+  "sections": {
+    "identity": "Identidad",
+    "security": "Seguridad",
+    "preferences": "Preferencias"
+  },
+  "fields": {
+    "displayName": "Nombre para mostrar",
+    "email": "Email",
+    "phone": "Teléfono",
+    "username": "Usuario",
+    "role": "Rol",
+    "language": "Idioma de la interfaz"
+  },
+  "actions": {
+    "save": "Guardar cambios",
+    "changePassword": "Cambiar contraseña",
+    "saved": "Perfil actualizado"
+  },
+  "password": {
+    "title": "Cambia tu contraseña",
+    "subtitle": "Elige algo memorable pero secreto. Mínimo 8 caracteres, distingue mayúsculas.",
+    "current": "Contraseña actual",
+    "next": "Nueva contraseña",
+    "confirm": "Confirma la nueva contraseña",
+    "errors": {
+      "match": "Las contraseñas no coinciden",
+      "length": "Al menos 8 caracteres",
+      "currentWrong": "La contraseña actual es incorrecta",
+      "weak": "Elige una contraseña más fuerte"
+    },
+    "success": "Contraseña actualizada"
+  },
+  "languageHelp": "Cambia inmediatamente todo el texto de la UI. Puedes cambiarla cuando quieras."
+}

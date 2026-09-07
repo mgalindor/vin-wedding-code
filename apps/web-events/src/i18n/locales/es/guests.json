@@ -1,0 +1,53 @@
+{
+  "title": "Invitados",
+  "subtitle": "Una sola fuente de verdad para cada invitación que envías. Agrupa por familia o grupo, sigue las confirmaciones en tiempo real.",
+  "groups": {
+    "title": "Grupos de invitados",
+    "subtitle": "Cada grupo comparte un mismo enlace de invitación. El contacto primario lo recibe y lo reenvía al resto.",
+    "addGroup": "Nuevo grupo",
+    "empty": "Aún no hay grupos. Crea uno y empieza a agregar invitados.",
+    "fields": {
+      "name": "Nombre del grupo",
+      "namePlaceholder": "p. ej. Familia García, Amigos de la universidad…",
+      "relationship": "Relación",
+      "sharedEmail": "Email compartido (opcional)",
+      "sharedPhone": "Teléfono compartido (opcional)"
+    },
+    "linkCopied": "Enlace de invitación copiado",
+    "regenerateConfirm": "Regenerar invalidará el enlace anterior. El nuevo enlace se activa de inmediato."
+  },
+  "guest": {
+    "add": "Agregar invitado",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Email",
+    "phone": "Teléfono",
+    "dietaryNotes": "Notas de dieta (solo para ti, no en la invitación)",
+    "created": "Invitado agregado",
+    "addToExistingGroup": "Agregar a un grupo existente",
+    "createNewGroup": "Crear un grupo nuevo con este invitado"
+  },
+  "list": {
+    "search": "Buscar por nombre…",
+    "noGuests": "Aún no hay invitados en este grupo.",
+    "filterBy": {
+      "all": "Todos",
+      "pending": "Pendientes",
+      "confirmed": "Confirmados",
+      "declined": "Rechazados"
+    }
+  },
+  "status": {
+    "pending": "Pendiente",
+    "confirmed": "Confirmado",
+    "declined": "Rechazado"
+  },
+  "rsvp": {
+    "markConfirmed": "Marcar como confirmado",
+    "markDeclined": "Marcar como rechazado",
+    "markPending": "Volver a pendiente",
+    "message": "Mensaje personal (opcional)",
+    "dietaryChoice": "Opción de dieta",
+    "updated": "RSVP actualizado"
+  }
+}

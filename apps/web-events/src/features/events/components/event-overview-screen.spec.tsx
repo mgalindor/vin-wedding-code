@@ -52,7 +52,7 @@ describe('EventOverviewScreen — payload nullability', () => {
   });
 
   it('the contacts preview guard never throws on a fresh event', () => {
-    const contactName = freshEvent.contacts?.primaryContactName ?? '';
+    const contactName = freshEvent.contacts?.entries?.[0]?.fullName ?? '';
     expect(contactName).toBe('');
   });
 
@@ -61,11 +61,11 @@ describe('EventOverviewScreen — payload nullability', () => {
       ...freshEvent,
       locations: { items: [{ label: 'Ceremony' }, { label: 'Reception' }] },
       program: { items: [{ time: '18:00', title: 'Ceremony' }] },
-      contacts: { primaryContactName: 'Frank' },
+      contacts: { entries: [{ label: 'Primary', fullName: 'Frank' }] },
     };
 
     expect(populated.locations?.items.length ?? 0).toBe(2);
     expect(populated.program?.items.length ?? 0).toBe(1);
-    expect(populated.contacts?.primaryContactName).toBe('Frank');
+    expect(populated.contacts?.entries?.[0]?.fullName).toBe('Frank');
   });
 });

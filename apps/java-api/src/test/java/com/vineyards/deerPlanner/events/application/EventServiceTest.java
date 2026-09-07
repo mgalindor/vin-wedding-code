@@ -127,6 +127,26 @@ class EventServiceTest {
 
       assertThat(result.status()).isEqualTo(EventStatus.archived);
     }
+
+    @Test
+    void restoreEvent_fromArchived_succeeds() {
+      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.archived);
+      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
+      when(repository.update(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      EventDto result = service.restoreEvent(EVENT_ID);
+
+      assertThat(result.status()).isEqualTo(EventStatus.draft);
+    }
+
+    @Test
+    void restoreEvent_fromDraft_throwsBusinessError() {
+      Event stored = sampleEvent(EVENT_ID, ORGANIZER_ID, EventStatus.draft);
+      when(repository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
+
+      assertThatThrownBy(() -> service.restoreEvent(EVENT_ID))
+          .isInstanceOf(com.vineyards.deerPlanner.shared.exceptions.BusinessError.class);
+    }
   }
 
   @Nested

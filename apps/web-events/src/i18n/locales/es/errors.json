@@ -1,0 +1,19 @@
+{
+  "common": {
+    "unknown": "Algo salió mal",
+    "network": "No pudimos contactar al servidor. Revisa tu conexión e intenta de nuevo.",
+    "unauthorized": "Tu sesión expiró. Inicia sesión de nuevo para continuar.",
+    "forbidden": "No tienes acceso a este recurso.",
+    "notFound": "No encontramos lo que buscabas.",
+    "validation": "Algunos campos requieren atención — revisa los mensajes abajo."
+  },
+  "http_400": "La solicitud fue rechazada por el servidor.",
+  "http_401": "Por favor inicia sesión de nuevo.",
+  "http_403": "No tienes permisos para esta acción.",
+  "http_404": "No encontrado.",
+  "http_409": "Hubo un conflicto con el estado actual de los datos.",
+  "http_422": "La validación falló.",
+  "http_500": "Nuestro servidor tuvo un error inesperado. Intenta de nuevo en un momento.",
+  "http_503": "El servicio no está disponible temporalmente.",
+  "traceId": "Código de referencia"
+}

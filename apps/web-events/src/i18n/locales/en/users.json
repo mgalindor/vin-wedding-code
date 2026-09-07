@@ -1,0 +1,57 @@
+{
+  "title": "Planners",
+  "subtitle": "Manage the event organizers in your organization. Invite a planner, change their role, disable access without deleting their work.",
+  "search": {
+    "placeholder": "Search by name, username or email"
+  },
+  "filters": {
+    "role": "Role",
+    "all": "All",
+    "EventOrganizer": "Event organizer",
+    "Administrator": "Administrator",
+    "activeOnly": "Active only",
+    "inactiveOnly": "Inactive only"
+  },
+  "table": {
+    "name": "Name",
+    "username": "Username",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "lastLogin": "Last login",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Disabled"
+  },
+  "actions": {
+    "newPlanner": "Add planner",
+    "disable": "Disable",
+    "enable": "Re-enable",
+    "delete": "Delete"
+  },
+  "newUser": {
+    "title": "Add an event planner",
+    "subtitle": "Set credentials and pick a role. The planner signs in with the username you choose (the @deer suffix is added automatically).",
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "username": "Username",
+      "email": "Work email",
+      "phone": "Phone",
+      "password": "Initial password",
+      "roles": "Roles"
+    },
+    "actions": {
+      "generatePassword": "Generate"
+    },
+    "errors": {
+      "passwordLength": "8 characters minimum",
+      "usernameFormat": "Letters, digits, dot or dash only",
+      "rolesRequired": "Pick at least one role"
+    },
+    "success": "Planner created",
+    "copyCredentials": "Copy the credentials — the planner needs them to sign in."
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "title": "My Events",
+  "subtitle": "Everything you're working on. Filter by status, search by title, or open one to manage it.",
+  "create": "New event",
+  "search": {
+    "placeholder": "Search by name…",
+    "clearAria": "Clear search"
+  },
+  "list": {
+    "count_one": "{{count}} event",
+    "count_other": "{{count}} events",
+    "sort": {
+      "label": "Sort by",
+      "options": {
+        "closest": "Closest event",
+        "farthest": "Farthest event",
+        "recentCreated": "Recently captured",
+        "oldestCreated": "Oldest captured"
+      }
+    },
+    "typeFilter": {
+      "label": "Type",
+      "add": "Add type",
+      "allAdded": "All types selected"
+    },
+    "removeTypeAria": "Remove {{type}} filter",
+    "reset": "Reset filters",
+    "clearAll": "Clear all",
+    "resultsMatch_one": "1 result for \"{{query}}\"",
+    "resultsMatch_other": "{{count}} of {{total}} events match \"{{query}}\""
+  },
+  "filters": {
+    "all": "All",
+    "draft": "Drafts",
+    "active": "Active",
+    "archived": "Archived",
+    "sortDate": "Closest event",
+    "sortAdded": "Recently added"
+  },
+  "view": {
+    "grid": "Grid",
+    "list": "List"
+  },
+  "empty": {
+    "title": "No events yet",
+    "body": "Start your first event — Deer Planner fills the rest.",
+    "action": "Create event"
+  },
+  "noMatches": {
+    "title": "No matching events",
+    "body": "Try a different filter or search term.",
+    "action": "Clear filters"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published",
+    "archived": "Archived"
+  },
+  "eventType": {
+    "wedding": "Wedding",
+    "birthday": "Birthday",
+    "anniversary": "Anniversary",
+    "corporate": "Corporate",
+    "other": "Other"
+  },
+  "card": {
+    "open": "Open",
+    "guests_one": "{{count}} guest",
+    "guests_other": "{{count}} guests",
+    "draft": "Draft",
+    "copyLink": "Copy invitation link",
+    "unpublished": "Invitation not yet active",
+    "tba": "TBD",
+    "stats": {
+      "guests": "Guests",
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "declined": "Declined"
+    },
+    "progressLabel": "RSVP progress",
+    "draftMessage": "Complete the invitation modules and select a template before publishing.",
+    "actions": {
+      "openEvent": "Open event",
+      "continueSetup": "Continue setup",
+      "guestList": "Guest list",
+      "guestsWithCount_one": "Guests ({{count}})",
+      "guestsWithCount_other": "Guests ({{count}})",
+      "invitation": "View invitation",
+      "downloadPhotos": "Download photos"
+    }
+  },
+  "new": {
+    "title": "Start a new event",
+    "subtitle": "Choose a type, give it a working title, and pick the date. You can refine everything else after.",
+    "step": {
+      "type": "What kind of event?",
+      "details": "Give it a title",
+      "when": "When is it?",
+      "review": "Review"
+    },
+    "fields": {
+      "eventType": "Event type",
+      "title": "Event title",
+      "titlePlaceholder": "e.g. María & Juan's wedding, Sofía turns 30…",
+      "eventDate": "Event date",
+      "template": "Invitation template"
+    },
+    "preview": {
+      "label": "By the time your guests see this:",
+      "tail": "Save and continue"
+    },
+    "success": "Event created",
+    "errors": {
+      "title": "A title is required",
+      "date": "Choose a date for the event",
+      "type": "Pick an event type",
+      "future": "The event date must be in the future"
+    }
+  },
+  "edit": {
+    "title": "Edit event",
+    "subtitle": "Update the basics. You can drill into the more specific details (locations, story, contacts, RSVP) from the event detail tabs.",
+    "save": "Save changes",
+    "success": "Event updated"
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Overview",
+      "weddings": "Wedding data",
+      "guests": "Guests",
+      "invitation": "Invitation"
+    },
+    "overview": {
+      "title": "Overview",
+      "next": "Next steps",
+      "data": "Captured data",
+      "dataEmpty": "Nothing captured yet. Use the tabs to fill in locations, program, contacts, and more.",
+      "openInvitation": "Open invitation",
+      "invitationInactive": "The invitation hasn't been activated yet. Pick a template and turn it on.",
+      "stats": {
+        "guests": "Total guests",
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "declined": "Declined"
+      },
+      "actions": {
+        "editBasics": "Edit basics",
+        "archive": "Archive",
+        "restore": "Unarchive",
+        "delete": "Delete permanently",
+        "regenerateSlug": "Regenerate invitation link"
+      },
+      "dangerZone": "Danger zone",
+      "dangerZoneHelp": "Archiving hides the event from your active list. Unarchiving moves it back to draft so you can keep editing. Permanent deletion removes every trace, including guests and RSVPs.",
+      "warnings": {
+        "archiveConfirm": "Archive this event? We'll hide it from your active list — you can unarchive it later.",
+        "restoreConfirm": "Unarchive this event? It will move back to draft so you can keep editing."
+      }
+    },
+    "weddings": {
+      "title": "Wedding data",
+      "subtitle": "Wedding-specific fields that fill the invitation template. Couples, story, dress code, gift registry, parents, accommodation.",
+      "section": {
+        "couple": "Couple",
+        "landing": "Landing copy",
+        "story": "Story",
+        "dressCode": "Dress code",
+        "gift": "Gift registry",
+        "parents": "Parents",
+        "accommodation": "Accommodation"
+      },
+      "fields": {
+        "partner1": "Partner 1 name",
+        "partner2": "Partner 2 name",
+        "landingTitle": "Landing title",
+        "landingSubtitle": "Landing subtitle",
+        "storyHtml": "Story (HTML allowed)",
+        "dressCode": "Dress code",
+        "giftRegistry": "Gift registry link or note",
+        "parents": "Parents note",
+        "accommodation": "Accommodation note"
+      },
+      "saved": "Saved"
+    },
+    "locations": {
+      "title": "Locations",
+      "subtitle": "Where is each part of the event happening? Ceremony, reception, after-party, hotel block…",
+      "addLocation": "Add location",
+      "fields": {
+        "label": "Label",
+        "address": "Address",
+        "city": "City",
+        "startsAt": "Time",
+        "notes": "Notes",
+        "mapUrl": "Map link"
+      },
+      "empty": "No locations yet. Add at least the ceremony venue.",
+      "saved": "Locations saved"
+    },
+    "program": {
+      "title": "Program",
+      "subtitle": "The day-of schedule. Shown verbatim on the invitation.",
+      "addItem": "Add program item",
+      "fields": {
+        "time": "Time",
+        "title": "Title",
+        "description": "Description"
+      },
+      "empty": "No program yet — guests will see only the start time on the invitation.",
+      "saved": "Program saved"
+    },
+    "contacts": {
+      "title": "Contacts",
+      "subtitle": "Who should guests call when they have questions?",
+      "saved": "Contacts saved"
+    },
+    "settings": {
+      "title": "Event settings",
+      "dangerZone": "Danger zone"
+    },
+    "countdown": {
+      "eyebrow": "Countdown",
+      "todayBadge": "It's today!",
+      "past": "Celebrated on {{date}}",
+      "ariaLabel": "{{days}} days, {{hours}} hours, {{minutes}} minutes and {{seconds}} seconds remaining",
+      "units": {
+        "months": "months",
+        "weeks": "weeks",
+        "days": "days",
+        "hours": "hours",
+        "minutes": "minutes",
+        "seconds": "seconds"
+      }
+    }
+  },
+  "statuses": {
+    "title": "Status",
+    "draftDescription": "The invitation is not yet published. Only you can see it.",
+    "publishedDescription": "The invitation is live. Guests can read it and RSVP.",
+    "archivedDescription": "The event is archived. Move it back to draft to keep working on it."
+  }
+}

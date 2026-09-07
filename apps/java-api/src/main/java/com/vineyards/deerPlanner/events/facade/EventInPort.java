@@ -48,6 +48,8 @@ public interface EventInPort {
 
   EventDto archiveEvent(String eventId);
 
+  EventDto restoreEvent(String eventId);
+
   EventDto updateLocations(String eventId, LocationsPayloadDto dto);
 
   EventDto updateProgram(String eventId, ProgramPayloadDto dto);

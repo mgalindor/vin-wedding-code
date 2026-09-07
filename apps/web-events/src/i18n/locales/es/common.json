@@ -1,0 +1,45 @@
+{
+  "app": {
+    "title": "Deer Planner",
+    "tagline": "Plataforma de invitaciones multi-evento",
+    "taglineLong": "Captura los datos de tu evento una sola vez. Comparte una invitación elegante con cada invitado.",
+    "taglineBody": "Deer Planner es el centro de mando sereno para wedding planners, anfitriones de cumpleaños y organizadores de eventos corporativos — captura los datos de los invitados una vez y deja que la plataforma se encargue de la invitación, las confirmaciones y el álbum posterior al evento.",
+    "footerNote": "UI bilingüe · EN por defecto · ES auto-detectado del navegador. Optimizado para PC y tablet."
+  },
+  "invitation": {
+    "placeholder": "Estás invitado",
+    "subtitle": "La experiencia pública de invitación se renderiza sobre los mismos datos capturados aquí. Conectaremos el renderer visual en un hito posterior — por ahora, comparte este enlace para confirmar que el round-trip funciona de extremo a extremo.",
+    "tokenLabel": "Token de invitación"
+  },
+  "actions": {
+    "save": "Guardar cambios",
+    "saving": "Guardando…",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "deleteConfirm": "Esta acción no se puede deshacer. ¿Continuar?",
+    "edit": "Editar",
+    "create": "Crear",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "close": "Cerrar",
+    "open": "Abrir",
+    "loading": "Cargando…",
+    "empty": "Aún no hay nada",
+    "retry": "Reintentar",
+    "regenerate": "Regenerar",
+    "copy": "Copiar",
+    "copied": "¡Copiado!"
+  },
+  "languageSwitcher": {
+    "label": "Idioma",
+    "en": "Inglés",
+    "es": "Español"
+  },
+  "footer": {
+    "copyright": "© {{year}} Deer Planner",
+    "version": "v{{version}}"
+  }
+}

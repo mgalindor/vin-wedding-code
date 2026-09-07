@@ -1,0 +1,53 @@
+{
+  "title": "Guests",
+  "subtitle": "One source of truth for every invitation you send. Group guests by family or party, track RSVPs in real-time.",
+  "groups": {
+    "title": "Guest groups",
+    "subtitle": "Each group shares one invitation link. The primary contact receives the link and forwards it to the rest of the party.",
+    "addGroup": "New group",
+    "empty": "No groups yet. Create one and start adding guests.",
+    "fields": {
+      "name": "Group name",
+      "namePlaceholder": "e.g. García family, College friends…",
+      "relationship": "Relationship",
+      "sharedEmail": "Shared email (optional)",
+      "sharedPhone": "Shared phone (optional)"
+    },
+    "linkCopied": "Invitation link copied",
+    "regenerateConfirm": "Regenerating will invalidate the previous invitation link. The new link becomes active immediately."
+  },
+  "guest": {
+    "add": "Add guest",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "phone": "Phone",
+    "dietaryNotes": "Dietary notes (organiser-only, not on invitation)",
+    "created": "Guest added",
+    "addToExistingGroup": "Add to existing group",
+    "createNewGroup": "Create a new group with this guest"
+  },
+  "list": {
+    "search": "Search by name…",
+    "noGuests": "No guests in this group yet.",
+    "filterBy": {
+      "all": "All",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "declined": "Declined"
+    }
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "declined": "Declined"
+  },
+  "rsvp": {
+    "markConfirmed": "Mark confirmed",
+    "markDeclined": "Mark declined",
+    "markPending": "Reset to pending",
+    "message": "Personal message (optional)",
+    "dietaryChoice": "Dietary choice",
+    "updated": "RSVP updated"
+  }
+}

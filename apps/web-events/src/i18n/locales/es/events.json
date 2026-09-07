@@ -1,0 +1,242 @@
+{
+  "title": "Mis eventos",
+  "subtitle": "Todo en lo que estás trabajando. Filtra por estado, busca por título o abre uno para gestionarlo.",
+  "create": "Nuevo evento",
+  "search": {
+    "placeholder": "Buscar por nombre…",
+    "clearAria": "Limpiar búsqueda"
+  },
+  "list": {
+    "count_one": "{{count}} evento",
+    "count_other": "{{count}} eventos",
+    "sort": {
+      "label": "Ordenar por",
+      "options": {
+        "closest": "Evento más próximo",
+        "farthest": "Evento más lejano",
+        "recentCreated": "Creado recientemente",
+        "oldestCreated": "Creado hace más tiempo"
+      }
+    },
+    "typeFilter": {
+      "label": "Tipo",
+      "add": "Agregar tipo",
+      "allAdded": "Todos los tipos seleccionados"
+    },
+    "removeTypeAria": "Quitar filtro de {{type}}",
+    "reset": "Limpiar filtros",
+    "clearAll": "Limpiar todo",
+    "resultsMatch_one": "1 resultado para «{{query}}»",
+    "resultsMatch_other": "{{count}} de {{total}} eventos coinciden con «{{query}}»"
+  },
+  "filters": {
+    "all": "Todos",
+    "draft": "Borradores",
+    "active": "Activos",
+    "archived": "Archivados",
+    "sortDate": "Evento más cercano",
+    "sortAdded": "Agregados recientemente"
+  },
+  "view": {
+    "grid": "Cuadrícula",
+    "list": "Lista"
+  },
+  "empty": {
+    "title": "Aún no hay eventos",
+    "body": "Comienza tu primer evento — Deer Planner se ocupa del resto.",
+    "action": "Crear evento"
+  },
+  "noMatches": {
+    "title": "Sin coincidencias",
+    "body": "Prueba con un filtro o búsqueda diferente.",
+    "action": "Limpiar filtros"
+  },
+  "status": {
+    "draft": "Borrador",
+    "published": "Publicado",
+    "archived": "Archivado"
+  },
+  "eventType": {
+    "wedding": "Boda",
+    "birthday": "Cumpleaños",
+    "anniversary": "Aniversario",
+    "corporate": "Corporativo",
+    "other": "Otro"
+  },
+  "card": {
+    "open": "Abrir",
+    "guests_one": "{{count}} invitado",
+    "guests_other": "{{count}} invitados",
+    "draft": "Borrador",
+    "copyLink": "Copiar enlace de invitación",
+    "unpublished": "Invitación aún no activa",
+    "tba": "Por definir",
+    "stats": {
+      "guests": "Invitados",
+      "confirmed": "Confirmados",
+      "pending": "Pendientes",
+      "declined": "Rechazados"
+    },
+    "progressLabel": "Progreso RSVP",
+    "draftMessage": "Completa los módulos de invitación y elige una plantilla antes de publicar.",
+    "actions": {
+      "openEvent": "Abrir evento",
+      "continueSetup": "Continuar configuración",
+      "guestList": "Lista de invitados",
+      "guestsWithCount_one": "Invitados ({{count}})",
+      "guestsWithCount_other": "Invitados ({{count}})",
+      "invitation": "Ver invitación",
+      "downloadPhotos": "Descargar fotos"
+    }
+  },
+  "new": {
+    "title": "Comenzar un nuevo evento",
+    "subtitle": "Elige el tipo, ponle un título y escoge la fecha. Después puedes refinar el resto.",
+    "step": {
+      "type": "¿Qué tipo de evento?",
+      "details": "Asignar un título",
+      "when": "¿Cuándo es?",
+      "review": "Revisar"
+    },
+    "fields": {
+      "eventType": "Tipo de evento",
+      "title": "Título del evento",
+      "titlePlaceholder": "p. ej. Boda de María & Juan, Cumple de Sofía…",
+      "eventDate": "Fecha del evento",
+      "template": "Plantilla de invitación"
+    },
+    "preview": {
+      "label": "Cuando tus invitados vean esto:",
+      "tail": "Guardar y continuar"
+    },
+    "success": "Evento creado",
+    "errors": {
+      "title": "Se requiere un título",
+      "date": "Elige una fecha para el evento",
+      "type": "Selecciona un tipo de evento",
+      "future": "La fecha del evento debe estar en el futuro"
+    }
+  },
+  "edit": {
+    "title": "Editar evento",
+    "subtitle": "Actualiza los datos básicos. Puedes entrar a los detalles específicos (locations, story, contacts, RSVP) desde las pestañas del detalle.",
+    "save": "Guardar cambios",
+    "success": "Evento actualizado"
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Resumen",
+      "weddings": "Datos de boda",
+      "guests": "Invitados",
+      "invitation": "Invitación"
+    },
+    "overview": {
+      "title": "Resumen",
+      "next": "Próximos pasos",
+      "data": "Datos capturados",
+      "dataEmpty": "Aún no hay datos. Usa las pestañas para llenar locations, program, contacts, etc.",
+      "openInvitation": "Abrir invitación",
+      "invitationInactive": "La invitación aún no se ha activado. Elige una plantilla y enciéndela.",
+      "stats": {
+        "guests": "Total invitados",
+        "confirmed": "Confirmados",
+        "pending": "Pendientes",
+        "declined": "Rechazados"
+      },
+      "actions": {
+        "editBasics": "Editar datos básicos",
+        "archive": "Archivar",
+        "restore": "Desarchivar",
+        "delete": "Eliminar permanentemente",
+        "regenerateSlug": "Regenerar enlace"
+      },
+      "dangerZone": "Zona peligrosa",
+      "dangerZoneHelp": "Archivar oculta el evento de tu lista activa. Desarchivar lo devuelve a borrador para seguir editándolo. Eliminar definitivamente borra todo rastro, incluyendo invitados y RSVPs.",
+      "warnings": {
+        "archiveConfirm": "¿Archivar este evento? Lo ocultaremos de tu lista activa y podrás restaurarlo después.",
+        "restoreConfirm": "¿Desarchivar este evento? Volverá a borrador y podrás seguir editándolo."
+      }
+    },
+    "weddings": {
+      "title": "Datos de boda",
+      "subtitle": "Campos específicos de bodas que llenan la plantilla de invitación. Pareja, historia, dress code, gift registry, padres, hospedaje.",
+      "section": {
+        "couple": "Pareja",
+        "landing": "Copy del landing",
+        "story": "Historia",
+        "dressCode": "Dress code",
+        "gift": "Gift registry",
+        "parents": "Padres",
+        "accommodation": "Hospedaje"
+      },
+      "fields": {
+        "partner1": "Nombre del Partner 1",
+        "partner2": "Nombre del Partner 2",
+        "landingTitle": "Título del landing",
+        "landingSubtitle": "Subtítulo del landing",
+        "storyHtml": "Historia (HTML permitido)",
+        "dressCode": "Dress code",
+        "giftRegistry": "Gift registry (link o nota)",
+        "parents": "Nota de padres",
+        "accommodation": "Nota de hospedaje"
+      },
+      "saved": "Guardado"
+    },
+    "locations": {
+      "title": "Ubicaciones",
+      "subtitle": "¿Dónde sucede cada parte del evento? Ceremonia, recepción, after-party, hotel block…",
+      "addLocation": "Agregar ubicación",
+      "fields": {
+        "label": "Etiqueta",
+        "address": "Dirección",
+        "city": "Ciudad",
+        "startsAt": "Hora",
+        "notes": "Notas",
+        "mapUrl": "Link del mapa"
+      },
+      "empty": "Aún no hay ubicaciones. Agrega al menos el lugar de la ceremonia.",
+      "saved": "Ubicaciones guardadas"
+    },
+    "program": {
+      "title": "Programa",
+      "subtitle": "El itinerario del día. Se muestra tal cual en la invitación.",
+      "addItem": "Agregar item del programa",
+      "fields": {
+        "time": "Hora",
+        "title": "Título",
+        "description": "Descripción"
+      },
+      "empty": "Aún no hay programa — los invitados solo verán la hora de inicio en la invitación.",
+      "saved": "Programa guardado"
+    },
+    "contacts": {
+      "title": "Contactos",
+      "subtitle": "¿A quién pueden llamar los invitados si tienen dudas?",
+      "saved": "Contactos guardados"
+    },
+    "settings": {
+      "title": "Ajustes del evento",
+      "dangerZone": "Zona peligrosa"
+    },
+    "countdown": {
+      "eyebrow": "Cuenta regresiva",
+      "todayBadge": "¡Es hoy!",
+      "past": "Celebrado el {{date}}",
+      "ariaLabel": "Faltan {{days}} días, {{hours}} horas, {{minutes}} minutos y {{seconds}} segundos",
+      "units": {
+        "months": "meses",
+        "weeks": "semanas",
+        "days": "días",
+        "hours": "horas",
+        "minutes": "minutos",
+        "seconds": "segundos"
+      }
+    }
+  },
+  "statuses": {
+    "title": "Estado",
+    "draftDescription": "La invitación aún no está publicada. Solo tú puedes verla.",
+    "publishedDescription": "La invitación está activa. Los invitados pueden leerla y confirmar.",
+    "archivedDescription": "El evento está archivado. Muévelo de nuevo a borrador para seguir editándolo."
+  }
+}

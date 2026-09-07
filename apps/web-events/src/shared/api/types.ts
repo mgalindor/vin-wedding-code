@@ -100,12 +100,15 @@ export interface EventLocation {
   notes?: string;
 }
 
+export interface ContactEntry {
+  label?: string;
+  fullName?: string;
+  phone?: string;
+  email?: string;
+}
+
 export interface ContactsPayload {
-  primaryContactName?: string;
-  primaryContactPhone?: string;
-  primaryContactEmail?: string;
-  secondaryContactName?: string;
-  secondaryContactPhone?: string;
+  entries: ContactEntry[];
 }
 
 export interface ProgramItem {
@@ -311,6 +314,72 @@ export interface UpdateInvitationConfigRequest {
   rsvpEnabled?: boolean;
   rsvpDeadline?: string;
   slug?: string;
+}
+
+// =========================================================================
+// Public invitation (no auth)
+// =========================================================================
+
+/**
+ * `GET /api/v1/public/invitations/{slug}` response.
+ *
+ * The BE bundles the active event with the chosen invitation template
+ * and the wedding detail. For non-wedding events, `weddingDetail` is
+ * `null` — the FE mapper falls back to the generic event shape.
+ *
+ * The `slug` doubles as the access token per ADR-10 (path-based URLs).
+ */
+export interface PublicInvitationDto {
+  slug: string;
+  active: boolean;
+  rsvpEnabled: boolean;
+  event: EventDto;
+  template: InvitationTemplate | null;
+  weddingDetail: WeddingDetailDto | null;
+  updatedAt?: string;
+}
+
+/**
+ * Per-guest entry returned in `PublicGroupViewDto.guests`.
+ * Mirrors `GuestDto` but limited to the fields the public needs.
+ */
+export type PublicRsvpStatus = 'pending' | 'confirmed' | 'declined';
+
+export interface PublicGuestDto {
+  id: string;
+  groupId: string;
+  firstName: string;
+  lastName: string;
+  rsvpStatus: PublicRsvpStatus;
+  rsvpConfirmedAt?: string | null;
+  rsvpMessage?: string | null;
+  rsvpDietaryChoice?: string | null;
+}
+
+/**
+ * `GET /api/v1/public/invitations/{slug}/groups/{groupToken}` response.
+ * The `group` block is the group metadata; `guests` is the list of
+ * people the primary contact can confirm/decline for.
+ */
+export interface PublicGroupViewDto {
+  slug: string;
+  group: {
+    id: string;
+    name: string;
+    sharedEmail?: string | null;
+    sharedPhone?: string | null;
+  };
+  guests: PublicGuestDto[];
+}
+
+/**
+ * `PUT /api/v1/public/invitations/{slug}/groups/{groupToken}/rsvp`
+ * request body. The FE sends one entry per guest it is updating; guests
+ * omitted from the request keep their previous status.
+ */
+export interface PublicGroupRsvpRequest {
+  message?: string;
+  guests: Array<{ guestId: string; status: PublicRsvpStatus }>;
 }
 
 // =========================================================================

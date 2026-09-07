@@ -131,6 +131,12 @@ public class EventController {
     return eventApi.archiveEvent(id);
   }
 
+  @PostMapping("/{id}/restore")
+  @PreAuthorize(OWNER_EXPR)
+  public EventDto restoreEvent(@PathVariable String id) {
+    return eventApi.restoreEvent(id);
+  }
+
   @PatchMapping(path = "/{id}/organizer")
   @PreAuthorize("hasRole('Administrator')")
   public EventDto reassignOrganizer(
