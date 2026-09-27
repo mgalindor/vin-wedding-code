@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface GuestJpaRepository
     extends JpaRepository<GuestEntity, String>, JpaSpecificationExecutor<GuestEntity> {
 
-  List<GuestEntity> findByGroupIdOrderByLastNameAscFirstNameAsc(String groupId);
+  List<GuestEntity> findByGroupIdOrderByFullNameAsc(String groupId);
 
-  List<GuestEntity> findByGroupIdInOrderByLastNameAscFirstNameAsc(List<String> groupIds);
+  List<GuestEntity> findByGroupIdInOrderByFullNameAsc(List<String> groupIds);
 
   Optional<GuestEntity> findByInvitationToken(String invitationToken);
 

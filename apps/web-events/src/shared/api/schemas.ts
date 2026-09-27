@@ -115,19 +115,62 @@ export const EventDtoSchema = z.object({
   updatedAt: isoInstantString,
 });
 
+export const WeddingLandingPayloadSchema = z.object({
+  preTitle: z.string().nullable().optional(),
+});
+
+export const WeddingStoryPayloadSchema = z.object({
+  body: z.string(),
+});
+
+export const WeddingDressCodeEntrySchema = z.object({
+  title: z.string(),
+  body: z.string(),
+});
+
+export const WeddingDressCodePayloadSchema = z.object({
+  entries: z.array(WeddingDressCodeEntrySchema),
+});
+
+export const WeddingGiftRegistryLinkSchema = z.object({
+  label: z.string(),
+  url: z.string(),
+});
+
+export const WeddingGiftRegistryPayloadSchema = z.object({
+  links: z.array(WeddingGiftRegistryLinkSchema).nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
+
+export const WeddingParentsPayloadSchema = z.object({
+  partner1Label: z.string().nullable().optional(),
+  partner1Names: z.array(z.string()).nullable().optional(),
+  partner2Label: z.string().nullable().optional(),
+  partner2Names: z.array(z.string()).nullable().optional(),
+});
+
+export const WeddingAccommodationEntrySchema = z.object({
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  url: z.string().nullable().optional(),
+  priceHint: z.string().nullable().optional(),
+});
+
+export const WeddingAccommodationPayloadSchema = z.object({
+  entries: z.array(WeddingAccommodationEntrySchema).nullable().optional(),
+});
+
 export const WeddingDetailDtoSchema = z.object({
   eventId: z.string(),
   partner1Name: z.string().nullable().optional(),
   partner2Name: z.string().nullable().optional(),
-  storyHtml: z.string().nullable().optional(),
-  dressCode: z.string().nullable().optional(),
-  giftRegistry: z.string().nullable().optional(),
-  parents: z.string().nullable().optional(),
-  accommodation: z.string().nullable().optional(),
-  landingTitle: z.string().nullable().optional(),
-  landingSubtitle: z.string().nullable().optional(),
-  heroImageUrl: z.string().nullable().optional(),
-  updatedAt: isoInstantString,
+  countdownEnabled: z.boolean().optional(),
+  landing: WeddingLandingPayloadSchema.nullable().optional(),
+  story: WeddingStoryPayloadSchema.nullable().optional(),
+  dressCode: WeddingDressCodePayloadSchema.nullable().optional(),
+  giftRegistry: WeddingGiftRegistryPayloadSchema.nullable().optional(),
+  parents: WeddingParentsPayloadSchema.nullable().optional(),
+  accommodation: WeddingAccommodationPayloadSchema.nullable().optional(),
 });
 
 export const EventSummarySchema = z.object({

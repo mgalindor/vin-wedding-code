@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - comment: >
+      Merge `guests.first_name` + `guests.last_name` into a single `guests.full_name`
+      column. The split between first/last name was a holdover from the early data
+      model and does not match how the product is actually used — organisers type
+      full names ("Carlos Mendoza", "María José García") into a single field on the
+      form, and the downstream rendering just concatenates the two columns with a
+      space. Splitting the column at storage time added no value and forced a
+      two-field form on the FE that slowed down data entry.
+
+      Migration strategy:
+        1. Add `full_name` as a nullable varchar(240) — large enough to absorb any
+           realistic concatenation.
+        2. Backfill it with `TRIM(first_name || ' ' || last_name)`, collapsing
+           internal whitespace so the value matches what the FE would have sent.
+        3. Enforce NOT NULL once every row has a value.
+        4. Drop the legacy columns.
+        5. Replace the search index on (last_name, first_name) with one on
+           full_name so the existing `q=` query keeps working.
+
+      No data loss: every existing row keeps its name, just stored as one string
+      instead of two.
+  - changeSet:
+      id: 015-guests-add-full-name-column
+      author: deer-planner
+      labels: guests, schema, rename
+      changes:
+        - addColumn:
+            tableName: guests
+            columns:
+              - column:
+                  name: full_name
+                  type: varchar(240)
+                  constraints:
+                    nullable: true
+                  remarks: >
+                    Single full-name field. Replaces first_name + last_name.
+                    Concatenation is done at write time so reads do not need to
+                    recombine.
+  - changeSet:
+      id: 015-guests-backfill-full-name
+      author: deer-planner
+      labels: guests, data
+      changes:
+        - sql:
+            remarks: Backfill full_name from first_name + ' ' + last_name.
+            sql: >
+              UPDATE guests
+              SET full_name = TRIM(REGEXP_REPLACE(first_name || ' ' || last_name, '\s+', ' ', 'g'))
+              WHERE full_name IS NULL;
+  - changeSet:
+      id: 015-guests-full-name-not-null
+      author: deer-planner
+      labels: guests, schema
+      changes:
+        - addNotNullConstraint:
+            tableName: guests
+            columnName: full_name
+            columnDataType: varchar(240)
+  - changeSet:
+      id: 015-guests-drop-first-last-name
+      author: deer-planner
+      labels: guests, schema
+      changes:
+        - dropColumn:
+            tableName: guests
+            columns:
+              - column:
+                  name: first_name
+              - column:
+                  name: last_name

@@ -100,8 +100,7 @@ class PublicInvitationControllerTest {
         new GuestDto(
             "gst-1",
             GROUP_ID,
-            "Maria",
-            "Morales",
+            "Maria Morales",
             null,
             null,
             null,
@@ -143,8 +142,7 @@ class PublicInvitationControllerTest {
         new GuestDto(
             "gst-1",
             GROUP_ID,
-            "Maria",
-            "Morales",
+            "Maria Morales",
             null,
             null,
             null,

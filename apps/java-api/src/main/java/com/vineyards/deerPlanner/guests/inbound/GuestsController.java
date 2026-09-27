@@ -50,7 +50,7 @@ public class GuestsController {
       @org.springframework.web.bind.annotation.RequestParam(required = false) String groupId,
       @org.springframework.web.bind.annotation.RequestParam(required = false) String rsvpStatus,
       @org.springframework.web.bind.annotation.RequestParam(required = false) String q,
-      @PageableDefault(size = 50, sort = "lastName", direction = Sort.Direction.ASC)
+      @PageableDefault(size = 50, sort = "fullName", direction = Sort.Direction.ASC)
           Pageable pageable,
       @AuthenticationPrincipal Jwt jwt) {
     return guestApi.listGuests(eventId, groupId, rsvpStatus, q, jwt.getSubject(), pageable);

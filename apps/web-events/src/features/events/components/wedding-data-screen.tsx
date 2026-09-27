@@ -1,8 +1,14 @@
 import { Link, useParams } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Heart, Save } from 'lucide-react';
+import {
+  ArrowLeft,
+  Heart,
+  Plus,
+  Save,
+  Trash2,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -10,37 +16,75 @@ import {
   type EventDto,
   type WeddingDetailDto,
 } from '@/shared/api';
+
 import {
   type UpdateWeddingDetailRequest,
+  type WeddingAccommodationEntry,
   type WeddingAccommodationPayload,
   type WeddingDressCodeEntry,
   type WeddingDressCodePayload,
+  type WeddingGiftRegistryLink,
   type WeddingGiftRegistryPayload,
+  type WeddingLandingPayload,
   type WeddingParentsPayload,
   type WeddingStoryPayload,
 } from '@/features/events/wedding-detail.types';
-import { Button, Card, CardContent, CardHeader, CardTitle, FieldShell, Input, Spinner, Textarea } from '@/shared/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  FieldShell,
+  Input,
+  Spinner,
+  Textarea,
+} from '@/shared/ui';
 
+/**
+ * Form-state shape mirrors what the screen renders and is independent
+ * of the BE's `WeddingDetailDto` wire shape. Sections whose payload is
+ * a list of entries use `useFieldArray` for stable add/remove semantics.
+ */
 interface WeddingFormState {
   partner1Name: string;
   partner2Name: string;
-  landingTitle: string;
-  landingSubtitle: string;
-  storyHtml: string;
+  countdownEnabled: boolean;
+  landingPreTitle: string;
+  storyBody: string;
   dressCodeEntries: WeddingDressCodeEntry[];
-  giftRegistry: string;
-  parents: string;
-  accommodation: string;
+  giftRegistry: {
+    notes: string;
+    links: WeddingGiftRegistryLink[];
+  };
+  parents: {
+    partner1Label: string;
+    partner1Names: string[];
+    partner2Label: string;
+    partner2Names: string[];
+  };
+  accommodation: {
+    entries: WeddingAccommodationEntry[];
+  };
 }
+
+const EMPTY_DRESS_ENTRY: WeddingDressCodeEntry = { title: '', body: '' };
+const EMPTY_GIFT_LINK: WeddingGiftRegistryLink = { label: '', url: '' };
+const EMPTY_ACCOMMODATION_ENTRY: WeddingAccommodationEntry = {
+  name: '',
+  description: '',
+  url: '',
+  priceHint: '',
+};
 
 /**
  * Wedding-specific extension screen. Each section maps to a dedicated
- * PUT endpoint on the BE (one for the couple+landing row, one per
- * invitation module). The screen batches updates through a single
+ * PUT endpoint on the BE; the screen batches updates through a single
  * submit so the user experience stays cohesive.
  *
  * Sections saved separately:
- *   - PUT /events/{id}/wedding-detail       (couple + landing)
+ *   - PUT /events/{id}/wedding-detail       (couple + countdown)
+ *   - PUT /events/{id}/wedding-landing      (preTitle)
  *   - PUT /events/{id}/wedding-story       (story body)
  *   - PUT /events/{id}/wedding-dress-code  (list of entries)
  *   - PUT /events/{id}/wedding-gift-registry
@@ -69,6 +113,7 @@ export function WeddingDataScreen(): React.ReactElement {
   });
 
   const {
+    control,
     register,
     handleSubmit,
     reset,
@@ -76,18 +121,32 @@ export function WeddingDataScreen(): React.ReactElement {
     watch,
     formState: { isDirty },
   } = useForm<WeddingFormState>({
-    defaultValues: {
-      partner1Name: '',
-      partner2Name: '',
-      landingTitle: '',
-      landingSubtitle: '',
-      storyHtml: '',
-      dressCodeEntries: [],
-      giftRegistry: '',
-      parents: '',
-      accommodation: '',
-    },
+    defaultValues: emptyFormState(),
   });
+
+  const watchPartner1Label = watch('parents.partner1Label');
+  const watchPartner2Label = watch('parents.partner2Label');
+
+  const dressFields = useFieldArray({ control, name: 'dressCodeEntries' });
+  const giftLinkFields = useFieldArray({ control, name: 'giftRegistry.links' });
+  const accommodationFields = useFieldArray({
+    control,
+    name: 'accommodation.entries',
+  });
+
+  // Parent-name lists are arrays of plain strings; managing them with
+  // useState avoids the `useFieldArray` generics-inference conflict that
+  // appears when the same `useForm` instance owns multiple field arrays.
+  const [p1Names, setP1Names] = useState<string[]>([]);
+  const [p2Names, setP2Names] = useState<string[]>([]);
+
+  const setPartnerNames = (
+    partner: 1 | 2,
+    next: string[],
+  ): void => {
+    if (partner === 1) setP1Names(next);
+    else setP2Names(next);
+  };
 
   useEffect(() => {
     if (wedding.data) {
@@ -95,21 +154,43 @@ export function WeddingDataScreen(): React.ReactElement {
       reset({
         partner1Name: w.partner1Name ?? '',
         partner2Name: w.partner2Name ?? '',
-        landingTitle: w.landingTitle ?? '',
-        landingSubtitle: w.landingSubtitle ?? '',
-        storyHtml: w.storyHtml ?? '',
-        dressCodeEntries: w.dressCode
-          ? [{ title: 'General', body: w.dressCode }]
-          : [],
-        giftRegistry: w.giftRegistry ?? '',
-        parents: w.parents ?? '',
-        accommodation: w.accommodation ?? '',
+        countdownEnabled: w.countdownEnabled ?? false,
+        landingPreTitle: w.landing?.preTitle ?? '',
+        storyBody: w.story?.body ?? '',
+        dressCodeEntries:
+          w.dressCode?.entries && w.dressCode.entries.length > 0
+            ? w.dressCode.entries.map((e) => ({ title: e.title, body: e.body }))
+            : [EMPTY_DRESS_ENTRY],
+        giftRegistry: {
+          notes: w.giftRegistry?.notes ?? '',
+          links:
+            w.giftRegistry?.links && w.giftRegistry.links.length > 0
+              ? w.giftRegistry.links.map((l) => ({ label: l.label, url: l.url }))
+              : [],
+        },
+        parents: {
+          partner1Label: w.parents?.partner1Label ?? '',
+          partner1Names: w.parents?.partner1Names ?? [],
+          partner2Label: w.parents?.partner2Label ?? '',
+          partner2Names: w.parents?.partner2Names ?? [],
+        },
+        accommodation: {
+          entries:
+            w.accommodation?.entries && w.accommodation.entries.length > 0
+              ? w.accommodation.entries.map((e) => ({
+                  name: e.name,
+                  description: e.description ?? '',
+                  url: e.url ?? '',
+                  priceHint: e.priceHint ?? '',
+                }))
+              : [],
+        },
       });
+      setP1Names(w.parents?.partner1Names ?? []);
+      setP2Names(w.parents?.partner2Names ?? []);
       setSavedAt(null);
     }
   }, [wedding.data, reset]);
-
-  const dressEntries = watch('dressCodeEntries');
 
   if (event.isLoading || wedding.isLoading) {
     return (
@@ -126,54 +207,76 @@ export function WeddingDataScreen(): React.ReactElement {
   const onSubmit = async (state: WeddingFormState) => {
     setSubmitting(true);
     try {
-      const updateCoupleLanding: UpdateWeddingDetailRequest = {
-        partner1Name: state.partner1Name || null,
-        partner2Name: state.partner2Name || null,
-        landingTitle: state.landingTitle || null,
-        landingSubtitle: state.landingSubtitle || null,
+      const updateCouple: UpdateWeddingDetailRequest = {
+        partner1Name: state.partner1Name.trim() || null,
+        partner2Name: state.partner2Name.trim() || null,
+        countdownEnabled: state.countdownEnabled,
       };
       await api.put<WeddingDetailDto>(
         `/events/${eventId}/wedding-detail`,
-        updateCoupleLanding as unknown as WeddingDetailDto,
+        updateCouple as unknown as WeddingDetailDto,
       );
 
-      if (state.storyHtml && state.storyHtml.trim().length > 0) {
-        const payload: WeddingStoryPayload = { body: state.storyHtml };
-        await api.put<WeddingDetailDto>(
-          `/events/${eventId}/wedding-story`,
-          payload as unknown as WeddingDetailDto,
-        );
-      }
+      const landing: WeddingLandingPayload = {
+        preTitle: state.landingPreTitle.trim() || null,
+      };
+      await api.put<WeddingDetailDto>(
+        `/events/${eventId}/wedding-landing`,
+        landing as unknown as WeddingDetailDto,
+      );
+
+      const story: WeddingStoryPayload = { body: state.storyBody };
+      await api.put<WeddingDetailDto>(
+        `/events/${eventId}/wedding-story`,
+        story as unknown as WeddingDetailDto,
+      );
 
       const dress: WeddingDressCodePayload = {
-        entries: state.dressCodeEntries.filter((e) => e.title && e.body),
+        entries: state.dressCodeEntries
+          .map((e) => ({ title: e.title.trim(), body: e.body.trim() }))
+          .filter((e) => e.title && e.body),
       };
       await api.put<WeddingDetailDto>(
         `/events/${eventId}/wedding-dress-code`,
         dress as unknown as WeddingDetailDto,
       );
 
-      if (state.giftRegistry && state.giftRegistry.trim().length > 0) {
-        const payload: WeddingGiftRegistryPayload = { body: state.giftRegistry };
-        await api.put<WeddingDetailDto>(
-          `/events/${eventId}/wedding-gift-registry`,
-          payload as unknown as WeddingDetailDto,
-        );
-      }
-      if (state.parents && state.parents.trim().length > 0) {
-        const payload: WeddingParentsPayload = { body: state.parents };
-        await api.put<WeddingDetailDto>(
-          `/events/${eventId}/wedding-parents`,
-          payload as unknown as WeddingDetailDto,
-        );
-      }
-      if (state.accommodation && state.accommodation.trim().length > 0) {
-        const payload: WeddingAccommodationPayload = { body: state.accommodation };
-        await api.put<WeddingDetailDto>(
-          `/events/${eventId}/wedding-accommodation`,
-          payload as unknown as WeddingDetailDto,
-        );
-      }
+      const gift: WeddingGiftRegistryPayload = {
+        notes: state.giftRegistry.notes.trim() || null,
+        links: state.giftRegistry.links
+          .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
+          .filter((l) => l.label && l.url),
+      };
+      await api.put<WeddingDetailDto>(
+        `/events/${eventId}/wedding-gift-registry`,
+        gift as unknown as WeddingDetailDto,
+      );
+
+      const parents: WeddingParentsPayload = {
+        partner1Label: state.parents.partner1Label.trim() || null,
+        partner1Names: p1Names.filter((n) => n.trim()),
+        partner2Label: state.parents.partner2Label.trim() || null,
+        partner2Names: p2Names.filter((n) => n.trim()),
+      };
+      await api.put<WeddingDetailDto>(
+        `/events/${eventId}/wedding-parents`,
+        parents as unknown as WeddingDetailDto,
+      );
+
+      const accommodation: WeddingAccommodationPayload = {
+        entries: state.accommodation.entries
+          .filter((e) => e.name.trim())
+          .map((e) => ({
+            name: e.name.trim(),
+            description: e.description?.trim() || null,
+            url: e.url?.trim() || null,
+            priceHint: e.priceHint?.trim() || null,
+          })),
+      };
+      await api.put<WeddingDetailDto>(
+        `/events/${eventId}/wedding-accommodation`,
+        accommodation as unknown as WeddingDetailDto,
+      );
 
       await qc.invalidateQueries({
         queryKey: ['events', 'wedding-detail', eventId],
@@ -201,7 +304,9 @@ export function WeddingDataScreen(): React.ReactElement {
             <Heart className="h-4 w-4 text-[var(--color-primary)]" />
             <CardTitle>{t('events:detail.weddings.section.couple')}</CardTitle>
           </div>
-          <p className="text-xs text-[var(--color-secondary)]">Names flow into the invitation hero.</p>
+          <p className="text-xs text-[var(--color-secondary)]">
+            Names flow into the invitation hero.
+          </p>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <FieldShell label={t('events:detail.weddings.fields.partner1')} htmlFor="partner1Name">
@@ -210,12 +315,48 @@ export function WeddingDataScreen(): React.ReactElement {
           <FieldShell label={t('events:detail.weddings.fields.partner2')} htmlFor="partner2Name">
             <Input id="partner2Name" {...register('partner2Name')} />
           </FieldShell>
-          <FieldShell label={t('events:detail.weddings.fields.landingTitle')} className="md:col-span-2">
-            <Input {...register('landingTitle')} placeholder="Emma & James" />
+          <FieldShell
+            label={t('events:detail.weddings.fields.landingPreTitle')}
+            hint={t('events:detail.weddings.fields.landingPreTitleHint')}
+            className="md:col-span-2"
+          >
+            <Input
+              {...register('landingPreTitle')}
+              placeholder={t('events:detail.weddings.fields.landingPreTitlePlaceholder')}
+            />
           </FieldShell>
-          <FieldShell label={t('events:detail.weddings.fields.landingSubtitle')} className="md:col-span-2">
-            <Input {...register('landingSubtitle')} placeholder="Together with their families" />
-          </FieldShell>
+          <label className="md:col-span-2 flex items-center gap-2 text-sm">
+            <input type="checkbox" {...register('countdownEnabled')} />
+            <span>{t('events:detail.weddings.fields.countdownEnabled')}</span>
+          </label>
+        </CardContent>
+      </Card>
+
+      {/* Parents */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('events:detail.weddings.section.parents')}</CardTitle>
+          <p className="text-xs text-[var(--color-secondary)]">
+            {t('events:detail.weddings.fields.parentsHint')}
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ParentBlock
+            index={1}
+            partnerLabel={watchPartner1Label}
+            setPartnerLabel={(v) => setValue('parents.partner1Label', v, { shouldDirty: true })}
+            names={p1Names}
+            setNames={(next) => setPartnerNames(1, next)}
+            t={t}
+          />
+          <ParentBlock
+            index={2}
+            partnerLabel={watchPartner2Label}
+            setPartnerLabel={(v) => setValue('parents.partner2Label', v, { shouldDirty: true })}
+            names={p2Names}
+            setNames={(next) => setPartnerNames(2, next)}
+            t={t}
+          />
         </CardContent>
       </Card>
 
@@ -226,10 +367,10 @@ export function WeddingDataScreen(): React.ReactElement {
         </CardHeader>
         <CardContent>
           <FieldShell
-            label={t('events:detail.weddings.fields.storyHtml')}
-            hint="Plain text or simple HTML. Up to ~4000 chars."
+            label={t('events:detail.weddings.fields.storyBody')}
+            hint={t('events:detail.weddings.fields.storyBodyHint')}
           >
-            <Textarea rows={6} {...register('storyHtml')} />
+            <Textarea rows={6} {...register('storyBody')} />
           </FieldShell>
         </CardContent>
       </Card>
@@ -238,40 +379,61 @@ export function WeddingDataScreen(): React.ReactElement {
       <Card>
         <CardHeader>
           <CardTitle>{t('events:detail.weddings.section.dressCode')}</CardTitle>
-          <p className="text-xs text-[var(--color-secondary)]">Up to two dress codes (ceremony, reception…)</p>
+          <p className="text-xs text-[var(--color-secondary)]">
+            {t('events:detail.weddings.fields.dressCodeHint')}
+          </p>
         </CardHeader>
         <CardContent className="space-y-3">
-          {dressEntries.map((_, i) => (
+          {dressFields.fields.map((field, i) => (
             <div
-              key={i}
-              className="grid grid-cols-1 gap-3 rounded-md border border-[var(--color-outline-variant)] p-3 md:grid-cols-3"
+              key={field.id}
+              className="space-y-3 rounded-md border border-[var(--color-outline-variant)] p-3"
             >
-              <FieldShell label="Title">
-                <Input
-                  placeholder="Ceremony"
-                  {...register(`dressCodeEntries.${i}.title` as const)}
-                />
-              </FieldShell>
-              <FieldShell label="Body" className="md:col-span-2">
-                <Input
-                  placeholder="White tie"
-                  {...register(`dressCodeEntries.${i}.body` as const)}
-                />
-              </FieldShell>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--color-secondary)]">
+                  {t('events:detail.weddings.fields.dressCodeEntryLabel', {
+                    index: i + 1,
+                  })}
+                </span>
+                {dressFields.fields.length > 1 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => dressFields.remove(i)}
+                    aria-label={t('events:detail.weddings.actions.remove')}
+                    title={t('events:detail.weddings.actions.remove')}
+                  >
+                    <Trash2 className="h-4 w-4" />{' '}
+                    {t('events:detail.weddings.actions.remove')}
+                  </Button>
+                ) : null}
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <FieldShell label={t('events:detail.weddings.fields.dressCodeTitle')}>
+                  <Input
+                    placeholder={t('events:detail.weddings.fields.dressCodeTitlePlaceholder')}
+                    {...register(`dressCodeEntries.${i}.title` as const)}
+                  />
+                </FieldShell>
+                <FieldShell
+                  label={t('events:detail.weddings.fields.dressCodeBody')}
+                  className="md:col-span-2"
+                >
+                  <Input
+                    placeholder={t('events:detail.weddings.fields.dressCodeBodyPlaceholder')}
+                    {...register(`dressCodeEntries.${i}.body` as const)}
+                  />
+                </FieldShell>
+              </div>
             </div>
           ))}
           <Button
             type="button"
             variant="outline"
-            onClick={() =>
-              setValue('dressCodeEntries', [
-                ...dressEntries,
-                { title: '', body: '' } satisfies WeddingDressCodeEntry,
-              ])
-            }
-            disabled={dressEntries.length >= 2}
+            onClick={() => dressFields.append(EMPTY_DRESS_ENTRY)}
+            disabled={dressFields.fields.length >= 2}
           >
-            + Add entry
+            <Plus className="h-4 w-4" /> {t('events:detail.weddings.actions.addDressCode')}
           </Button>
         </CardContent>
       </Card>
@@ -281,25 +443,73 @@ export function WeddingDataScreen(): React.ReactElement {
         <CardHeader>
           <CardTitle>{t('events:detail.weddings.section.gift')}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <FieldShell
-            label={t('events:detail.weddings.fields.giftRegistry')}
-            hint="Link or short note"
+            label={t('events:detail.weddings.fields.giftNotes')}
+            hint={t('events:detail.weddings.fields.giftNotesHint')}
           >
-            <Textarea rows={3} placeholder="Honeymoon fund — https://…" {...register('giftRegistry')} />
+            <Textarea
+              rows={3}
+              placeholder={t('events:detail.weddings.fields.giftNotesPlaceholder')}
+              {...register('giftRegistry.notes')}
+            />
           </FieldShell>
-        </CardContent>
-      </Card>
 
-      {/* Parents */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('events:detail.weddings.section.parents')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FieldShell label={t('events:detail.weddings.fields.parents')}>
-            <Textarea rows={3} placeholder="Daughter of X & Y, son of A & B" {...register('parents')} />
-          </FieldShell>
+          {giftLinkFields.fields.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-secondary)]">
+                {t('events:detail.weddings.fields.giftLinks')}
+              </p>
+              {giftLinkFields.fields.map((field, i) => (
+                <div
+                  key={field.id}
+                  className="space-y-2 rounded-md border border-[var(--color-outline-variant)] p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-[var(--color-secondary)]">
+                      {t('events:detail.weddings.fields.giftLinkEntryLabel', {
+                        index: i + 1,
+                      })}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => giftLinkFields.remove(i)}
+                      aria-label={t('events:detail.weddings.actions.remove')}
+                      title={t('events:detail.weddings.actions.remove')}
+                    >
+                      <Trash2 className="h-4 w-4" />{' '}
+                      {t('events:detail.weddings.actions.remove')}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_2fr]">
+                    <FieldShell label={t('events:detail.weddings.fields.giftLinkLabel')}>
+                      <Input
+                        {...register(`giftRegistry.links.${i}.label` as const)}
+                        placeholder={t('events:detail.weddings.fields.giftLinkLabelPlaceholder')}
+                      />
+                    </FieldShell>
+                    <FieldShell label={t('events:detail.weddings.fields.giftLinkUrl')}>
+                      <Input
+                        type="url"
+                        {...register(`giftRegistry.links.${i}.url` as const)}
+                        placeholder="https://…"
+                      />
+                    </FieldShell>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => giftLinkFields.append(EMPTY_GIFT_LINK)}
+            disabled={giftLinkFields.fields.length >= 8}
+          >
+            <Plus className="h-4 w-4" /> {t('events:detail.weddings.actions.addGiftLink')}
+          </Button>
         </CardContent>
       </Card>
 
@@ -308,28 +518,195 @@ export function WeddingDataScreen(): React.ReactElement {
         <CardHeader>
           <CardTitle>{t('events:detail.weddings.section.accommodation')}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <FieldShell label={t('events:detail.weddings.fields.accommodation')}>
-            <Textarea rows={3} placeholder="Hotel block at… Book before…" {...register('accommodation')} />
-          </FieldShell>
+        <CardContent className="space-y-3">
+          {accommodationFields.fields.length === 0 ? (
+            <p className="text-sm text-[var(--color-secondary)]">
+              {t('events:detail.weddings.fields.accommodationEmpty')}
+            </p>
+          ) : null}
+          {accommodationFields.fields.map((field, i) => (
+            <div
+              key={field.id}
+              className="space-y-3 rounded-md border border-[var(--color-outline-variant)] p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--color-secondary)]">
+                  {t('events:detail.weddings.fields.accommodationEntryLabel', {
+                    index: i + 1,
+                  })}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => accommodationFields.remove(i)}
+                  aria-label={t('events:detail.weddings.actions.remove')}
+                  title={t('events:detail.weddings.actions.remove')}
+                >
+                  <Trash2 className="h-4 w-4" /> {t('events:detail.weddings.actions.remove')}
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <FieldShell label={t('events:detail.weddings.fields.accommodationName')}>
+                <Input
+                  {...register(`accommodation.entries.${i}.name` as const)}
+                  placeholder={t(
+                    'events:detail.weddings.fields.accommodationNamePlaceholder',
+                  )}
+                />
+              </FieldShell>
+              <FieldShell label={t('events:detail.weddings.fields.accommodationDescription')}>
+                <Input
+                  {...register(`accommodation.entries.${i}.description` as const)}
+                  placeholder={t(
+                    'events:detail.weddings.fields.accommodationDescriptionPlaceholder',
+                  )}
+                />
+              </FieldShell>
+              <FieldShell label={t('events:detail.weddings.fields.accommodationUrl')}>
+                <Input
+                  type="url"
+                  {...register(`accommodation.entries.${i}.url` as const)}
+                  placeholder="https://…"
+                />
+              </FieldShell>
+              <FieldShell
+                label={t('events:detail.weddings.fields.accommodationPriceHint')}
+                hint={t('events:detail.weddings.fields.accommodationPriceHintHint')}
+              >
+                <Input
+                  {...register(`accommodation.entries.${i}.priceHint` as const)}
+                  placeholder={t(
+                    'events:detail.weddings.fields.accommodationPriceHintPlaceholder',
+                  )}
+                />
+              </FieldShell>
+              </div>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => accommodationFields.append(EMPTY_ACCOMMODATION_ENTRY)}
+            disabled={accommodationFields.fields.length >= 6}
+          >
+            <Plus className="h-4 w-4" /> {t('events:detail.weddings.actions.addAccommodation')}
+          </Button>
         </CardContent>
       </Card>
 
       <div className="flex items-center justify-end gap-3">
-        {savedAt && (
+        {savedAt ? (
           <span className="text-xs text-[var(--color-status-confirmed-text)]">
             {t('events:detail.weddings.saved')} — {new Date(savedAt).toLocaleTimeString()}
           </span>
-        )}
+        ) : null}
         <Button type="submit" disabled={!isDirty || submitting} data-testid="wedding-save">
-          <Save className="h-4 w-4" /> {submitting ? t('common:actions.saving') : t('common:actions.save')}
+          <Save className="h-4 w-4" />{' '}
+          {submitting ? t('common:actions.saving') : t('common:actions.save')}
         </Button>
       </div>
     </form>
   );
 }
 
-function Header({ event }: { event: EventDto }) {
+function emptyFormState(): WeddingFormState {
+  return {
+    partner1Name: '',
+    partner2Name: '',
+    countdownEnabled: false,
+    landingPreTitle: '',
+    storyBody: '',
+    dressCodeEntries: [EMPTY_DRESS_ENTRY],
+    giftRegistry: { notes: '', links: [] },
+    parents: {
+      partner1Label: '',
+      partner1Names: [],
+      partner2Label: '',
+      partner2Names: [],
+    },
+    accommodation: { entries: [] },
+  };
+}
+
+interface ParentBlockProps {
+  index: 1 | 2;
+  partnerLabel: string;
+  setPartnerLabel: (v: string) => void;
+  names: string[];
+  setNames: (next: string[]) => void;
+  t: ReturnType<typeof useTranslation>['t'];
+}
+
+function ParentBlock({
+  index,
+  partnerLabel,
+  setPartnerLabel,
+  names,
+  setNames,
+  t,
+}: ParentBlockProps): React.ReactElement {
+  const updateName = (i: number, value: string): void => {
+    setNames(names.map((n, idx) => (idx === i ? value : n)));
+  };
+  const removeName = (i: number): void => {
+    setNames(names.filter((_, idx) => idx !== i));
+  };
+  const addName = (): void => {
+    if (names.length >= 6) return;
+    setNames([...names, '']);
+  };
+  return (
+    <div className="space-y-2 rounded-md border border-[var(--color-outline-variant)] p-3">
+      <FieldShell
+        label={t('events:detail.weddings.fields.parentLabel', { partner: index })}
+      >
+        <Input
+          value={partnerLabel}
+          onChange={(e) => setPartnerLabel(e.target.value)}
+          placeholder={t('events:detail.weddings.fields.parentLabelPlaceholder')}
+        />
+      </FieldShell>
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-secondary)]">
+          {t('events:detail.weddings.fields.parentNames', { partner: index })}
+        </p>
+        {names.length === 0 ? (
+          <p className="text-xs text-[var(--color-secondary)]">
+            {t('events:detail.weddings.fields.parentNamesEmpty')}
+          </p>
+        ) : null}
+        {names.map((name, i) => (
+          <div key={i} className="flex gap-2">
+            <Input
+              value={name}
+              onChange={(e) => updateName(i, e.target.value)}
+              placeholder={t('events:detail.weddings.fields.parentNamePlaceholder')}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => removeName(i)}
+              aria-label={t('events:detail.weddings.actions.remove')}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addName}
+          disabled={names.length >= 6}
+        >
+          <Plus className="h-4 w-4" />{' '}
+          {t('events:detail.weddings.actions.addParentName', { partner: index })}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Header({ event }: { event: EventDto }): React.ReactElement {
   const { t } = useTranslation(['events', 'common']);
   return (
     <header>

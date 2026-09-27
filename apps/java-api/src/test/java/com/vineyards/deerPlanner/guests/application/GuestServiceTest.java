@@ -79,8 +79,7 @@ class GuestServiceTest {
     return Guest.builder()
         .id(id)
         .groupId(groupId)
-        .firstName("Maria")
-        .lastName("Morales")
+        .fullName("Maria Morales")
         .email("maria@example.com")
         .phone("+521111111111")
         .dietaryNotes(null)
@@ -161,8 +160,8 @@ class GuestServiceTest {
     @Test
     void createGroup_whenNoPrimaryMarked_throwsPrimaryRequired() {
       verifyOwnershipPasses();
-      var maria = new InlineGuestDto("Maria", "Morales", null, null, null, null);
-      var jose = new InlineGuestDto("Jose", "Morales", null, null, null, null);
+      var maria = new InlineGuestDto("Maria Morales", null, null, null, null);
+      var jose = new InlineGuestDto("Jose Morales", null, null, null, null);
       var dto =
           new CreateGuestGroupDto("Familia Morales", "family", null, null, 0, List.of(maria, jose));
 
@@ -174,8 +173,8 @@ class GuestServiceTest {
     @Test
     void createGroup_whenMultiplePrimariesMarked_throwsMultiplePrimaryGuests() {
       verifyOwnershipPasses();
-      var maria = new InlineGuestDto("Maria", "Morales", null, null, null, true);
-      var jose = new InlineGuestDto("Jose", "Morales", null, null, null, true);
+      var maria = new InlineGuestDto("Maria Morales", null, null, null, true);
+      var jose = new InlineGuestDto("Jose Morales", null, null, null, true);
       var dto =
           new CreateGuestGroupDto("Familia Morales", "family", null, null, 0, List.of(maria, jose));
 
@@ -191,9 +190,9 @@ class GuestServiceTest {
       when(groupRepository.update(any(GuestGroup.class))).thenAnswer(inv -> inv.getArgument(0));
       when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
 
-      var maria = new InlineGuestDto("Maria", "Morales", null, null, null, null);
-      var jose = new InlineGuestDto("Jose", "Morales", null, null, null, true); // primary
-      var luis = new InlineGuestDto("Luis", "Morales", null, null, null, null);
+      var maria = new InlineGuestDto("Maria Morales", null, null, null, null);
+      var jose = new InlineGuestDto("Jose Morales", null, null, null, true); // primary
+      var luis = new InlineGuestDto("Luis Morales", null, null, null, null);
       var dto =
           new CreateGuestGroupDto(
               "Familia Morales", "family", null, null, 0, List.of(maria, jose, luis));
@@ -204,7 +203,7 @@ class GuestServiceTest {
       verify(guestRepository, times(3)).save(captor.capture());
       Guest joseSaved =
           captor.getAllValues().stream()
-              .filter(g -> "Jose".equals(g.getFirstName()))
+              .filter(g -> g.getFullName() != null && g.getFullName().startsWith("Jose"))
               .findFirst()
               .orElseThrow();
       assertThat(result.primaryGuestId()).isEqualTo(joseSaved.getId());
@@ -284,7 +283,7 @@ class GuestServiceTest {
       verifyOwnershipPasses();
       when(groupRepository.findById("grp-missing")).thenReturn(Optional.empty());
 
-      var dto = new CreateGuestDto("grp-missing", "Maria", "Morales", null, null, null);
+      var dto = new CreateGuestDto("grp-missing", "Maria Morales", null, null, null);
 
       assertThatThrownBy(() -> service.createGuest(EVENT_ID, dto, ORGANIZER_ID))
           .isInstanceOf(ResourceNotFoundError.class);
@@ -296,7 +295,7 @@ class GuestServiceTest {
       when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(sampleGroup(GROUP_ID)));
       when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
 
-      var dto = new CreateGuestDto(GROUP_ID, "Maria", "Morales", null, null, null);
+      var dto = new CreateGuestDto(GROUP_ID, "Maria Morales", null, null, null);
 
       GuestDto result = service.createGuest(EVENT_ID, dto, ORGANIZER_ID);
 
@@ -324,7 +323,7 @@ class GuestServiceTest {
 
       GuestDto result = service.getGuest(GUEST_ID, ORGANIZER_ID);
 
-      assertThat(result.firstName()).isEqualTo("Maria");
+      assertThat(result.fullName()).isEqualTo("Maria Morales");
     }
   }
 

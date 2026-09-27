@@ -87,7 +87,7 @@ export function useGuestsService(): GuestsService {
       updatePrimaryGuest(eventId, groupId, guestId) {
         return api.put<GuestGroup>(
           `/events/${eventId}/guest-groups/${groupId}/primary`,
-          { primaryGuestId: guestId },
+          { guestId },
         );
       },
 

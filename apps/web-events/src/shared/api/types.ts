@@ -184,20 +184,69 @@ export interface SpringPagedResponse<T> {
 // =========================================================================
 // Wedding detail extension
 // =========================================================================
+//
+// The BE's WeddingDetailDto carries each invitation module as a nested
+// payload (a Java record). The wire shape mirrors the JSONB columns on
+// the `wedding_events` table. The screen consumes the rich structure
+// directly; the public mapper flattens it back to `{ body }` for the
+// templates that historically consumed that shape.
+
+export interface WeddingLandingPayload {
+  preTitle?: string | null;
+}
+
+export interface WeddingStoryPayload {
+  body: string;
+}
+
+export interface WeddingDressCodeEntry {
+  title: string;
+  body: string;
+}
+
+export interface WeddingDressCodePayload {
+  entries: WeddingDressCodeEntry[];
+}
+
+export interface WeddingGiftRegistryLink {
+  label: string;
+  url: string;
+}
+
+export interface WeddingGiftRegistryPayload {
+  links?: WeddingGiftRegistryLink[] | null;
+  notes?: string | null;
+}
+
+export interface WeddingParentsPayload {
+  partner1Label?: string | null;
+  partner1Names?: string[] | null;
+  partner2Label?: string | null;
+  partner2Names?: string[] | null;
+}
+
+export interface WeddingAccommodationEntry {
+  name: string;
+  description?: string | null;
+  url?: string | null;
+  priceHint?: string | null;
+}
+
+export interface WeddingAccommodationPayload {
+  entries?: WeddingAccommodationEntry[] | null;
+}
 
 export interface WeddingDetailDto {
   eventId: string;
   partner1Name?: string | null;
   partner2Name?: string | null;
-  storyHtml?: string | null;
-  dressCode?: string | null;
-  giftRegistry?: string | null;
-  parents?: string | null;
-  accommodation?: string | null;
-  landingTitle?: string | null;
-  landingSubtitle?: string | null;
-  heroImageUrl?: string | null;
-  updatedAt: string;
+  countdownEnabled?: boolean;
+  landing?: WeddingLandingPayload | null;
+  story?: WeddingStoryPayload | null;
+  dressCode?: WeddingDressCodePayload | null;
+  giftRegistry?: WeddingGiftRegistryPayload | null;
+  parents?: WeddingParentsPayload | null;
+  accommodation?: WeddingAccommodationPayload | null;
 }
 
 // =========================================================================
@@ -221,8 +270,7 @@ export interface GuestGroup {
 export interface Guest {
   id: string;
   groupId: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email?: string | null;
   phone?: string | null;
   dietaryNotes?: string | null;
@@ -237,31 +285,46 @@ export interface Guest {
 
 export interface CreateGuestRequest {
   groupId?: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email?: string;
   phone?: string;
   dietaryNotes?: string;
 }
 
 export interface UpdateGuestRequest {
-  firstName?: string;
-  lastName?: string;
+  fullName?: string;
   email?: string;
   phone?: string;
   dietaryNotes?: string;
 }
 
+/** Mirrors the Java enum `com.vineyards.deerPlanner.guests.domain.GuestRelationship`. */
+export type GuestRelationshipValue = 'family' | 'friends' | 'other';
+
+/**
+ * Inline guest DTO embedded in `CreateGuestGroupDto`. The BE rejects
+ * any group whose `guests[]` is empty or that has more than one guest
+ * with `primary: true` — the screen sends exactly one primary guest.
+ */
+export interface InlineGuestPayload {
+  fullName: string;
+  email?: string;
+  phone?: string;
+  rsvpStatus?: 'pending' | 'confirmed' | 'declined';
+  primary?: boolean;
+}
+
 export interface CreateGuestGroupRequest {
   name: string;
-  relationship?: string;
+  relationship: GuestRelationshipValue;
   sharedEmail?: string;
   sharedPhone?: string;
+  guests: InlineGuestPayload[];
 }
 
 export interface UpdateGuestGroupRequest {
   name?: string;
-  relationship?: string;
+  relationship?: GuestRelationshipValue;
   sharedEmail?: string;
   sharedPhone?: string;
 }
@@ -348,8 +411,7 @@ export type PublicRsvpStatus = 'pending' | 'confirmed' | 'declined';
 export interface PublicGuestDto {
   id: string;
   groupId: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   rsvpStatus: PublicRsvpStatus;
   rsvpConfirmedAt?: string | null;
   rsvpMessage?: string | null;

@@ -14,8 +14,7 @@ import jakarta.validation.constraints.Size;
  * one is rejected as a validation error.
  */
 public record InlineGuestDto(
-    @NotBlank @Size(max = 120) String firstName,
-    @NotBlank @Size(max = 120) String lastName,
+    @NotBlank @Size(max = 240) String fullName,
     @Size(max = 254) String email,
     @Size(max = 32) String phone,
     @Size(max = 4000) String dietaryNotes,

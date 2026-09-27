@@ -11,15 +11,35 @@
       "namePlaceholder": "p. ej. Familia García, Amigos de la universidad…",
       "relationship": "Relación",
       "sharedEmail": "Email compartido (opcional)",
-      "sharedPhone": "Teléfono compartido (opcional)"
+      "sharedPhone": "Teléfono compartido (opcional)",
+      "primaryGuestHeading": "Contacto primario",
+      "fullNamePlaceholder": "p. ej. María García",
+      "memberLabel": "Miembro {{index}}",
+      "primaryHint": "{{count}} marcado(s) como primario",
+      "primaryRequired": "Marca exactamente un miembro como contacto primario antes de guardar."
+    },
+    "relationships": {
+      "family": "Familia",
+      "friends": "Amistades",
+      "other": "Otro"
     },
     "linkCopied": "Enlace de invitación copiado",
-    "regenerateConfirm": "Regenerar invalidará el enlace anterior. El nuevo enlace se activa de inmediato."
+    "regenerateConfirm": "Regenerar invalidará el enlace anterior. El nuevo enlace se activa de inmediato.",
+    "regenerateToken": "Regenerar enlace de invitación",
+    "deleteGroup": "Eliminar grupo",
+    "member": "miembro",
+    "members": "miembros",
+    "membersHeading": "Miembros",
+    "addMember": "Agregar miembro",
+    "noMembers": "Aún no hay miembros. Agrega uno arriba.",
+    "primaryBadge": "Primario",
+    "markPrimary": "Marcar como contacto primario",
+    "removeMember": "Eliminar miembro",
+    "removeMemberConfirm": "¿Eliminar a este miembro del grupo? El enlace de invitación que iba a reenviar seguirá siendo válido para el contacto primario restante."
   },
   "guest": {
     "add": "Agregar invitado",
-    "firstName": "Nombre",
-    "lastName": "Apellido",
+    "fullName": "Nombre completo",
     "email": "Email",
     "phone": "Teléfono",
     "dietaryNotes": "Notas de dieta (solo para ti, no en la invitación)",

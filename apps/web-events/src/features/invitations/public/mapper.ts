@@ -1,6 +1,5 @@
 import type {
   EventLocation,
-  EventDto,
   ProgramItem,
   ProgramPayload,
   LocationsPayload,
@@ -75,8 +74,8 @@ export function mapPublicInvitationDtoToData(
     templateCode,
     eventDate: dto.event.eventDate,
     heroImageUrl: undefined as string | null | undefined,
-    landingTitle: dto.weddingDetail?.landingTitle ?? null,
-    landingSubtitle: dto.weddingDetail?.landingSubtitle ?? null,
+    landingTitle: dto.weddingDetail?.landing?.preTitle ?? null,
+    landingSubtitle: null,
     locations: mapLocations(dto.event.locations),
     program: mapProgram(dto.event.program),
     rsvpEnabled: dto.rsvpEnabled,
@@ -124,13 +123,64 @@ function mapWedding(
     eventType: 'wedding',
     partner1Name: w?.partner1Name ?? defaultWeddingName(locale, 0),
     partner2Name: w?.partner2Name ?? defaultWeddingName(locale, 1),
-    heroImageUrl: w?.heroImageUrl ?? null,
-    story: w?.storyHtml ? { body: w.storyHtml } : null,
-    dressCode: w?.dressCode ? { entries: [{ title: 'Dress Code', body: w.dressCode }] } : null,
-    giftRegistry: w?.giftRegistry ? { body: w.giftRegistry } : null,
-    parents: w?.parents ? { body: w.parents } : null,
-    accommodation: w?.accommodation ? { body: w.accommodation } : null,
+    heroImageUrl: null,
+    landingTitle: w?.landing?.preTitle ?? null,
+    story: w?.story?.body ? { body: w.story.body } : null,
+    dressCode: w?.dressCode?.entries?.length
+      ? { entries: w.dressCode.entries.map((e) => ({ title: e.title, body: e.body })) }
+      : null,
+    giftRegistry: flattenGiftRegistry(w?.giftRegistry ?? null),
+    parents: flattenParents(w?.parents ?? null),
+    accommodation: flattenAccommodation(w?.accommodation ?? null),
   };
+}
+
+/** Compose `notes` + `links` into a single `{ body }` string templates can render. */
+function flattenGiftRegistry(
+  payload: WeddingDetailDto['giftRegistry'],
+): WeddingPublicData['giftRegistry'] {
+  if (!payload) return null;
+  const notes = payload.notes?.trim() ?? '';
+  const linkLines = (payload.links ?? [])
+    .filter((l) => l.label && l.url)
+    .map((l) => `${l.label}: ${l.url}`);
+  const body = [notes, ...linkLines].filter(Boolean).join('\n');
+  return body ? { body } : null;
+}
+
+/** Compose `partnerLabel + partnerNames[]` for both sides into one `{ body }`. */
+function flattenParents(
+  payload: WeddingDetailDto['parents'],
+): WeddingPublicData['parents'] {
+  if (!payload) return null;
+  const side = (label: string | null | undefined, names: string[] | null | undefined): string => {
+    const cleanLabel = label?.trim() ?? '';
+    const cleanNames = (names ?? []).map((n) => n.trim()).filter(Boolean);
+    if (!cleanLabel && cleanNames.length === 0) return '';
+    const namesPart = cleanNames.join(', ');
+    if (!cleanLabel) return namesPart;
+    if (cleanNames.length === 0) return cleanLabel;
+    return `${cleanLabel} ${namesPart}`;
+  };
+  const left = side(payload.partner1Label, payload.partner1Names);
+  const right = side(payload.partner2Label, payload.partner2Names);
+  const body = [left, right].filter(Boolean).join('\n');
+  return body ? { body } : null;
+}
+
+/** Compose the accommodation entries into a single `{ body }` summary. */
+function flattenAccommodation(
+  payload: WeddingDetailDto['accommodation'],
+): WeddingPublicData['accommodation'] {
+  const entries = (payload?.entries ?? []).filter((e) => e.name?.trim());
+  if (entries.length === 0) return null;
+  const body = entries
+    .map((e) => {
+      const detail = [e.description, e.priceHint].filter(Boolean).join(' — ');
+      return detail ? `${e.name} — ${detail}` : e.name;
+    })
+    .join('\n');
+  return body ? { body } : null;
 }
 
 function mapBirthday(

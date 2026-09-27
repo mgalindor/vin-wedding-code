@@ -33,7 +33,7 @@ public class GuestRepositoryAdapter implements GuestOutPort {
 
   @Override
   public List<Guest> findByGroupId(String groupId) {
-    return jpa.findByGroupIdOrderByLastNameAscFirstNameAsc(groupId).stream()
+    return jpa.findByGroupIdOrderByFullNameAsc(groupId).stream()
         .map(GuestRepositoryAdapter::toDomain)
         .toList();
   }
@@ -43,7 +43,7 @@ public class GuestRepositoryAdapter implements GuestOutPort {
     if (groupIds.isEmpty()) {
       return List.of();
     }
-    return jpa.findByGroupIdInOrderByLastNameAscFirstNameAsc(groupIds).stream()
+    return jpa.findByGroupIdInOrderByFullNameAsc(groupIds).stream()
         .map(GuestRepositoryAdapter::toDomain)
         .toList();
   }
@@ -67,8 +67,7 @@ public class GuestRepositoryAdapter implements GuestOutPort {
     return Guest.builder()
         .id(e.getId())
         .groupId(e.getGroupId())
-        .firstName(e.getFirstName())
-        .lastName(e.getLastName())
+        .fullName(e.getFullName())
         .email(e.getEmail())
         .phone(e.getPhone())
         .dietaryNotes(e.getDietaryNotes())
@@ -86,8 +85,7 @@ public class GuestRepositoryAdapter implements GuestOutPort {
     GuestEntity e = new GuestEntity();
     e.setId(d.getId());
     e.setGroupId(d.getGroupId());
-    e.setFirstName(d.getFirstName());
-    e.setLastName(d.getLastName());
+    e.setFullName(d.getFullName());
     e.setEmail(d.getEmail());
     e.setPhone(d.getPhone());
     e.setDietaryNotes(d.getDietaryNotes());

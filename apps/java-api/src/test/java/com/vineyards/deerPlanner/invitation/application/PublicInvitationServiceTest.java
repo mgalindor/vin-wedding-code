@@ -104,8 +104,7 @@ class PublicInvitationServiceTest {
     return new GuestDto(
         id,
         GROUP_ID,
-        "Maria",
-        "Morales",
+        "Maria Morales",
         null,
         null,
         null,

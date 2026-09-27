@@ -194,7 +194,7 @@ export function GuestListScreen(): React.ReactElement {
                 >
                   <Td>
                     <div className="font-medium text-[var(--color-on-surface)]">
-                      {g.firstName} {g.lastName}
+                      {g.fullName}
                     </div>
                     {g.dietaryNotes && (
                       <div className="text-xs italic text-[var(--color-secondary)]">
@@ -339,8 +339,7 @@ function AddGuestForm({
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateGuestRequest>({
     defaultValues: {
       groupId: groups[0]?.id ?? '',
-      firstName: '',
-      lastName: '',
+      fullName: '',
       email: '',
       phone: '',
       dietaryNotes: '',
@@ -368,11 +367,11 @@ function AddGuestForm({
   return (
     <form onSubmit={handleSubmit(onSubmitValid)} className="space-y-3">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <FieldShell label={t('guests:guest.firstName')} required error={errors.firstName?.message}>
-          <Input {...register('firstName', { required: 'Required' })} />
-        </FieldShell>
-        <FieldShell label={t('guests:guest.lastName')} required error={errors.lastName?.message}>
-          <Input {...register('lastName', { required: 'Required' })} />
+        <FieldShell label={t('guests:guest.fullName')} required error={errors.fullName?.message} className="md:col-span-2">
+          <Input
+            {...register('fullName', { required: 'Required' })}
+            placeholder={t('guests:groups.fields.fullNamePlaceholder')}
+          />
         </FieldShell>
         <FieldShell label={t('guests:guest.email')}>
           <Input type="email" {...register('email')} />

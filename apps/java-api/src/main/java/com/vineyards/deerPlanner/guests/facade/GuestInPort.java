@@ -59,8 +59,8 @@ public interface GuestInPort {
 
   /**
    * Paginated guest listing for an event. {@code groupId} and {@code rsvpStatus} filter exactly;
-   * {@code q} is a case-insensitive substring match against firstName / lastName. Null / blank
-   * filters are ignored.
+   * {@code q} is a case-insensitive substring match against fullName. Null / blank filters are
+   * ignored.
    */
   PagedGuestsResponse listGuests(
       String eventId,

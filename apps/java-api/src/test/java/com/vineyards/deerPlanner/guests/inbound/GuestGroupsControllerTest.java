@@ -135,8 +135,8 @@ class GuestGroupsControllerTest {
           "name": "Familia Morales",
           "relationship": "family",
           "guests": [
-            {"firstName": "Maria", "lastName": "Morales", "primary": true},
-            {"firstName": "Jose",  "lastName": "Morales"}
+            {"fullName": "Maria Morales", "primary": true},
+            {"fullName": "Jose Morales"}
           ]
         }
         """;
@@ -158,14 +158,14 @@ class GuestGroupsControllerTest {
     verify(guestApi).createGroup(eq(EVENT_ID), captor.capture(), eq(ORGANIZER_ID));
     assertThat(captor.getValue().guests())
         .hasSize(2)
-        .extracting("firstName")
-        .containsExactly("Maria", "Jose");
+        .extracting("fullName")
+        .containsExactly("Maria Morales", "Jose Morales");
     assertThat(captor.getValue().guests().get(0).primary()).isTrue();
     assertThat(captor.getValue().guests().get(1).primary()).isNull();
   }
 
   @Test
-  void postGroup_whenInlineGuestMissingFirstName_returns400() throws Exception {
+  void postGroup_whenInlineGuestMissingFullName_returns400() throws Exception {
     mvc.perform(
             post("/api/v1/events/{id}/guest-groups", EVENT_ID)
                 .with(authorizedUser())
@@ -175,7 +175,7 @@ class GuestGroupsControllerTest {
                     {
                       "name": "Familia Morales",
                       "relationship": "family",
-                      "guests": [{"lastName": "Morales", "primary": true}]
+                      "guests": [{"primary": true}]
                     }
                     """))
         .andExpect(status().isBadRequest());

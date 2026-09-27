@@ -136,9 +136,9 @@ export function RsvpForm({
             className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--color-outline-variant)] bg-white p-3"
           >
             <div className="text-sm font-medium">
-              {g.firstName} {g.lastName}
+              {g.fullName}
             </div>
-            <div className="flex gap-2" role="radiogroup" aria-label={`${g.firstName} ${g.lastName}`}>
+            <div className="flex gap-2" role="radiogroup" aria-label={g.fullName}>
               <RsvpOption
                 active={statuses[g.id] === 'confirmed'}
                 label={t('Asistirá', 'Will attend')}

@@ -9,8 +9,7 @@ import lombok.Data;
 public class Guest {
   private String id;
   private String groupId;
-  private String firstName;
-  private String lastName;
+  private String fullName;
   private String email;
   private String phone;
   private String dietaryNotes;

@@ -87,8 +87,7 @@ class GuestsControllerTest {
     return new GuestDto(
         GUEST_ID,
         GROUP_ID,
-        "Maria",
-        "Morales",
+        "Maria Morales",
         "maria@example.com",
         "+521111111111",
         null,
@@ -118,7 +117,7 @@ class GuestsControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.items").isArray())
         .andExpect(jsonPath("$.page.items[0].id").value(GUEST_ID))
-        .andExpect(jsonPath("$.page.items[0].firstName").value("Maria"))
+        .andExpect(jsonPath("$.page.items[0].fullName").value("Maria Morales"))
         .andExpect(jsonPath("$.page.items[0].rsvpStatus").value("pending"))
         .andExpect(jsonPath("$.page.total").value(1));
   }
@@ -143,8 +142,7 @@ class GuestsControllerTest {
         """
         {
           "groupId": "grp-1",
-          "firstName": "Maria",
-          "lastName": "Morales",
+          "fullName": "Maria Morales",
           "email": "maria@example.com",
           "phone": "+521111111111"
         }
@@ -161,14 +159,14 @@ class GuestsControllerTest {
   }
 
   @Test
-  void postGuest_whenFirstNameBlank_returns400() throws Exception {
+  void postGuest_whenFullNameBlank_returns400() throws Exception {
     mvc.perform(
             post("/api/v1/events/{id}/guests", EVENT_ID)
                 .with(authorizedUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"groupId": "grp-1", "lastName": "Morales"}
+                    {"groupId": "grp-1"}
                     """))
         .andExpect(status().isBadRequest());
   }
@@ -182,7 +180,7 @@ class GuestsControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"firstName": "Maria", "lastName": "Morales"}
+                    {"fullName": "Maria Morales"}
                     """))
         .andExpect(status().isBadRequest());
   }
@@ -193,8 +191,7 @@ class GuestsControllerTest {
         new GuestDto(
             GUEST_ID,
             GROUP_ID,
-            "María José",
-            "Morales",
+            "María José Morales",
             null,
             null,
             null,
@@ -214,10 +211,10 @@ class GuestsControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"firstName": "María José"}
+                    {"fullName": "María José Morales"}
                     """))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.firstName").value("María José"));
+        .andExpect(jsonPath("$.fullName").value("María José Morales"));
   }
 
   @Test
@@ -236,8 +233,7 @@ class GuestsControllerTest {
             GUEST_ID,
             "grp-2",
             "Maria",
-            "Morales",
-            "maria@example.com",
+            "Moral maria@example.com",
             "+521111111111",
             null,
             "token-guest",
@@ -273,8 +269,7 @@ class GuestsControllerTest {
             null,
             "Maria",
             "Morales",
-            "maria@example.com",
-            "+521111111111",
+            "maria +521111111111",
             null,
             "token-guest",
             "pending",
@@ -309,8 +304,7 @@ class GuestsControllerTest {
         new GuestDto(
             GUEST_ID,
             GROUP_ID,
-            "Maria",
-            "Morales",
+            "Maria Morales",
             null,
             null,
             null,

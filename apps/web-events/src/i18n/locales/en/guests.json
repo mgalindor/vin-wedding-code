@@ -11,15 +11,35 @@
       "namePlaceholder": "e.g. García family, College friends…",
       "relationship": "Relationship",
       "sharedEmail": "Shared email (optional)",
-      "sharedPhone": "Shared phone (optional)"
+      "sharedPhone": "Shared phone (optional)",
+      "primaryGuestHeading": "Primary contact",
+      "fullNamePlaceholder": "e.g. María García",
+      "memberLabel": "Member {{index}}",
+      "primaryHint": "{{count}} marked as primary",
+      "primaryRequired": "Mark exactly one member as the primary contact before saving."
+    },
+    "relationships": {
+      "family": "Family",
+      "friends": "Friends",
+      "other": "Other"
     },
     "linkCopied": "Invitation link copied",
-    "regenerateConfirm": "Regenerating will invalidate the previous invitation link. The new link becomes active immediately."
+    "regenerateConfirm": "Regenerating will invalidate the previous invitation link. The new link becomes active immediately.",
+    "regenerateToken": "Regenerate invitation link",
+    "deleteGroup": "Delete group",
+    "member": "member",
+    "members": "members",
+    "membersHeading": "Members",
+    "addMember": "Add member",
+    "noMembers": "No members yet. Add one above.",
+    "primaryBadge": "Primary",
+    "markPrimary": "Mark as primary contact",
+    "removeMember": "Remove member",
+    "removeMemberConfirm": "Remove this member from the group? The invitation link they were going to forward will still be valid for the remaining primary contact."
   },
   "guest": {
     "add": "Add guest",
-    "firstName": "First name",
-    "lastName": "Last name",
+    "fullName": "Full name",
     "email": "Email",
     "phone": "Phone",
     "dietaryNotes": "Dietary notes (organiser-only, not on invitation)",

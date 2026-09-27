@@ -167,8 +167,7 @@ public class GuestService implements GuestInPort {
       Guest guest =
           Guest.builder()
               .groupId(groupId)
-              .firstName(g.firstName())
-              .lastName(g.lastName())
+              .fullName(g.fullName())
               .email(g.email())
               .phone(g.phone())
               .dietaryNotes(g.dietaryNotes())
@@ -322,12 +321,7 @@ public class GuestService implements GuestInPort {
     }
     if (q != null && !q.isBlank()) {
       String pattern = "%" + q.toLowerCase().trim() + "%";
-      spec =
-          spec.and(
-              (root, query, cb) ->
-                  cb.or(
-                      cb.like(cb.lower(root.get("firstName")), pattern),
-                      cb.like(cb.lower(root.get("lastName")), pattern)));
+      spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("fullName")), pattern));
     }
     org.springframework.data.domain.Page<com.vineyards.deerPlanner.guests.domain.Guest> page =
         guestRepository.search(spec, pageable);
@@ -370,8 +364,7 @@ public class GuestService implements GuestInPort {
     Guest guest =
         Guest.builder()
             .groupId(dto.groupId())
-            .firstName(dto.firstName())
-            .lastName(dto.lastName())
+            .fullName(dto.fullName())
             .email(dto.email())
             .phone(dto.phone())
             .dietaryNotes(dto.dietaryNotes())
@@ -681,8 +674,7 @@ public class GuestService implements GuestInPort {
 
   private Guest applyGuestPatch(Guest current, UpdateGuestDto dto) {
     return current.toBuilder()
-        .firstName(dto.firstName() != null ? dto.firstName() : current.getFirstName())
-        .lastName(dto.lastName() != null ? dto.lastName() : current.getLastName())
+        .fullName(dto.fullName() != null ? dto.fullName() : current.getFullName())
         .email(dto.email() != null ? dto.email() : current.getEmail())
         .phone(dto.phone() != null ? dto.phone() : current.getPhone())
         .dietaryNotes(dto.dietaryNotes() != null ? dto.dietaryNotes() : current.getDietaryNotes())
@@ -692,8 +684,7 @@ public class GuestService implements GuestInPort {
 
   private static List<String> detectChangedGuestFields(Guest before, Guest after) {
     List<String> changed = new ArrayList<>();
-    if (!Objects.equals(before.getFirstName(), after.getFirstName())) changed.add("firstName");
-    if (!Objects.equals(before.getLastName(), after.getLastName())) changed.add("lastName");
+    if (!Objects.equals(before.getFullName(), after.getFullName())) changed.add("fullName");
     if (!Objects.equals(before.getEmail(), after.getEmail())) changed.add("email");
     if (!Objects.equals(before.getPhone(), after.getPhone())) changed.add("phone");
     if (!Objects.equals(before.getDietaryNotes(), after.getDietaryNotes()))
@@ -729,8 +720,7 @@ public class GuestService implements GuestInPort {
     return new GuestDto(
         g.getId(),
         g.getGroupId(),
-        g.getFirstName(),
-        g.getLastName(),
+        g.getFullName(),
         g.getEmail(),
         g.getPhone(),
         g.getDietaryNotes(),

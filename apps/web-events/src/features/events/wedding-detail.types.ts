@@ -7,14 +7,19 @@ export type {
   LocationsPayload,
 } from '@/shared/api/types';
 
-// Wedding-specific per-section payload DTOs mirror the Java records.
+// Wedding-specific per-section payload DTOs mirror the Java records
+// in `com.vineyards.deerPlanner.events.facade.dto.*PayloadDto`. Each
+// one is the wire shape the matching `PUT /events/{id}/wedding-*`
+// endpoint accepts.
 
 export interface UpdateWeddingDetailRequest {
   partner1Name?: string | null;
   partner2Name?: string | null;
-  landingTitle?: string | null;
-  landingSubtitle?: string | null;
-  heroImageUrl?: string | null;
+  countdownEnabled?: boolean | null;
+}
+
+export interface WeddingLandingPayload {
+  preTitle?: string | null;
 }
 
 export interface WeddingStoryPayload {
@@ -30,22 +35,32 @@ export interface WeddingDressCodePayload {
   entries: WeddingDressCodeEntry[];
 }
 
+export interface WeddingGiftRegistryLink {
+  label: string;
+  url: string;
+}
+
 export interface WeddingGiftRegistryPayload {
-  body: string;
+  links?: WeddingGiftRegistryLink[] | null;
+  notes?: string | null;
 }
 
 export interface WeddingParentsPayload {
-  body: string;
+  partner1Label?: string | null;
+  partner1Names?: string[] | null;
+  partner2Label?: string | null;
+  partner2Names?: string[] | null;
+}
+
+export interface WeddingAccommodationEntry {
+  name: string;
+  description?: string | null;
+  url?: string | null;
+  priceHint?: string | null;
 }
 
 export interface WeddingAccommodationPayload {
-  body: string;
-}
-
-export interface WeddingLandingPayload {
-  landingTitle?: string | null;
-  landingSubtitle?: string | null;
-  heroImageUrl?: string | null;
+  entries?: WeddingAccommodationEntry[] | null;
 }
 
 export interface InvitationTemplateSummary {
