@@ -1,8 +1,0 @@
-// Public entry point of @wendy/contracts (ADR-14).
-// Consumers import from '@wendy/contracts', not from subpaths.
-export * from './ids.js';
-export * from './dtos/auth.dtos.js';
-export * from './dtos/wedding-planners.dtos.js';
-export * from './dtos/wedding-planner-summary.dto.js';
-export * from './dtos/weddings.dtos.js';
-export * from './dtos/wedding-location.dto.js';

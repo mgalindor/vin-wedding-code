@@ -1,16 +1,6 @@
 // ESLint flat config for the wendy-planner monorepo (ESLint v9+).
 // Migrated from .eslintrc.cjs as part of the v9 flat-config transition.
-//
-// Per ADR-12: workspace boundary rules are enforced via `import/no-restricted-paths`
-// (from eslint-plugin-import). The core `no-restricted-paths` rule has a
-// bug in the v9 rule-validator that mis-attributes it to the
-// `@typescript-eslint` plugin namespace when both plugins are loaded in
-// the same config block. Using the import plugin's rule sidesteps that.
-//
-// The rule definitions live in ./tools/eslint/boundary-rules.cjs so they
-// can be unit-tested in isolation and shared across ESLint invocations.
 
-import boundaryRules from './tools/eslint/boundary-rules.cjs';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
@@ -94,20 +84,6 @@ export default [
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
-      // Per ADR-12: workspace boundary rules.
-      // apps/api -> apps/web, apps/web -> apps/api, packages/* -> apps/* are forbidden.
-      'import/no-restricted-paths': ['error', boundaryRules],
-    },
-  },
-  // NestJS (apps/api) uses emitDecoratorMetadata — TypeScript emits runtime
-  // type metadata for constructor parameters via Reflect. Any class used as
-  // a constructor parameter type MUST be a real value import, not an
-  // `import type`. The `consistent-type-imports` rule is fundamentally
-  // incompatible with this pattern, so we turn it off for the whole API.
-  {
-    files: ['apps/api/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': 'off',
     },
   },
   // Apply prettier compatibility last to disable conflicting stylistic rules.

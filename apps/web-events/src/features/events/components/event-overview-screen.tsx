@@ -395,7 +395,3 @@ function DangerButton({ eventId }: { eventId: string }) {
     </Button>
   );
 }
-
-/* Reserved for future use — placeholder for a future "hide preview" toggle. */
-const _EyeOffPlaceholder: null = null;
-void _EyeOffPlaceholder;
