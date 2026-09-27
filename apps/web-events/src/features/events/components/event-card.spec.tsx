@@ -78,7 +78,16 @@ const enResources = {
         declined: 'Declined',
       },
       progressLabel: 'RSVP progress',
-      draftMessage: 'Complete the invitation modules and select a template before publishing.',
+      countdown: {
+        today: 'Today',
+        upcoming_one: 'In {{count}} day',
+        upcoming_other: 'In {{count}} days',
+        past_one: '{{count}} day ago',
+        past_other: '{{count}} days ago',
+      },
+      template: 'Template: {{name}}',
+      updated: 'Updated {{relative}}',
+      draftMessageNoTemplate: 'No invitation template chosen yet.',
       actions: {
         openEvent: 'Open event',
         continueSetup: 'Continue setup',
@@ -139,7 +148,16 @@ const esResources = {
         declined: 'Rechazados',
       },
       progressLabel: 'Progreso RSVP',
-      draftMessage: 'Completa los módulos de invitación y elige una plantilla antes de publicar.',
+      countdown: {
+        today: 'Hoy',
+        upcoming_one: 'En {{count}} día',
+        upcoming_other: 'En {{count}} días',
+        past_one: 'Hace {{count}} día',
+        past_other: 'Hace {{count}} días',
+      },
+      template: 'Plantilla: {{name}}',
+      updated: 'Actualizado {{relative}}',
+      draftMessageNoTemplate: 'Aún no eliges una plantilla de invitación.',
       actions: {
         openEvent: 'Abrir evento',
         continueSetup: 'Continuar configuración',
@@ -291,18 +309,34 @@ describe('EventCard', () => {
   });
 
   it('shows the draft message block only when status is draft', () => {
-    const draftMessage =
-      'Complete the invitation modules and select a template before publishing.';
+    const noTemplateMessage = 'No invitation template chosen yet.';
 
     const { rerender } = renderWithI18n(<EventCard {...baseProps} status="published" />);
-    expect(screen.queryByText(draftMessage)).not.toBeInTheDocument();
+    expect(screen.queryByText(noTemplateMessage)).not.toBeInTheDocument();
 
     rerender(
       <I18nextProvider i18n={i18n}>
         <EventCard {...baseProps} status="draft" />
       </I18nextProvider>,
     );
-    expect(screen.getByText(draftMessage)).toBeInTheDocument();
+    expect(screen.getByText(noTemplateMessage)).toBeInTheDocument();
+  });
+
+  it('shows a template-aware draft message once a template is selected', () => {
+    renderWithI18n(<EventCard {...baseProps} status="draft" templateCode="wedding-noir" />);
+    expect(
+      screen.queryByText('No invitation template chosen yet.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the template chip when templateCode is provided', () => {
+    renderWithI18n(<EventCard {...baseProps} templateCode="wedding-noir" />);
+    expect(screen.getByText('Template: Noir')).toBeInTheDocument();
+  });
+
+  it('shows the relative "updated" hint when updatedAt is provided', () => {
+    renderWithI18n(<EventCard {...baseProps} updatedAt="2026-07-30T00:00:00Z" />);
+    expect(screen.getByText(/Updated/)).toBeInTheDocument();
   });
 
   it('renders the Open event + Guests (count) actions for published events', () => {

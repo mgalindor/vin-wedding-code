@@ -79,7 +79,16 @@
       "declined": "Rechazados"
     },
     "progressLabel": "Progreso RSVP",
-    "draftMessage": "Completa los módulos de invitación y elige una plantilla antes de publicar.",
+    "countdown": {
+      "today": "Hoy",
+      "upcoming_one": "En {{count}} día",
+      "upcoming_other": "En {{count}} días",
+      "past_one": "Hace {{count}} día",
+      "past_other": "Hace {{count}} días"
+    },
+    "template": "Plantilla: {{name}}",
+    "updated": "Actualizado {{relative}}",
+    "draftMessageNoTemplate": "Aún no eliges una plantilla de invitación.",
     "actions": {
       "openEvent": "Abrir evento",
       "continueSetup": "Continuar configuración",

@@ -28,11 +28,14 @@ export function DashboardHome(): React.ReactElement {
   const isAdmin = useIsAdmin();
 
   // Organizer scope (owned events).
+  // Sorted by `createdAt desc` — this widget shows the most *recently
+  // created/touched* events, not the soonest upcoming ones (that's what
+  // the events list page's "closest event" sort is for).
   const myEvents = useQuery({
     queryKey: eventsDashboardKey('mine'),
     queryFn: async () => {
       const res = await api.get<{ page: { items: EventSummary[] } }>(
-        '/events?size=3&sort=eventDate',
+        '/events?size=3&sort=createdAt,desc',
       );
       return res.page.items;
     },
@@ -50,12 +53,19 @@ export function DashboardHome(): React.ReactElement {
     },
   });
 
-  const upcomingCount = (myEvents.data ?? []).filter((e) => {
-    const now = new Date();
-    const [y, m, d] = e.eventDate.split('-').map(Number);
-    if (!y || !m || !d) return false;
-    return new Date(y, m - 1, d).getTime() >= now.setHours(0, 0, 0, 0);
-  }).length;
+  // Real count of future events — filtered server-side so it isn't capped by
+  // the 3-item "recent" fetch above (which is sorted by creation, not date).
+  const upcomingEvents = useQuery({
+    queryKey: ['dashboard', 'events', 'upcoming'] as const,
+    queryFn: async () => {
+      const now = new Date();
+      const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const res = await api.get<{ page: { total: number } }>(
+        `/events?size=1&eventDateFrom=${todayIso}`,
+      );
+      return res.page.total;
+    },
+  });
 
   const firstName = (() => {
     const name = ''; // userinfo is fetched separately; we keep this header neutral
@@ -94,7 +104,7 @@ export function DashboardHome(): React.ReactElement {
         />
         <StatCard
           label={t('dashboard:home.stats.upcoming')}
-          value={upcomingCount}
+          value={upcomingEvents.data}
           helper={t('dashboard:home.stats.upcomingHelper')}
           icon={CalendarHeart}
         />
@@ -136,6 +146,7 @@ export function DashboardHome(): React.ReactElement {
               eventDate={event.eventDate}
               status={event.status}
               templateCode={event.templateCode}
+              updatedAt={event.updatedAt}
             />
           ))}
           {(myEvents.data ?? []).length === 0 && !myEvents.isLoading && (

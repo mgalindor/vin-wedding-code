@@ -518,6 +518,7 @@ export function EventsListSection(): React.ReactElement {
               eventDate={event.eventDate}
               status={event.status}
               templateCode={event.templateCode}
+              updatedAt={event.updatedAt}
               searchQuery={debouncedSearch}
             />
           ))}

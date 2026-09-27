@@ -79,7 +79,16 @@
       "declined": "Declined"
     },
     "progressLabel": "RSVP progress",
-    "draftMessage": "Complete the invitation modules and select a template before publishing.",
+    "countdown": {
+      "today": "Today",
+      "upcoming_one": "In {{count}} day",
+      "upcoming_other": "In {{count}} days",
+      "past_one": "{{count}} day ago",
+      "past_other": "{{count}} days ago"
+    },
+    "template": "Template: {{name}}",
+    "updated": "Updated {{relative}}",
+    "draftMessageNoTemplate": "No invitation template chosen yet.",
     "actions": {
       "openEvent": "Open event",
       "continueSetup": "Continue setup",

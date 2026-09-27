@@ -3,16 +3,20 @@ import {
   Building2,
   Cake,
   CircleEllipsis,
+  Clock,
   Gift,
   Heart,
+  History,
   PartyPopper,
   Sparkles,
+  Tag,
   Wine,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { createRelativeTimeFormatter } from '@/features/events/components/event-overview-activity-list';
 import type { EventStatus, EventType } from '@/shared/api';
-import { formatCount, formatDateShort, getCountdown, highlightMatch } from '@/shared/lib/format';
+import { daysFromToday, formatCount, formatDateShort, getCountdown, highlightMatch } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/utils';
 import { Badge, Button } from '@/shared/ui';
 
@@ -39,6 +43,8 @@ export interface EventCardProps {
   status: EventStatus;
   /** Selected invitation template's code (e.g. "wedding-bosco"). Drives the header gradient when present. */
   templateCode?: string | null;
+  /** ISO instant of the last write to the event. Renders as a relative "updated X ago" hint. */
+  updatedAt?: string;
   stats?: EventCardStats;
   rsvpProgress?: number;
   photos?: { current: number; cap: number };
@@ -50,6 +56,13 @@ export interface EventCardProps {
    * unchanged.
    */
   searchQuery?: string;
+}
+
+/** Derives a human-friendly label from a template code, e.g. "wedding-bosco" -> "Bosco". */
+function getTemplateLabel(templateCode: string): string {
+  const [, ...rest] = templateCode.split('-');
+  if (rest.length === 0) return templateCode;
+  return rest.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
 const TYPE_ICON: Record<EventType, React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>> = {
@@ -139,6 +152,19 @@ export function EventCard(props: EventCardProps): React.ReactElement {
   const showProgress = typeof props.rsvpProgress === 'number';
   const progressPct = showProgress ? Math.max(0, Math.min(100, props.rsvpProgress as number)) : 0;
   const badgeStatus = getCardBadgeStatus(props.status, props.eventDate);
+  const templateLabel = props.templateCode ? getTemplateLabel(props.templateCode) : null;
+
+  const daysUntil = daysFromToday(props.eventDate);
+  const countdownLabel =
+    daysUntil === 0
+      ? t('card.countdown.today')
+      : daysUntil > 0
+        ? t('card.countdown.upcoming', { count: daysUntil })
+        : t('card.countdown.past', { count: Math.abs(daysUntil) });
+
+  const updatedLabel = props.updatedAt
+    ? t('card.updated', { relative: createRelativeTimeFormatter(i18n.language)(props.updatedAt) })
+    : null;
 
   return (
     <article
@@ -195,9 +221,22 @@ export function EventCard(props: EventCardProps): React.ReactElement {
           )}
         </h3>
 
-        <div className="mt-2 flex items-center gap-1.5 text-sm text-[var(--color-secondary)]">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-secondary)]">
           <span>{dateLabel}</span>
+          <span className="inline-flex items-center gap-1 text-xs text-[var(--color-secondary)]">
+            <Clock className="h-3.5 w-3.5" aria-hidden />
+            {countdownLabel}
+          </span>
         </div>
+
+        {templateLabel && (
+          <div className="mt-2">
+            <Badge tone="neutral">
+              <Tag className="mr-1 h-3 w-3" aria-hidden />
+              {t('card.template', { name: templateLabel })}
+            </Badge>
+          </div>
+        )}
 
         {showStats && stats && (
           <dl className="mt-4 grid grid-cols-3 gap-2 rounded-md border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)]/60 p-3">
@@ -254,9 +293,16 @@ export function EventCard(props: EventCardProps): React.ReactElement {
           </div>
         )}
 
-        {props.status === 'draft' && (
+        {props.status === 'draft' && !templateLabel && (
           <div className="mt-4 rounded-md border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] px-3 py-2 text-xs text-[var(--color-secondary)]">
-            {t('card.draftMessage')}
+            {t('card.draftMessageNoTemplate')}
+          </div>
+        )}
+
+        {updatedLabel && (
+          <div className="mt-3 flex items-center gap-1 text-xs text-[var(--color-secondary)]">
+            <History className="h-3.5 w-3.5" aria-hidden />
+            {updatedLabel}
           </div>
         )}
       </div>
