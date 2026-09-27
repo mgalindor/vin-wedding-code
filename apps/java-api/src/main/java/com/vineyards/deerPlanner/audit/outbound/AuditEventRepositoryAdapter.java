@@ -34,12 +34,14 @@ public class AuditEventRepositoryAdapter implements AuditOutPort {
   }
 
   @Override
-  public Page<AuditEntry> findByEventId(String eventId, String resourceType, Pageable pageable) {
-    Page<AuditEventEntity> page =
+  public Page<AuditEntryWithActor> findByEventIdWithActor(
+      String eventId, String resourceType, Pageable pageable) {
+    Page<AuditEventJpaRepository.AuditEntryWithActor> page =
         resourceType == null || resourceType.isBlank()
-            ? jpa.findByEventId(eventId, pageable)
-            : jpa.findByEventIdAndResourceType(eventId, resourceType, pageable);
-    return page.map(AuditEventRepositoryAdapter::toDomain);
+            ? jpa.findByEventIdWithActor(eventId, pageable)
+            : jpa.findByEventIdAndResourceTypeWithActor(eventId, resourceType, pageable);
+    return page.map(
+        row -> new AuditEntryWithActor(toDomain(row.getEntry()), row.getActorDisplayName()));
   }
 
   @Override

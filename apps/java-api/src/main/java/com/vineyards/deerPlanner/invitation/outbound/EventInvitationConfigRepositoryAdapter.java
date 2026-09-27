@@ -3,6 +3,8 @@ package com.vineyards.deerPlanner.invitation.outbound;
 import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigOutPort;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,13 @@ public class EventInvitationConfigRepositoryAdapter implements EventInvitationCo
   @Override
   public Optional<EventInvitationConfig> findByEventId(String eventId) {
     return jpa.findById(eventId).map(EventInvitationConfigRepositoryAdapter::toDomain);
+  }
+
+  @Override
+  public List<EventInvitationConfig> findByEventIds(Collection<String> eventIds) {
+    return jpa.findAllById(eventIds).stream()
+        .map(EventInvitationConfigRepositoryAdapter::toDomain)
+        .toList();
   }
 
   @Override

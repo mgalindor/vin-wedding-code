@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.vineyards.deerPlanner.audit.application.port.AuditOutPort;
+import com.vineyards.deerPlanner.audit.application.port.AuditOutPort.AuditEntryWithActor;
 import com.vineyards.deerPlanner.audit.domain.ActorKind;
 import com.vineyards.deerPlanner.audit.domain.AuditEntry;
 import com.vineyards.deerPlanner.audit.facade.dto.AuditEntryDto;
@@ -38,11 +39,12 @@ class AuditServiceTest {
   }
 
   @Test
-  void listForEvent_mapsPageToDtos() {
+  void listForEvent_mapsPageToDtos_andHydratesActorName() {
     AuditEntry e =
         sampleEntry("aud-1", "evt-1", "user-1", "event", "event.created", Map.of("k", "v"));
-    Page<AuditEntry> page = new PageImpl<>(List.of(e), PageRequest.of(0, 20), 1);
-    when(audit.findByEventId(eq("evt-1"), eq(null), any(Pageable.class))).thenReturn(page);
+    Page<AuditEntryWithActor> page =
+        new PageImpl<>(List.of(new AuditEntryWithActor(e, "María R.")), PageRequest.of(0, 20), 1);
+    when(audit.findByEventIdWithActor(eq("evt-1"), eq(null), any(Pageable.class))).thenReturn(page);
 
     PagedResponse<AuditEntryDto> result =
         service.listForEvent("evt-1", null, PageRequest.of(0, 20));
@@ -52,6 +54,8 @@ class AuditServiceTest {
     assertThat(dto.id()).isEqualTo("aud-1");
     assertThat(dto.action()).isEqualTo("event.created");
     assertThat(dto.actorKind()).isEqualTo("user");
+    assertThat(dto.actorUserId()).isEqualTo("user-1");
+    assertThat(dto.actorUserName()).isEqualTo("María R.");
   }
 
   @Test
@@ -76,8 +80,9 @@ class AuditServiceTest {
 
     when(audit.findLatestByEventIdAndAction("evt-1", "event.created"))
         .thenReturn(Optional.of(created));
-    when(audit.findByEventId(eq("evt-1"), eq(null), any(Pageable.class)))
-        .thenReturn(new PageImpl<>(List.of(updated), Pageable.ofSize(1), 1));
+    when(audit.findByEventIdWithActor(eq("evt-1"), eq(null), any(Pageable.class)))
+        .thenReturn(
+            new PageImpl<>(List.of(new AuditEntryWithActor(updated, null)), Pageable.ofSize(1), 1));
     when(audit.findGuestCaptureActions(eq("evt-1"))).thenReturn(List.of(guestsAdded));
 
     EventActivitySummaryDto summary = service.summaryForEvent("evt-1");
@@ -95,7 +100,7 @@ class AuditServiceTest {
   void summaryForEvent_withNoActivity_returnsZeroedSummary() {
     when(audit.findLatestByEventIdAndAction("evt-empty", "event.created"))
         .thenReturn(Optional.empty());
-    when(audit.findByEventId(eq("evt-empty"), eq(null), any(Pageable.class)))
+    when(audit.findByEventIdWithActor(eq("evt-empty"), eq(null), any(Pageable.class)))
         .thenReturn(new PageImpl<>(List.of()));
     when(audit.findGuestCaptureActions("evt-empty")).thenReturn(List.of());
 

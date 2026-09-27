@@ -16,4 +16,9 @@ public record EventSummaryDto(
     String title,
     LocalDate eventDate,
     EventStatus status,
-    Instant updatedAt) {}
+    Instant updatedAt,
+    /**
+     * Selected invitation template's stable code (e.g. {@code "wedding-bosco"}), or null when none
+     * is selected yet.
+     */
+    String templateCode) {}

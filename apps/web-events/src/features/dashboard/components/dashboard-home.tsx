@@ -135,6 +135,7 @@ export function DashboardHome(): React.ReactElement {
               eventType={event.eventType}
               eventDate={event.eventDate}
               status={event.status}
+              templateCode={event.templateCode}
             />
           ))}
           {(myEvents.data ?? []).length === 0 && !myEvents.isLoading && (

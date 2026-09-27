@@ -181,6 +181,7 @@ export const EventSummarySchema = z.object({
   eventDate: isoDateString,
   status: EventStatusSchema,
   updatedAt: isoInstantString,
+  templateCode: z.string().nullable().optional(),
 });
 
 export const PagedResponseSchema = <T extends z.ZodTypeAny>(item: T) =>

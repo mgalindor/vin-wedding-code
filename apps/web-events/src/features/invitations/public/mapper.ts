@@ -251,7 +251,7 @@ function mapProgram(program: ProgramPayload | null | undefined): WeddingPublicDa
         items: program.items.map((it: ProgramItem) => ({
           time: it.time,
           title: it.title,
-          detail: it.description ?? undefined,
+          detail: it.detail ?? undefined,
         })),
       },
     ],

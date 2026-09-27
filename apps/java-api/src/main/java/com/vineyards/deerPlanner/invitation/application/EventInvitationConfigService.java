@@ -2,7 +2,9 @@ package com.vineyards.deerPlanner.invitation.application;
 
 import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.invitation.application.port.EventInvitationConfigOutPort;
+import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateOutPort;
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
+import com.vineyards.deerPlanner.invitation.domain.InvitationTemplate;
 import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigInPort;
 import com.vineyards.deerPlanner.invitation.facade.InvitationConfigUpdatedAuditedEvent;
 import com.vineyards.deerPlanner.invitation.facade.dto.EventInvitationConfigDto;
@@ -10,6 +12,11 @@ import com.vineyards.deerPlanner.invitation.facade.dto.UpdateInvitationConfigDto
 import com.vineyards.deerPlanner.shared.exceptions.BusinessError;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.Application;
@@ -24,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class EventInvitationConfigService implements EventInvitationConfigInPort {
 
   private final EventInvitationConfigOutPort repository;
+  private final InvitationTemplateOutPort templateRepository;
   private final EventInPort eventApi;
   private final ApplicationEventPublisher publisher;
 
@@ -76,6 +84,38 @@ public class EventInvitationConfigService implements EventInvitationConfigInPort
               eventId, activeBefore, activeAfter, Instant.now()));
     }
     return toDto(saved);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, String> getTemplateCodesForEvents(List<String> eventIds) {
+    if (eventIds.isEmpty()) {
+      return Map.of();
+    }
+    List<EventInvitationConfig> configs = repository.findByEventIds(eventIds);
+    Map<String, String> templateIdByEventId = new HashMap<>();
+    for (EventInvitationConfig config : configs) {
+      if (config.getTemplateId() != null) {
+        templateIdByEventId.put(config.getEventId(), config.getTemplateId());
+      }
+    }
+    if (templateIdByEventId.isEmpty()) {
+      return Map.of();
+    }
+    Set<String> templateIds = new HashSet<>(templateIdByEventId.values());
+    Map<String, String> codeByTemplateId = new HashMap<>();
+    for (InvitationTemplate template : templateRepository.findAllByIds(templateIds)) {
+      codeByTemplateId.put(template.getId(), template.getCode());
+    }
+    Map<String, String> result = new HashMap<>();
+    templateIdByEventId.forEach(
+        (eventId, templateId) -> {
+          String code = codeByTemplateId.get(templateId);
+          if (code != null) {
+            result.put(eventId, code);
+          }
+        });
+    return result;
   }
 
   private EventInvitationConfig applyPatch(

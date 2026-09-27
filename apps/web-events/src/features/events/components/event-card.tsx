@@ -12,9 +12,17 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import type { EventStatus, EventType } from '@/shared/api';
-import { formatCount, formatDateShort, highlightMatch } from '@/shared/lib/format';
+import { formatCount, formatDateShort, getCountdown, highlightMatch } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/utils';
 import { Badge, Button } from '@/shared/ui';
+
+/** Badge shown on the card: derived from the event date rather than the raw workflow status. */
+type CardBadgeStatus = 'active' | 'closed' | 'archived';
+
+function getCardBadgeStatus(status: EventStatus, eventDate: string): CardBadgeStatus {
+  if (status === 'archived') return 'archived';
+  return getCountdown(eventDate).isPast ? 'closed' : 'active';
+}
 
 interface EventCardStats {
   total: number;
@@ -29,7 +37,8 @@ export interface EventCardProps {
   eventType: EventType;
   eventDate: string;
   status: EventStatus;
-  venue?: string;
+  /** Selected invitation template's code (e.g. "wedding-bosco"). Drives the header gradient when present. */
+  templateCode?: string | null;
   stats?: EventCardStats;
   rsvpProgress?: number;
   photos?: { current: number; cap: number };
@@ -59,37 +68,77 @@ const TYPE_ICON_FALLBACK: Record<EventType, React.ComponentType<{ className?: st
   other: Sparkles,
 };
 
-const STATUS_TONE: Record<EventStatus, 'gold' | 'neutral'> = {
-  draft: 'neutral',
-  published: 'gold',
+const CARD_BADGE_TONE: Record<CardBadgeStatus, 'gold' | 'neutral'> = {
+  active: 'gold',
+  closed: 'neutral',
   archived: 'neutral',
 };
 
-const HEADER_GRADIENT: Record<EventStatus, string> = {
-  published:
-    'linear-gradient(135deg, var(--color-primary-fixed) 0%, var(--color-primary-fixed-dim) 55%, var(--color-primary-container) 100%)',
-  draft:
-    'linear-gradient(135deg, var(--color-surface-container-low) 0%, var(--color-surface-container) 60%, var(--color-surface-container-high) 100%)',
-  archived:
-    'linear-gradient(135deg, color-mix(in oklab, var(--color-tertiary-container) 35%, var(--color-surface-container-low)) 0%, var(--color-surface-container) 100%)',
+/** Header gradient per event type — fallback used until an invitation template is selected. */
+const EVENT_TYPE_GRADIENT: Record<EventType, string> = {
+  wedding: 'linear-gradient(135deg, #f7e3d8 0%, #f3c9c9 45%, #e9c349 100%)',
+  birthday: 'linear-gradient(135deg, #bfe3f5 0%, #f8d7da 50%, #fff3b0 100%)',
+  anniversary: 'linear-gradient(135deg, #4e6073 0%, #a2b5cb 55%, #e9c349 100%)',
+  corporate: 'linear-gradient(135deg, #1f2937 0%, #374151 55%, #3b82f6 100%)',
+  other: 'linear-gradient(135deg, #a8e6cf 0%, #bfe3f5 50%, #c9b8e0 100%)',
 };
 
-const HEADER_ICON_TONE: Record<EventStatus, string> = {
-  published: 'text-[var(--color-on-primary-fixed-variant)] opacity-90',
-  draft: 'text-[var(--color-secondary)] opacity-50',
-  archived: 'text-[var(--color-tertiary)] opacity-55',
+/**
+ * Header gradient per invitation template code, built from that template's locked palette (see
+ * the palette doc-comments in `@/features/invitations/public/templates/**`). Takes precedence
+ * over {@link EVENT_TYPE_GRADIENT} once the organizer selects a template.
+ */
+const TEMPLATE_GRADIENT: Record<string, string> = {
+  // Wedding
+  'wedding-bosco': 'linear-gradient(135deg, #2F4A3A 0%, #C9A961 100%)',
+  'wedding-cinematik': 'linear-gradient(135deg, #0E0E10 0%, #E8B872 100%)',
+  'wedding-pampas': 'linear-gradient(135deg, #E8DFCE 0%, #C19A6B 100%)',
+  'wedding-noir': 'linear-gradient(135deg, #0A0A0A 0%, #D4AF37 100%)',
+  'wedding-botanic': 'linear-gradient(135deg, #E8EDE5 0%, #7A9B76 100%)',
+  'wedding-sunset': 'linear-gradient(135deg, #F7E1B5 0%, #F4A261 55%, #264653 100%)',
+  // Birthday
+  'birthday-confetti': 'linear-gradient(135deg, #FFD6E0 0%, #C7E9FF 50%, #FFF3B0 100%)',
+  'birthday-velas': 'linear-gradient(135deg, #1A1410 0%, #C9A961 100%)',
+  'birthday-neon': 'linear-gradient(135deg, #0F0F1A 0%, #00F0FF 50%, #FF2EC4 100%)',
+  'birthday-jardin': 'linear-gradient(135deg, #F0EBE3 0%, #E8C5C5 100%)',
+  'birthday-hollywood': 'linear-gradient(135deg, #0A0A0A 0%, #D4AF37 100%)',
+  'birthday-picnic': 'linear-gradient(135deg, #FFB997 0%, #A8DADC 100%)',
+  'birthday-bebe': 'linear-gradient(135deg, #BFE3F5 0%, #F8D7DA 55%, #FFE9B0 100%)',
+  'birthday-pequeno-explorador': 'linear-gradient(135deg, #6BCBEF 0%, #FFD93D 100%)',
+  'birthday-quinceanera': 'linear-gradient(135deg, #E8B4BC 0%, #D4AF37 100%)',
+  // Corporate
+  'corporate-boardroom': 'linear-gradient(135deg, #0B2545 0%, #C9A961 100%)',
+  'corporate-summit': 'linear-gradient(135deg, #1F2937 0%, #3B82F6 100%)',
+  'corporate-tech': 'linear-gradient(135deg, #0A0E27 0%, #06B6D4 50%, #8B5CF6 100%)',
+  'corporate-gala': 'linear-gradient(135deg, #0A0A0A 0%, #D4AF37 100%)',
+  'corporate-pitch': 'linear-gradient(135deg, #F8FAFC 0%, #2563EB 100%)',
+  'corporate-retreat': 'linear-gradient(135deg, #2D5016 0%, #D4A574 100%)',
+  // Anniversary
+  'anniversary-bodas-de-oro': 'linear-gradient(135deg, #0E0E10 0%, #D4AF37 100%)',
+  'anniversary-vino': 'linear-gradient(135deg, #722F37 0%, #D4AF37 100%)',
+  'anniversary-atardecer': 'linear-gradient(135deg, #F7E1B5 0%, #F4A261 55%, #264653 100%)',
+  'anniversary-jardin-secreto': 'linear-gradient(135deg, #2C3E2D 0%, #D4A5A5 100%)',
+  'anniversary-vintage': 'linear-gradient(135deg, #3E2C1C 0%, #C19A6B 100%)',
+  'anniversary-noche-de-estrellas': 'linear-gradient(135deg, #0B1A3D 0%, #D4AF37 100%)',
 };
+
+function getHeaderGradient(eventType: EventType, templateCode: string | null | undefined): string {
+  if (templateCode && TEMPLATE_GRADIENT[templateCode]) {
+    return TEMPLATE_GRADIENT[templateCode];
+  }
+  return EVENT_TYPE_GRADIENT[eventType];
+}
 
 export function EventCard(props: EventCardProps): React.ReactElement {
   const { t, i18n } = useTranslation('events');
   const Icon = TYPE_ICON[props.eventType] ?? TYPE_ICON_FALLBACK[props.eventType] ?? CircleEllipsis;
   const locale = props.locale ?? i18n.language ?? 'en';
   const dateLabel = formatDateShort(props.eventDate, locale);
-  const venueLabel = props.venue?.trim() ? props.venue : t('card.tba');
   const stats = props.stats;
   const showStats = Boolean(stats);
   const showProgress = typeof props.rsvpProgress === 'number';
   const progressPct = showProgress ? Math.max(0, Math.min(100, props.rsvpProgress as number)) : 0;
+  const badgeStatus = getCardBadgeStatus(props.status, props.eventDate);
 
   return (
     <article
@@ -102,16 +151,17 @@ export function EventCard(props: EventCardProps): React.ReactElement {
       )}
     >
       <div
-        className="relative flex h-24 items-center justify-center"
-        style={{ background: HEADER_GRADIENT[props.status] }}
+        data-testid="event-card-header"
+        className={cn('relative flex h-24 items-center justify-center', badgeStatus === 'archived' && 'grayscale')}
+        style={{ background: getHeaderGradient(props.eventType, props.templateCode) }}
         aria-hidden
       >
-        <Icon className={cn('h-9 w-9', HEADER_ICON_TONE[props.status])} />
+        <Icon className={cn('h-9 w-9 text-white/90 drop-shadow-sm', badgeStatus === 'archived' && 'opacity-60')} />
       </div>
 
       <div className="pointer-events-none absolute right-3 top-3 z-20">
-        <Badge tone={STATUS_TONE[props.status]} className="shadow-sm">
-          {t(`status.${props.status}`)}
+        <Badge tone={CARD_BADGE_TONE[badgeStatus]} className="shadow-sm">
+          {t(`status.${badgeStatus}`)}
         </Badge>
       </div>
 
@@ -147,8 +197,6 @@ export function EventCard(props: EventCardProps): React.ReactElement {
 
         <div className="mt-2 flex items-center gap-1.5 text-sm text-[var(--color-secondary)]">
           <span>{dateLabel}</span>
-          <span aria-hidden>·</span>
-          <span className="truncate">{venueLabel}</span>
         </div>
 
         {showStats && stats && (

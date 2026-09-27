@@ -68,7 +68,14 @@ export function InvitationScreen(): React.ReactElement {
         { ...base, ...patch },
       );
     },
-    onSuccess: (next) => qc.setQueryData(['invitation', 'config', eventId], next),
+    onSuccess: (next) => {
+      qc.setQueryData(['invitation', 'config', eventId], next);
+      // The events list AND the dashboard home preview each keep their own cache of event
+      // summaries (different query keys) and both derive their card gradient from
+      // templateCode, so a template change must invalidate both.
+      qc.invalidateQueries({ queryKey: ['events'] });
+      qc.invalidateQueries({ queryKey: ['dashboard', 'events'] });
+    },
     onError: () => qc.invalidateQueries({ queryKey: ['invitation', 'config', eventId] }),
   });
 

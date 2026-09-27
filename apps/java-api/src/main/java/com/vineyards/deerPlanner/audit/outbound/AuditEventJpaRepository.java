@@ -14,6 +14,27 @@ public interface AuditEventJpaRepository extends JpaRepository<AuditEventEntity,
   Page<AuditEventEntity> findByEventIdAndResourceType(
       String eventId, String resourceType, Pageable pageable);
 
+  /**
+   * Same as {@link #findByEventId} but joins {@code users} so the FE can render the actor's {@code
+   * displayName} without an N+1 lookup. Returns the entity + actor displayName as a projection;
+   * missing actors (deleted users, system events) come back as {@code null}.
+   */
+  @Query(
+      "select a as entry, u.displayName as actorDisplayName"
+          + " from AuditEventEntity a left join UserEntity u on u.id = a.actorUserId"
+          + " where a.eventId = :eventId")
+  Page<AuditEntryWithActor> findByEventIdWithActor(
+      @Param("eventId") String eventId, Pageable pageable);
+
+  @Query(
+      "select a as entry, u.displayName as actorDisplayName"
+          + " from AuditEventEntity a left join UserEntity u on u.id = a.actorUserId"
+          + " where a.eventId = :eventId and a.resourceType = :resourceType")
+  Page<AuditEntryWithActor> findByEventIdAndResourceTypeWithActor(
+      @Param("eventId") String eventId,
+      @Param("resourceType") String resourceType,
+      Pageable pageable);
+
   @Query(
       "select a from AuditEventEntity a where a.eventId = :eventId and a.action = :action"
           + " order by a.occurredAt desc")
@@ -27,4 +48,11 @@ public interface AuditEventJpaRepository extends JpaRepository<AuditEventEntity,
           + " order by a.occurredAt desc")
   List<AuditEventEntity> findGuestCaptureActions(
       @Param("eventId") String eventId, Pageable pageable);
+
+  /** Projection used by the actor-hydrating queries above. */
+  interface AuditEntryWithActor {
+    AuditEventEntity getEntry();
+
+    String getActorDisplayName();
+  }
 }

@@ -517,6 +517,7 @@ export function EventsListSection(): React.ReactElement {
               eventType={event.eventType}
               eventDate={event.eventDate}
               status={event.status}
+              templateCode={event.templateCode}
               searchQuery={debouncedSearch}
             />
           ))}

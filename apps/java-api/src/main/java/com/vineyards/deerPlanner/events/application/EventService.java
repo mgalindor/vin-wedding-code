@@ -135,7 +135,8 @@ public class EventService implements EventInPort {
         event.getTitle(),
         event.getEventDate(),
         event.getStatus(),
-        event.getUpdatedAt());
+        event.getUpdatedAt(),
+        null);
   }
 
   @Override

@@ -1,19 +1,44 @@
-import { Link, useParams, useRouter } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Archive, ArchiveRestore, ChevronRight, ExternalLink, Image as ImageIcon, Trash2, Users2 } from 'lucide-react';
+import { Link, useParams, useRouter } from '@tanstack/react-router';
+import {
+  Archive,
+  ArchiveRestore,
+  ChevronRight,
+  ExternalLink,
+  Trash2,
+  Users2,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import {
+  type ActivityPageSize,
+  useAuditService,
+} from '@/features/audit/audit.service';
+import {
+  ActivityList,
+  createRelativeTimeFormatter,
+  type CategoryFilter,
+  type ResourceFilter,
+} from '@/features/events/components/event-overview-activity-list';
 import {
   useEventsService,
   type EventDto,
 } from '@/features/events/events.service';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@/shared/ui';
+import { useGuestsService } from '@/features/guests/guests.service';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Spinner } from '@/shared/ui';
+
+/**
+ * Default page size for the activity panel — also matches the BE
+ * controller's `@PageableDefault(size = 10)`. We keep them in sync so
+ * the first request shape matches what the user sees.
+ */
+const ACTIVITY_DEFAULT_SIZE = 10 as const satisfies ActivityPageSize;
 
 export function EventOverviewScreen(): React.ReactElement {
   const params = useParams({ strict: false }) as { eventId?: string };
   const eventId = params.eventId ?? '';
   const service = useEventsService();
-  const { t } = useTranslation(['events', 'common']);
 
   const event = useQuery({
     queryKey: ['events', 'detail', eventId],
@@ -27,11 +52,70 @@ export function EventOverviewScreen(): React.ReactElement {
 }
 
 function Overview({ event }: { event: EventDto }) {
-  const { t } = useTranslation(['events', 'common']);
-  const service = useEventsService();
+  const { t, i18n } = useTranslation('events');
+  const guestsService = useGuestsService();
+  const auditService = useAuditService();
 
-  const locationsCount = event.locations?.items.length ?? 0;
-  const programCount = event.program?.items.length ?? 0;
+  // Filter state for the activity panel. `size` and `resourceFilter`
+  // are BE-side filters and refetch the query; `categoryFilter` and
+  // `searchTerm` are pure client-side projections over the page we
+  // already have, so they live in local state only.
+  const [size, setSize] = useState<ActivityPageSize>(ACTIVITY_DEFAULT_SIZE);
+  const [resourceFilter, setResourceFilter] = useState<ResourceFilter>(null);
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Walk the first page of guests to compute overview stats. The
+  // guest-management screen already does the same; we keep this
+  // query independent so the overview renders even when the user
+  // never visits the guests tab. Capped at 200 because real events
+  // are <500 and 200 covers >95% of the cases — we surface "—"
+  // for the totals while the request is in-flight or if it fails.
+  const guests = useQuery({
+    queryKey: ['guests', 'overview', event.id],
+    queryFn: () =>
+      guestsService.listGuests(event.id, { size: 200 }).then((p) => p.items ?? []),
+    enabled: Boolean(event.id),
+  });
+
+  const guestCounts = useMemo(() => {
+    const c: Record<'pending' | 'confirmed' | 'declined', number> = {
+      pending: 0,
+      confirmed: 0,
+      declined: 0,
+    };
+    for (const g of guests.data ?? []) {
+      c[g.rsvpStatus] += 1;
+    }
+    return c;
+  }, [guests.data]);
+
+  const totalGuests = guests.data?.length ?? 0;
+
+  // Pull the most-recent N audit entries for this event. Sorted
+  // server-side by `occurredAt` DESC, so the first page *is* the
+  // timeline. The query key includes `size` and `resourceFilter` so
+  // any change to either refetches; `categoryFilter` and `searchTerm`
+  // do NOT belong here because they're applied client-side and don't
+  // change the wire request.
+  const activity = useQuery({
+    queryKey: ['audit', 'overview', event.id, size, resourceFilter],
+    queryFn: () =>
+      auditService.listActivity(event.id, {
+        size,
+        resourceType: resourceFilter ?? undefined,
+      }),
+    enabled: Boolean(event.id),
+  });
+
+  const activityEntries = activity.data?.items ?? [];
+
+  // Memoised on the locale so re-renders triggered by unrelated state
+  // (guests fetching, etc.) don't allocate a fresh formatter.
+  const relativeTimeFormatter = useMemo(
+    () => createRelativeTimeFormatter(i18n.language),
+    [i18n.language],
+  );
 
   return (
     <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 px-8 py-8 lg:grid-cols-3">
@@ -75,37 +159,68 @@ function Overview({ event }: { event: EventDto }) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="event-overview-activity-card">
           <CardHeader>
             <div>
               <CardTitle>{t('events:detail.overview.data')}</CardTitle>
               <p className="text-xs text-[var(--color-secondary)]">
-                {t('events:subtitle')}
+                {t('events:detail.overview.dataSubtitle')}
               </p>
             </div>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {locationsCount > 0 ? (
-              <DataSummary
-                label={t('events:detail.locations.title')}
-                value={`${locationsCount}`}
-                icon={ImageIcon}
-              />
-            ) : null}
-            {programCount > 0 ? (
-              <DataSummary
-                label={t('events:detail.program.title')}
-                value={`${programCount}`}
-                icon={ImageIcon}
-              />
-            ) : null}
-            {event.contacts?.entries?.[0]?.fullName ? (
-              <DataSummary
-                label={t('events:detail.contacts.title')}
-                value={event.contacts.entries[0].fullName ?? '✓'}
-                icon={ImageIcon}
-              />
-            ) : null}
+          <CardContent>
+            <ActivityList
+              entries={activityEntries}
+              isPending={activity.isPending}
+              isError={activity.isError}
+              language={i18n.language}
+              emptyLabel={t('events:detail.overview.dataEmpty')}
+              errorLabel={t('events:detail.overview.dataLoadError')}
+              actionLabel={(action) =>
+                t(`events:detail.overview.dataActions.${action}`, {
+                  defaultValue: t('events:detail.overview.dataActions._default'),
+                })
+              }
+              resourceLabel={(resourceType) =>
+                t(`events:detail.overview.dataResources.${resourceType}`, {
+                  defaultValue: t('events:detail.overview.dataResources._default'),
+                })
+              }
+              actorBylineTemplate={t('events:detail.overview.dataActorLabel')}
+              relativeTimeFormatter={relativeTimeFormatter}
+              size={size}
+              onSizeChange={setSize}
+              sizeLabel={(s) => t('events:detail.overview.dataSize', { size: s })}
+              sizeOptionLabels={{
+                5: t('events:detail.overview.dataSizeOption', { count: 5 }),
+                10: t('events:detail.overview.dataSizeOption', { count: 10 }),
+                15: t('events:detail.overview.dataSizeOption', { count: 15 }),
+                30: t('events:detail.overview.dataSizeOption', { count: 30 }),
+                50: t('events:detail.overview.dataSizeOption', { count: 50 }),
+              }}
+              resourceFilter={resourceFilter}
+              onResourceFilterChange={setResourceFilter}
+              resourceFilterLabels={{
+                _all: t('events:detail.overview.dataResources._all'),
+                event: t('events:detail.overview.dataResources.event'),
+                wedding_event: t('events:detail.overview.dataResources.wedding_event'),
+                guest: t('events:detail.overview.dataResources.guest'),
+                guest_group: t('events:detail.overview.dataResources.guest_group'),
+              }}
+              categoryFilter={categoryFilter}
+              onCategoryFilterChange={setCategoryFilter}
+              categoryFilterLabels={{
+                _all: t('events:detail.overview.dataCategories._all'),
+                lifecycle: t('events:detail.overview.dataCategories.lifecycle'),
+                content: t('events:detail.overview.dataCategories.content'),
+                rsvp: t('events:detail.overview.dataCategories.rsvp'),
+                guest: t('events:detail.overview.dataCategories.guest'),
+              }}
+              searchTerm={searchTerm}
+              onSearchTermChange={setSearchTerm}
+              searchPlaceholder={t('events:detail.overview.dataSearchPlaceholder')}
+              clearFiltersLabel={t('events:detail.overview.dataClearFilters')}
+            />
           </CardContent>
         </Card>
       </div>
@@ -116,22 +231,50 @@ function Overview({ event }: { event: EventDto }) {
           <CardHeader>
             <CardTitle>{t('events:detail.overview.stats.guests')}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <Link
               to="/dashboard/events/$eventId/guests"
               params={{ eventId: event.id }}
-              className="flex items-center justify-between rounded-md border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] p-4 no-underline transition-colors hover:bg-[var(--color-surface-container-high)]"
+              className="block rounded-md border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] p-4 no-underline transition-colors hover:bg-[var(--color-surface-container-high)]"
+              data-testid="event-overview-guests-link"
             >
-              <div className="flex items-center gap-3">
-                <Users2 className="h-5 w-5 text-[var(--color-primary)]" />
-                <div>
-                  <div className="text-2xl font-bold text-[var(--color-on-surface)]">—</div>
-                  <div className="text-xs text-[var(--color-secondary)]">
-                    {t('events:detail.overview.openInvitation')}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Users2 className="h-5 w-5 text-[var(--color-primary)]" />
+                  <div>
+                    {guests.isPending ? (
+                      <Spinner className="h-5 w-5" />
+                    ) : (
+                      <div
+                        className="text-2xl font-bold text-[var(--color-on-surface)]"
+                        data-testid="event-overview-guests-total"
+                      >
+                        {totalGuests}
+                      </div>
+                    )}
+                    <div className="text-xs text-[var(--color-secondary)]">
+                      {t('events:detail.overview.openInvitation')}
+                    </div>
                   </div>
                 </div>
+                <ChevronRight className="h-4 w-4 text-[var(--color-secondary)]" />
               </div>
-              <ChevronRight className="h-4 w-4 text-[var(--color-secondary)]" />
+              {!guests.isPending && totalGuests > 0 ? (
+                <div
+                  className="mt-3 flex flex-wrap gap-2"
+                  data-testid="event-overview-guests-breakdown"
+                >
+                  <Badge tone="success">
+                    {guestCounts.confirmed} {t('events:detail.overview.stats.confirmed')}
+                  </Badge>
+                  <Badge tone="warning">
+                    {guestCounts.pending} {t('events:detail.overview.stats.pending')}
+                  </Badge>
+                  <Badge tone="danger">
+                    {guestCounts.declined} {t('events:detail.overview.stats.declined')}
+                  </Badge>
+                </div>
+              ) : null}
             </Link>
           </CardContent>
         </Card>
@@ -193,27 +336,11 @@ function NextStepRow({
   );
 }
 
-function DataSummary({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <div className="rounded-md border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] p-4">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
-          {label}
-        </span>
-        <Icon className="h-4 w-4 opacity-60" />
-      </div>
-      <div className="mt-1 text-base font-semibold text-[var(--color-on-surface)]">{value}</div>
-    </div>
-  );
-}
+/**
+ * Renders the recent-activity timeline for the overview. Kept in
+ * `event-overview-activity-list.tsx` so it can be unit-tested without
+ * mounting the full screen (router + i18n + query-client wiring).
+ */
 
 function ArchiveButton({ eventId, status }: { eventId: string; status: EventDto['status'] }) {
   const { t } = useTranslation('events');

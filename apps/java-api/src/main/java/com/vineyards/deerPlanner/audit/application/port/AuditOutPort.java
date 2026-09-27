@@ -17,9 +17,21 @@ public interface AuditOutPort {
   /** Persists a new audit row. Mints the XID inside the adapter. */
   AuditEntry append(AuditEntry entry);
 
-  Page<AuditEntry> findByEventId(String eventId, String resourceType, Pageable pageable);
+  /**
+   * Paged read for the activity feed. Returns {@link AuditEntryWithActor} so the BE can hand the FE
+   * a single hydrated DTO (entry + actor displayName) without the FE having to do an N+1 {@code GET
+   * /users/{id}} round-trip per row.
+   */
+  Page<AuditEntryWithActor> findByEventIdWithActor(
+      String eventId, String resourceType, Pageable pageable);
 
   Optional<AuditEntry> findLatestByEventIdAndAction(String eventId, String action);
 
   List<AuditEntry> findGuestCaptureActions(String eventId);
+
+  /**
+   * Projection: the audit row plus the actor's {@code displayName} (or {@code null} if the user has
+   * been deleted or the action was performed by a system actor).
+   */
+  record AuditEntryWithActor(AuditEntry entry, String actorDisplayName) {}
 }

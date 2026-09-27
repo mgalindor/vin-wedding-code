@@ -96,7 +96,7 @@ function normalizeProgram(raw: unknown): ProgramPayload {
       items.push({
         time: item['time'] as string,
         title: item['title'] as string,
-        description:
+        detail:
           typeof item['detail'] === 'string'
             ? (item['detail'] as string)
             : typeof item['description'] === 'string'

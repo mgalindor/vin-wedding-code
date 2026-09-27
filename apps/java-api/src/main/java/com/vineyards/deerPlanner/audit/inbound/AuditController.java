@@ -49,7 +49,9 @@ public class AuditController {
   public PagedResponse<AuditEntryDto> activity(
       @PathVariable String eventId,
       @RequestParam(required = false) String resourceType,
-      @PageableDefault(size = 20, sort = "occurredAt", direction = Sort.Direction.DESC)
+      // Default 10 keeps the overview card compact. The FE may override up to 50; anything beyond
+      // that is rejected by Spring's default page-size cap to keep p95 latency bounded.
+      @PageableDefault(size = 10, sort = "occurredAt", direction = Sort.Direction.DESC)
           Pageable pageable) {
     return auditApi.listForEvent(eventId, resourceType, pageable);
   }

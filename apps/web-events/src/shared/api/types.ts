@@ -114,10 +114,14 @@ export interface ContactsPayload {
 export interface ProgramItem {
   time: string; // HH:mm
   title: string;
-  description?: string;
+  detail?: string;
 }
 
 export interface ProgramPayload {
+  // Flat ordered list. Multi-day events are flattened at the BE
+  // boundary — see `shared/api/normalizers.ts`. The BE actually
+  // stores them grouped by `days[]`; the normalizer collapses the
+  // grouping so the FE works with a single linear program list.
   items: ProgramItem[];
 }
 
@@ -133,6 +137,8 @@ export interface EventSummary {
   eventDate: string; // YYYY-MM-DD
   status: EventStatus;
   updatedAt: string;
+  /** Selected invitation template's stable code (e.g. "wedding-bosco"), or null when none is selected yet. */
+  templateCode?: string | null;
 }
 
 /**
@@ -454,6 +460,58 @@ export interface PublicGroupViewDto {
 export interface PublicGroupRsvpRequest {
   message?: string;
   guests: Array<{ guestId: string; status: PublicRsvpStatus }>;
+}
+
+// =========================================================================
+// Audit / activity
+// =========================================================================
+//
+// Mirrors `com.vineyards.deerPlanner.audit.facade.dto.AuditEntryDto`.
+// Used by `GET /api/v1/events/{id}/activity` (paged history) and the
+// upcoming overview screen's "recent activity" panel.
+
+export type AuditActionKind =
+  | 'event.created'
+  | 'event.updated'
+  | 'event.metadata_updated'
+  | 'event.archived'
+  | 'event.restored'
+  | 'event.deleted'
+  | 'event.published'
+  | 'event.unpublished'
+  | 'event.locations_updated'
+  | 'event.program_updated'
+  | 'event.contacts_updated'
+  | 'event.invitation_updated'
+  | 'event.wedding_detail_updated'
+  | 'guest.created'
+  | 'guest.updated'
+  | 'guest.deleted'
+  | 'guest.rsvp_updated'
+  | 'guest_group.created'
+  | 'guest_group.updated'
+  | 'guest_group.deleted'
+  | (string & {});
+
+export type AuditActorKind = 'organizer' | 'guest' | 'admin' | 'system';
+
+export interface AuditEntry {
+  id: string;
+  /** ISO-8601 instant. */
+  occurredAt: string;
+  actorUserId?: string | null;
+  /**
+   * Hydrated `displayName` from `users.displayName` (LEFT JOIN in the BE). `null` for system
+   * actors and for users that have been soft-deleted — the FE should fall back to a generic
+   * label in those cases. Prefer this over `actorUserId` for any user-facing display.
+   */
+  actorUserName?: string | null;
+  actorKind?: AuditActorKind | null;
+  action: AuditActionKind;
+  resourceType: string;
+  resourceId?: string | null;
+  eventId: string;
+  payload?: Record<string, unknown> | null;
 }
 
 // =========================================================================

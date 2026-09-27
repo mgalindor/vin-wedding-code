@@ -1,6 +1,8 @@
 package com.vineyards.deerPlanner.invitation.application.port;
 
 import com.vineyards.deerPlanner.invitation.domain.EventInvitationConfig;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.jmolecules.architecture.hexagonal.SecondaryPort;
 
@@ -8,6 +10,9 @@ import org.jmolecules.architecture.hexagonal.SecondaryPort;
 public interface EventInvitationConfigOutPort {
 
   Optional<EventInvitationConfig> findByEventId(String eventId);
+
+  /** Batch projection used to enrich event listings with the selected template, if any. */
+  List<EventInvitationConfig> findByEventIds(Collection<String> eventIds);
 
   Optional<EventInvitationConfig> findBySlug(String slug);
 

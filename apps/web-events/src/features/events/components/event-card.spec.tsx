@@ -1,7 +1,7 @@
 import { render, screen, within, cleanup } from '@testing-library/react';
 import i18n from 'i18next';
 import { initReactI18next, I18nextProvider } from 'react-i18next';
-import { describe, expect, it, beforeAll, beforeEach, vi } from 'vitest';
+import { describe, expect, it, beforeAll, beforeEach, afterAll, vi } from 'vitest';
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -54,6 +54,8 @@ const enResources = {
       draft: 'Draft',
       published: 'Published',
       archived: 'Archived',
+      active: 'Active',
+      closed: 'Closed',
     },
     eventType: {
       wedding: 'Wedding',
@@ -69,7 +71,6 @@ const enResources = {
       draft: 'Draft',
       copyLink: 'Copy invitation link',
       unpublished: 'Invitation not yet active',
-      tba: 'TBD',
       stats: {
         guests: 'Guests',
         confirmed: 'Confirmed',
@@ -114,6 +115,8 @@ const esResources = {
       draft: 'Borrador',
       published: 'Publicado',
       archived: 'Archivado',
+      active: 'Activo',
+      closed: 'Cerrado',
     },
     eventType: {
       wedding: 'Boda',
@@ -129,7 +132,6 @@ const esResources = {
       draft: 'Borrador',
       copyLink: 'Copiar enlace de invitación',
       unpublished: 'Invitación aún no activa',
-      tba: 'Por definir',
       stats: {
         guests: 'Invitados',
         confirmed: 'Confirmados',
@@ -160,6 +162,8 @@ beforeEach(() => {
 });
 
 beforeAll(async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(2026, 7, 1)); // pin "today" so eventDate-derived badges are deterministic
   await i18n.use(initReactI18next).init({
     resources: { en: enResources, es: esResources },
     lng: 'en',
@@ -168,6 +172,10 @@ beforeAll(async () => {
     defaultNS: 'events',
     interpolation: { escapeValue: false },
   });
+});
+
+afterAll(() => {
+  vi.useRealTimers();
 });
 
 describe('EventCard', () => {
@@ -186,12 +194,35 @@ describe('EventCard', () => {
     expect(card).toBeInTheDocument();
     expect(within(card).getByRole('heading', { name: 'Maya & Luis' })).toBeInTheDocument();
     expect(within(card).getByText('Wedding')).toBeInTheDocument();
-    expect(within(card).getByText('Published')).toBeInTheDocument();
+    expect(within(card).getByText('Active')).toBeInTheDocument();
   });
 
-  it('falls back to TBD when no venue is provided', () => {
+  it('shows the Closed badge when the event date has already passed', () => {
+    renderWithI18n(<EventCard {...baseProps} eventDate="2026-07-01" />);
+    expect(screen.getByText('Closed')).toBeInTheDocument();
+  });
+
+  it('shows the Archived badge regardless of the event date', () => {
+    renderWithI18n(<EventCard {...baseProps} status="archived" eventDate="2026-07-01" />);
+    expect(screen.getByText('Archived')).toBeInTheDocument();
+  });
+
+  it('uses the eventType default gradient when no templateCode is selected', () => {
     renderWithI18n(<EventCard {...baseProps} />);
-    expect(screen.getByText('TBD')).toBeInTheDocument();
+    const header = screen.getByTestId('event-card-header');
+    expect(header.style.background).toContain('#f7e3d8'); // wedding default
+  });
+
+  it('uses the template-specific gradient when templateCode matches the registry', () => {
+    renderWithI18n(<EventCard {...baseProps} templateCode="wedding-noir" />);
+    const header = screen.getByTestId('event-card-header');
+    expect(header.style.background).toContain('#0A0A0A');
+  });
+
+  it('falls back to the eventType default gradient for an unknown templateCode', () => {
+    renderWithI18n(<EventCard {...baseProps} templateCode="not-a-real-template" />);
+    const header = screen.getByTestId('event-card-header');
+    expect(header.style.background).toContain('#f7e3d8');
   });
 
   it('hides the stats block when stats prop is not provided', () => {

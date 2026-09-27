@@ -1,6 +1,7 @@
 package com.vineyards.deerPlanner.audit.application;
 
 import com.vineyards.deerPlanner.audit.application.port.AuditOutPort;
+import com.vineyards.deerPlanner.audit.application.port.AuditOutPort.AuditEntryWithActor;
 import com.vineyards.deerPlanner.audit.domain.AuditEntry;
 import com.vineyards.deerPlanner.audit.facade.AuditInPort;
 import com.vineyards.deerPlanner.audit.facade.dto.AuditEntryDto;
@@ -30,7 +31,7 @@ public class AuditService implements AuditInPort {
   @Transactional(readOnly = true)
   public PagedResponse<AuditEntryDto> listForEvent(
       String eventId, String resourceType, Pageable pageable) {
-    Page<AuditEntry> page = audit.findByEventId(eventId, resourceType, pageable);
+    Page<AuditEntryWithActor> page = audit.findByEventIdWithActor(eventId, resourceType, pageable);
     return PagedResponse.from(page, AuditEntryMapper::toDto);
   }
 
@@ -39,8 +40,9 @@ public class AuditService implements AuditInPort {
   public EventActivitySummaryDto summaryForEvent(String eventId) {
     AuditEntry created = audit.findLatestByEventIdAndAction(eventId, "event.created").orElse(null);
     AuditEntry lastUpdate =
-        audit.findByEventId(eventId, null, Pageable.ofSize(1)).stream()
-            .filter(e -> !"event.created".equals(e.getAction()))
+        audit.findByEventIdWithActor(eventId, null, Pageable.ofSize(1)).getContent().stream()
+            .filter(e -> !"event.created".equals(e.entry().getAction()))
+            .map(AuditEntryWithActor::entry)
             .findFirst()
             .orElse(null);
     AuditEntry lastGuestCapture =
