@@ -301,6 +301,22 @@ class GuestServiceTest {
 
       assertThat(result.rsvpStatus()).isEqualTo("pending");
     }
+
+    @Test
+    void createGuest_withoutGroupId_persistsAsUnassigned() {
+      verifyOwnershipPasses();
+      when(guestRepository.save(any(Guest.class))).thenAnswer(inv -> inv.getArgument(0));
+
+      var dto = new CreateGuestDto(null, "Solo Sin Grupo", null, null, null);
+
+      GuestDto result = service.createGuest(EVENT_ID, dto, ORGANIZER_ID);
+
+      assertThat(result.fullName()).isEqualTo("Solo Sin Grupo");
+      assertThat(result.rsvpStatus()).isEqualTo("pending");
+      // The schema and FK allow null group_id; we must not look up a group
+      // when the caller is intentionally creating an unassigned guest.
+      verify(groupRepository, never()).findById(any());
+    }
   }
 
   @Nested

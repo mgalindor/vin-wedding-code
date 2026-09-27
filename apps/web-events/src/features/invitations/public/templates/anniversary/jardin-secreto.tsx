@@ -1234,13 +1234,6 @@ function RsvpSection({
         <p className="mx-auto mt-6 max-w-md font-['Lora',serif] text-sm italic leading-relaxed text-[#1F1F1F]/75">
           {t.rsvpHint}
         </p>
-        <button
-          type="button"
-          onClick={onRsvpClick}
-          className="js-cta mt-10 inline-flex items-center justify-center gap-3 rounded-full border-2 border-transparent bg-[#2C3E2D] px-12 py-4 font-['Lora',serif] text-[11px] uppercase tracking-[0.3em] text-[#F4EFE6] shadow-[0_20px_44px_-28px_rgba(31,31,31,0.65)]"
-        >
-          {t.rsvp}
-        </button>
         <div className="mt-10 flex items-center justify-center gap-4 opacity-80">
           <FernFrond side="tl" className="h-8 w-auto opacity-70" />
           <RoseGlyph size={20} />

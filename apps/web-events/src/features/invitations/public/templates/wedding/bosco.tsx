@@ -1065,14 +1065,14 @@ export default function BoscoTemplate(
       )}
 
       {/* ---------------------------------------------------------------- */}
-      {/* RSVP CTA                                                          */}
+      {/* RSVP notice (event-level only — actual confirmation is per-group) */}
       {/* ---------------------------------------------------------------- */}
-      {props.rsvpEnabled && (
+      {props.rsvpEnabled ? (
         <SectionFrame tone="cream" id="rsvp">
           <div ref={rsvpRef} className="reveal text-center">
             <SectionHeading eyebrow="—" title={t.rsvpTitle} tone="cream" />
             <p
-              className="mx-auto mb-10 max-w-md text-base md:text-lg"
+              className="mx-auto max-w-md text-base md:text-lg"
               style={{
                 fontFamily: FONT_DISPLAY,
                 color: FOREST,
@@ -1080,33 +1080,13 @@ export default function BoscoTemplate(
                 fontStyle: 'italic',
               }}
             >
-              {t.rsvpNote}
+              {props.locale === 'es'
+                ? 'El organizador te enviará un enlace único para confirmar la asistencia de tu grupo.'
+                : 'The organizer will send you a unique link to confirm your group\'s attendance.'}
             </p>
-            <button
-              type="button"
-              onClick={props.onRsvpClick}
-              className="group inline-flex items-center justify-center gap-3 rounded-full border px-12 py-4 text-sm uppercase tracking-[0.3em] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A961] focus-visible:ring-offset-2"
-              style={{
-                backgroundColor: CREAM,
-                color: FOREST,
-                borderColor: MOSS,
-                fontFamily: FONT_BODY,
-                boxShadow: '0 1px 2px rgba(47,74,58,0.10)',
-              }}
-            >
-              <LeafGlyph
-                size={14}
-                className="text-[#C9A961] transition-transform duration-300 group-hover:-rotate-45"
-              />
-              {t.rsvpButton}
-              <LeafGlyph
-                size={14}
-                className="text-[#C9A961] rotated transition-transform duration-300 group-hover:rotate-[135deg]"
-              />
-            </button>
           </div>
         </SectionFrame>
-      )}
+      ) : null}
 
       {/* ---------------------------------------------------------------- */}
       {/* FOOTER                                                            */}

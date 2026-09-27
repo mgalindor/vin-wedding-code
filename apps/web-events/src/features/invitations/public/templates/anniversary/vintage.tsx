@@ -1106,39 +1106,6 @@ function RsvpSection(props: { t: Labels; onRsvpClick?: () => void }) {
         >
           {props.t.rsvpBody}
         </p>
-        <div className="mt-10 inline-block">
-          <div
-            className="vintage-cta-frame relative inline-block border border-[#3E2C1C] p-[2px]"
-            style={{
-              boxShadow:
-                'inset 0 0 0 3px #E8DFCE, inset 0 0 0 4px #3E2C1C',
-            }}
-          >
-            <button
-              type="button"
-              onClick={props.onRsvpClick}
-              className="vintage-cta relative inline-flex items-center gap-4 px-10 py-4 text-sm font-semibold uppercase tracking-[0.4em] transition-all duration-300"
-              style={{
-                backgroundColor: ANTIQUE_GOLD,
-                color: DARK_SEPIA,
-                fontFamily: FONT_BODY,
-              }}
-            >
-              <span
-                className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-30"
-                aria-hidden="true"
-                style={{
-                  backgroundImage: `url("${PAPER_NOISE_DATA_URL}")`,
-                  backgroundSize: '240px 240px',
-                }}
-              />
-              <span className="relative">{props.t.rsvpCta}</span>
-              <span aria-hidden="true" className="relative text-base">
-                ›
-              </span>
-            </button>
-          </div>
-        </div>
       </div>
     </SectionShell>
   );

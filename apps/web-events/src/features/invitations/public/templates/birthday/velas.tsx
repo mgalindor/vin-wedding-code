@@ -1131,20 +1131,6 @@ export default function VelasTemplate(props: PublicInvitationPageProps): ReactEl
             >
               {t.rsvpTitle}
             </h2>
-            <button
-              type="button"
-              onClick={onRsvpClick}
-              className="velas-rsvp-btn px-12 py-5 text-xs uppercase sm:text-sm"
-              style={{
-                fontFamily: BODY_FONT,
-                fontWeight: 500,
-                letterSpacing: '0.3em',
-                backgroundColor: COLOR_GOLD,
-                color: COLOR_BROWN,
-              }}
-            >
-              {t.rsvp}
-            </button>
           </div>
         </section>
       ) : null}

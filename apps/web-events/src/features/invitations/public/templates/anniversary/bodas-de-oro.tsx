@@ -669,13 +669,6 @@ export default function BodasDeOroTemplate(props: PublicInvitationPageProps) {
             <h2 className="bdo-display mt-4 text-4xl font-normal italic text-[#0E0E10] sm:text-5xl">
               {t.rsvp}
             </h2>
-            <button
-              type="button"
-              onClick={onRsvpClick}
-              className="bdo-rsvp bdo-display mt-10 inline-flex items-center justify-center bg-[#D4AF37] px-12 py-4 text-sm font-semibold uppercase tracking-[0.4em] text-[#0E0E10] hover:bg-[#E0BF52]"
-            >
-              {t.rsvp}
-            </button>
           </div>
         </section>
       ) : null}

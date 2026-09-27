@@ -45,7 +45,10 @@
     "dietaryNotes": "Notas de dieta (solo para ti, no en la invitación)",
     "created": "Invitado agregado",
     "addToExistingGroup": "Agregar a un grupo existente",
-    "createNewGroup": "Crear un grupo nuevo con este invitado"
+    "createNewGroup": "Crear un grupo nuevo con este invitado",
+    "edit": "Editar invitado",
+    "remove": "Eliminar invitado",
+    "removeConfirm": "¿Eliminar a \"{{name}}\" del evento? Esta acción no se puede deshacer."
   },
   "list": {
     "search": "Buscar por nombre…",
@@ -55,7 +58,35 @@
       "pending": "Pendientes",
       "confirmed": "Confirmados",
       "declined": "Rechazados"
-    }
+    },
+    "unassigned": "Sin grupo",
+    "unassignedHint": "Invitados que aún no pertenecen a un grupo. Podrás asignarlos después desde esta misma vista.",
+    "noUnassigned": "Todos los invitados ya están asignados a un grupo."
+  },
+  "views": {
+    "simple": "Lista simple",
+    "groups": "Grupos",
+    "switchLabel": "Ver como",
+    "simpleHelp": "Una fila por invitado. Ideal para eventos sin invitación formal o sin requerir confirmación.",
+    "groupsHelp": "Cada grupo comparte un enlace de invitación. El contacto primario lo reenvía al resto.",
+    "counter": "{{guests}} invitado · {{groups}} grupo",
+    "counter_plural": "{{guests}} invitados · {{groups}} grupos"
+  },
+  "deleteGroupDialog": {
+    "title": "Eliminar grupo \"{{name}}\"",
+    "subtitleWithMembers": "Este grupo tiene {{count}} invitado. ¿Qué quieres hacer?",
+    "subtitleWithMembers_plural": "Este grupo tiene {{count}} invitados. ¿Qué quieres hacer?",
+    "optionDeleteAll": "Eliminar grupo y sus {{count}} invitado",
+    "optionDeleteAll_plural": "Eliminar grupo y sus {{count}} invitados",
+    "optionDeleteAllHelp": "Los invitados también se eliminarán de forma permanente.",
+    "optionDeleteGroupOnly": "Eliminar solo el grupo",
+    "optionDeleteGroupOnlyHelp": "Los invitados pasarán a \"Sin grupo\" para que puedas reasignarlos después.",
+    "confirmDeleteAll": "Eliminar todo",
+    "confirmDeleteGroupOnly": "Quitar solo el grupo"
+  },
+  "groupChip": {
+    "noGroup": "Sin grupo",
+    "addToGroup": "Agregar a un grupo…"
   },
   "status": {
     "pending": "Pendiente",

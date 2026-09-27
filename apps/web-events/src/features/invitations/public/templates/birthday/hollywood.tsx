@@ -1126,20 +1126,6 @@ export default function HollywoodTemplate({
                 >
                   {t.rsvpTitle}
                 </h2>
-
-                <button
-                  type="button"
-                  onClick={onRsvpClick}
-                  className="hollywood-rsvp inline-flex items-center justify-center bg-[#C8102E] px-12 py-5 text-xs uppercase text-[#F5F5F5] sm:text-sm"
-                  style={{
-                    fontFamily: BODY_FONT,
-                    fontWeight: 700,
-                    letterSpacing: '0.3em',
-                  }}
-                >
-                  <span className="hollywood-rsvp-shine" aria-hidden="true" />
-                  <span className="relative z-10">{t.rsvp}</span>
-                </button>
               </div>
             </div>
           </section>

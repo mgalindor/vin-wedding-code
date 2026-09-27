@@ -347,17 +347,23 @@ public class GuestService implements GuestInPort {
   @Transactional
   public GuestDto createGuest(String eventId, CreateGuestDto dto, String actorUserId) {
     eventApi.getEvent(eventId);
-    GuestGroup group =
-        groupRepository
-            .findById(dto.groupId())
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundError(
-                        "guest_group_not_found", "Guest group " + dto.groupId() + " not found"));
-    if (!eventId.equals(group.getEventId())) {
-      throw new ResourceNotFoundError(
-          "guest_group_not_found",
-          "Guest group " + dto.groupId() + " not found in event " + eventId);
+    // groupId is nullable: a guest can be created without a group (it then
+    // shows up under "Sin grupo" in the FE and can be assigned later via
+    // PATCH /group). Only enforce ownership + event scope when the guest
+    // is being created into a specific group.
+    if (dto.groupId() != null && !dto.groupId().isBlank()) {
+      GuestGroup group =
+          groupRepository
+              .findById(dto.groupId())
+              .orElseThrow(
+                  () ->
+                      new ResourceNotFoundError(
+                          "guest_group_not_found", "Guest group " + dto.groupId() + " not found"));
+      if (!eventId.equals(group.getEventId())) {
+        throw new ResourceNotFoundError(
+            "guest_group_not_found",
+            "Guest group " + dto.groupId() + " not found in event " + eventId);
+      }
     }
     String token = Xid.get().toString();
     Instant now = Instant.now();

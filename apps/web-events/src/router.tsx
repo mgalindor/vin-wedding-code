@@ -91,9 +91,9 @@ const WeddingDataScreen = lazy(() =>
   })),
 );
 
-const GuestGroupsScreen = lazy(() =>
-  import('@/features/guests/components/guest-groups-screen').then((m) => ({
-    default: m.GuestGroupsScreen,
+const GuestManagementScreen = lazy(() =>
+  import('@/features/guests/components/guest-management-screen').then((m) => ({
+    default: m.GuestManagementScreen,
   })),
 );
 
@@ -328,7 +328,7 @@ const eventWeddingRoute = createRoute({
 const eventGuestsGroupsRoute = createRoute({
   getParentRoute: () => eventDetailLayoutRoute,
   path: 'events/$eventId/guests',
-  component: GuestGroupsScreen,
+  component: GuestManagementScreen,
 });
 
 const eventGuestsListRoute = createRoute({

@@ -697,13 +697,6 @@ const PampasTemplate: React.FC<PublicInvitationPageProps> = (props) => {
                 >
                   {t.rsvpNote}
                 </p>
-                <button
-                  type="button"
-                  onClick={onRsvpClick}
-                  className="pampas-btn mt-10 inline-flex items-center justify-center border border-[#C19A6B] bg-[#F7F2E8] px-12 py-4 text-[11px] uppercase tracking-[0.4em] text-[#3E2C1C] transition-colors duration-300 hover:bg-[#C19A6B] hover:text-[#F7F2E8] focus:outline-none focus:ring-2 focus:ring-[#C19A6B] focus:ring-offset-2 focus:ring-offset-[#F7F2E8]"
-                >
-                  {t.rsvpCta}
-                </button>
               </div>
             </section>
           </>

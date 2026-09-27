@@ -759,13 +759,6 @@ function CinematikTemplate(props: PublicInvitationPageProps) {
           <div className="text-center max-w-2xl mx-auto">
             <Eyebrow>{L.rsvpEyebrow}</Eyebrow>
             <SectionHeading>{L.rsvpHeading}</SectionHeading>
-            <button
-              type="button"
-              onClick={onRsvpClick}
-              className="mt-2 inline-block bg-[#E8B872] text-[#0E0E10] uppercase tracking-[0.36em] text-xs md:text-sm font-semibold px-12 md:px-16 py-4 hover:bg-[#F2C589] hover:scale-[1.04] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8B872] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1A1A1F]"
-            >
-              {L.rsvpCta}
-            </button>
           </div>
         </Section>
       ) : null}

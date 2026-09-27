@@ -840,18 +840,6 @@ export default function BoardroomTemplate({
               >
                 {t.rsvpTitle}
               </h2>
-              <button
-                type="button"
-                onClick={onRsvpClick}
-                className="boardroom-cta bg-[#0B2545] px-12 py-4 text-xs uppercase text-[#FFFFFF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0B2545] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFFFF] sm:text-sm"
-                style={{
-                  fontFamily: BODY_FONT,
-                  fontWeight: 600,
-                  letterSpacing: '0.3em',
-                }}
-              >
-                {t.rsvp}
-              </button>
               <span
                 aria-hidden="true"
                 className="mt-10 block h-[2px] w-16 bg-[#0B2545]"

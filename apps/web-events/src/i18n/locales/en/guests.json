@@ -45,7 +45,10 @@
     "dietaryNotes": "Dietary notes (organiser-only, not on invitation)",
     "created": "Guest added",
     "addToExistingGroup": "Add to existing group",
-    "createNewGroup": "Create a new group with this guest"
+    "createNewGroup": "Create a new group with this guest",
+    "edit": "Edit guest",
+    "remove": "Remove guest",
+    "removeConfirm": "Remove \"{{name}}\" from the event? This can't be undone."
   },
   "list": {
     "search": "Search by name…",
@@ -55,7 +58,35 @@
       "pending": "Pending",
       "confirmed": "Confirmed",
       "declined": "Declined"
-    }
+    },
+    "unassigned": "Unassigned",
+    "unassignedHint": "Guests that don't belong to any group. Add them to a group later from this view.",
+    "noUnassigned": "All guests are assigned to a group."
+  },
+  "views": {
+    "simple": "Flat list",
+    "groups": "Groups",
+    "switchLabel": "View as",
+    "simpleHelp": "One row per guest. Great for events without formal invitations or RSVP tracking.",
+    "groupsHelp": "Each group shares one invitation link. The primary contact forwards it to the rest of the party.",
+    "counter": "{{guests}} guest · {{groups}} group",
+    "counter_plural": "{{guests}} guests · {{groups}} groups"
+  },
+  "deleteGroupDialog": {
+    "title": "Delete group \"{{name}}\"",
+    "subtitleWithMembers": "This group has {{count}} guest. What do you want to do?",
+    "subtitleWithMembers_plural": "This group has {{count}} guests. What do you want to do?",
+    "optionDeleteAll": "Delete group and its {{count}} guest",
+    "optionDeleteAll_plural": "Delete group and its {{count}} guests",
+    "optionDeleteAllHelp": "Guests will also be permanently removed.",
+    "optionDeleteGroupOnly": "Delete only the group",
+    "optionDeleteGroupOnlyHelp": "Guests will move to \"Unassigned\" so you can reassign them later.",
+    "confirmDeleteAll": "Delete everything",
+    "confirmDeleteGroupOnly": "Remove group only"
+  },
+  "groupChip": {
+    "noGroup": "No group",
+    "addToGroup": "Add to a group…"
   },
   "status": {
     "pending": "Pending",

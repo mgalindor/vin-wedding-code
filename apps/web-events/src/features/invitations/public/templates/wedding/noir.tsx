@@ -836,18 +836,6 @@ export default function NoirTemplate({
               >
                 {t.rsvpTitle}
               </h2>
-              <button
-                type="button"
-                onClick={onRsvpClick}
-                className="bg-[#D4AF37] px-12 py-5 text-xs uppercase text-[#0A0A0A] transition-colors duration-300 hover:bg-[#B8941F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A0A0A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFFFF] sm:text-sm"
-                style={{
-                  fontFamily: BODY_FONT,
-                  fontWeight: 600,
-                  letterSpacing: '0.2em',
-                }}
-              >
-                {t.rsvp}
-              </button>
             </div>
           </section>
         ) : null}

@@ -1051,32 +1051,6 @@ export default function PitchTemplate({
               >
                 {t.rsvpHint}
               </p>
-              <button
-                type="button"
-                onClick={onRsvpClick}
-                className="pitch-button inline-flex items-center gap-3 rounded-lg bg-[#2563EB] px-10 py-4 text-sm uppercase text-[#FFFFFF] sm:text-base"
-                style={{
-                  fontFamily: BODY_FONT,
-                  fontWeight: 600,
-                  letterSpacing: '0.15em',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                }}
-              >
-                {t.rsvp}
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M3 7h8M7.5 3.5 11 7l-3.5 3.5" />
-                </svg>
-              </button>
             </div>
           </section>
         ) : null}

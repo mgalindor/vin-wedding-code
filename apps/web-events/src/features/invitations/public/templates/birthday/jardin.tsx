@@ -994,13 +994,6 @@ function RsvpSection({
         <p className="mx-auto mt-6 max-w-md font-['Lora',serif] text-sm italic leading-relaxed text-[#3D4F3D]/75">
           {t.rsvpHint}
         </p>
-        <button
-          type="button"
-          onClick={onRsvpClick}
-          className="jardin-cta mt-10 inline-flex items-center justify-center gap-3 rounded-full border border-[#7A9B76] bg-[#E8C5C5] px-12 py-4 font-['Lora',serif] text-[11px] uppercase tracking-[0.3em] text-white shadow-[0_20px_44px_-28px_rgba(61,79,61,0.6)]"
-        >
-          {t.rsvp}
-        </button>
         <div className="mt-10 flex items-center justify-center gap-4 opacity-80">
           <LeafGlyph size={12} />
           <Blossom size={18} />

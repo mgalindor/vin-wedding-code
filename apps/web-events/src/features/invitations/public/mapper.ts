@@ -117,7 +117,7 @@ function mapWedding(
   base: BaseMappedFields,
   locale: 'en' | 'es',
 ): WeddingPublicData {
-  const w = dto.weddingDetail;
+  const w = dto.wedding;
   return {
     ...base,
     eventType: 'wedding',

@@ -920,17 +920,9 @@ function AtardecerTemplate(props: PublicInvitationPageProps): ReactElement {
           <GoldCircles variant="soft" />
           <div className="atardecer-rise relative z-10 mx-auto max-w-xl text-center">
             <SectionLabel>{t.rsvp}</SectionLabel>
-            <p className="mx-auto mb-8 max-w-md text-sm text-[#264653]/80 sm:text-base">
+            <p className="mx-auto max-w-md text-sm text-[#264653]/80 sm:text-base">
               {t.rsvpHint}
             </p>
-            <button
-              type="button"
-              onClick={onRsvpClick}
-              className="group inline-flex items-center gap-3 rounded-full bg-[#F4A261] px-10 py-4 text-base font-medium uppercase tracking-[0.2em] text-white shadow-[0_12px_30px_-8px_rgba(231,111,81,0.65)] transition-all duration-300 hover:scale-[1.05] hover:bg-[#E9C46A] hover:shadow-[0_16px_44px_-8px_rgba(244,162,97,0.75)] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#F4A261]/55"
-            >
-              <SunGlyph size={20} className="opacity-95" />
-              {t.rsvp}
-            </button>
           </div>
         </section>
       ) : null}

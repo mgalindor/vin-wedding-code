@@ -401,22 +401,7 @@ const TechTemplate: React.FC<PublicInvitationPageProps> = (props) => {
                   </div>
                 ) : null}
 
-                {rsvpEnabled ? (
-                  <button
-                    type="button"
-                    onClick={onRsvpClick}
-                    className="rsvp-btn group inline-flex items-center gap-3 rounded-md px-7 py-3.5 font-['JetBrains_Mono',ui-monospace,monospace] text-sm font-bold uppercase tracking-[0.2em] text-white"
-                  >
-                    <span aria-hidden="true">&gt;</span>
-                    {t.rsvp}
-                    <span
-                      aria-hidden="true"
-                      className="opacity-70 transition-transform duration-300 group-hover:translate-x-1"
-                    >
-                      →
-                    </span>
-                  </button>
-                ) : null}
+                {rsvpEnabled ? null : null}
               </div>
             </div>
           </div>
@@ -615,15 +600,7 @@ const TechTemplate: React.FC<PublicInvitationPageProps> = (props) => {
                     {t.rsvpHint}
                   </h2>
                 </div>
-                <button
-                  type="button"
-                  onClick={onRsvpClick}
-                  className="rsvp-btn inline-flex items-center gap-3 rounded-md px-8 py-4 font-['JetBrains_Mono',ui-monospace,monospace] text-sm font-bold uppercase tracking-[0.2em] text-white"
-                >
-                  <span aria-hidden="true">&gt;</span>
-                  {t.rsvp}
-                  <span aria-hidden="true">→</span>
-                </button>
+                {null}
               </GlassCard>
             </section>
           ) : null}

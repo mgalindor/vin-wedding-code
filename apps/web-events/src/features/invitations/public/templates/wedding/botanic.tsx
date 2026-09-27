@@ -1154,14 +1154,6 @@ function RsvpSection({
         <p className="mx-auto mt-6 max-w-md font-['Lora',serif] text-sm italic leading-relaxed text-[#2C3E2D]/75">
           {t.rsvpHint}
         </p>
-        <button
-          type="button"
-          onClick={onRsvpClick}
-          className="botanic-rsvp-btn group mt-10 inline-flex items-center justify-center gap-3 rounded-full border border-transparent bg-[#2C3E2D] px-12 py-4 font-['Cormorant_Garamond',serif] text-lg italic text-[#FAFAF7] shadow-[0_18px_40px_-24px_rgba(44,62,45,0.55)] hover:border-[#7A9B76] hover:bg-[#2C3E2D] hover:text-[#FAFAF7]"
-        >
-          {t.rsvp}
-          <LeafGlyph size={12} className="opacity-80" />
-        </button>
       </RevealSection>
     </section>
   );

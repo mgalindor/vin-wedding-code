@@ -660,13 +660,6 @@ const PicnicTemplate: React.FC<PublicInvitationPageProps> = (props) => {
               >
                 {t.rsvpNote}
               </p>
-              <button
-                type="button"
-                onClick={onRsvpClick}
-                className="picnic-rsvp-btn mt-10 inline-flex items-center justify-center rounded-full bg-[#E63946] px-10 py-4 text-sm font-bold uppercase tracking-[0.3em] text-[#F1FAEE] shadow-[0_6px_16px_rgba(29,53,87,0.08)] focus:outline-none focus:ring-2 focus:ring-[#E63946] focus:ring-offset-2 focus:ring-offset-[#F1FAEE]"
-              >
-                {t.rsvpCta}
-              </button>
             </div>
           </section>
         )}

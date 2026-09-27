@@ -740,20 +740,7 @@ function SummitTemplate(props: PublicInvitationPageProps): ReactElement {
                 </p>
               </div>
 
-              {rsvpEnabled ? (
-                <button
-                  type="button"
-                  onClick={onRsvpClick}
-                  className="summit-rsvp-btn inline-flex items-center gap-3 rounded-lg px-7 py-3.5 text-sm font-bold uppercase text-white sm:text-base"
-                  style={{
-                    fontFamily: BODY_FONT,
-                    letterSpacing: '0.15em',
-                  }}
-                >
-                  {t.rsvp}
-                  <span aria-hidden="true">→</span>
-                </button>
-              ) : null}
+              {rsvpEnabled ? null : null}
             </div>
           </div>
         </header>
@@ -1060,18 +1047,6 @@ function SummitTemplate(props: PublicInvitationPageProps): ReactElement {
                   >
                     {t.rsvpHint}
                   </p>
-                  <button
-                    type="button"
-                    onClick={onRsvpClick}
-                    className="summit-rsvp-btn mt-10 inline-flex items-center gap-3 rounded-lg px-10 py-4 text-sm font-bold uppercase text-white sm:text-base"
-                    style={{
-                      fontFamily: BODY_FONT,
-                      letterSpacing: '0.15em',
-                    }}
-                  >
-                    {t.rsvp}
-                    <span aria-hidden="true">→</span>
-                  </button>
                 </Reveal>
               </div>
             </section>

@@ -1017,20 +1017,6 @@ export default function ConfettiTemplate(props: PublicInvitationPageProps): Reac
                 >
                   {t.rsvpHint}
                 </p>
-                <button
-                  type="button"
-                  onClick={onRsvpClick}
-                  className="confetti-rsvp-btn mt-8 inline-flex items-center justify-center rounded-full px-12 py-4 text-sm font-bold uppercase sm:text-base"
-                  style={{
-                    fontFamily: BODY_FONT,
-                    letterSpacing: '0.2em',
-                    backgroundColor: COLOR_BLUE,
-                    color: COLOR_DARK,
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-                  }}
-                >
-                  {t.rsvp}
-                </button>
               </div>
             </div>
           </section>

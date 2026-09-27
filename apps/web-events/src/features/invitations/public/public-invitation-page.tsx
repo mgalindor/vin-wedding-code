@@ -5,12 +5,22 @@
  *   1. Resolve `data.templateCode` against the registry.
  *   2. Verify the resolved template is registered for `data.eventType`.
  *   3. Wrap the lazy template in `<Suspense>` and forward the per-eventType
- *      data plus `onRsvpClick` and `locale` as props.
+ *      data plus a no-op `onRsvpClick` and `locale` as props.
  *   4. Set `lang` on the wrapping element so screen readers and the
  *      browser hyphenation engine pick the correct language.
  *
  * The actual visual rendering lives in the 27 templates under
  * `templates/{wedding,birthday,corporate,anniversary}/`.
+ *
+ * Why a no-op `onRsvpClick` instead of forwarding the screen-level
+ * handler? The event-level landing page (`/i/{slug}`) cannot perform a
+ * real RSVP — the BE requires a `groupToken` to mark guests, and the
+ * landing page has no such token. The real RSVP form lives on the
+ * per-group route (`/i/{slug}/g/{groupToken}`). Passing the screen-level
+ * `onRsvpClick` here would only flip a local state and pretend to
+ * confirm — a fake RSVP. We accept the prop for backward-compat with
+ * the existing 26 templates but never wire it to anything that lies
+ * to the user.
  */
 
 import { Suspense, type ReactElement } from 'react';
@@ -23,7 +33,7 @@ import type {
 
 export function PublicInvitationPage({
   data,
-  onRsvpClick,
+  onRsvpClick: _onRsvpClick,
   token: _token,
 }: PublicInvitationPageProps): ReactElement {
   const entry = getTemplateEntry(data.templateCode);
@@ -49,7 +59,7 @@ export function PublicInvitationPage({
       <Suspense fallback={<LoadingSkeleton />}>
         <Component
           {...(data as unknown as Record<string, unknown>)}
-          onRsvpClick={onRsvpClick}
+          onRsvpClick={undefined}
           locale={data.locale}
         />
       </Suspense>

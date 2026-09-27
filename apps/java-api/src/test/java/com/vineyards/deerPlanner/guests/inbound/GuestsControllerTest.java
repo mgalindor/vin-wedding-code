@@ -172,17 +172,39 @@ class GuestsControllerTest {
   }
 
   @Test
-  void postGuest_whenGroupIdMissing_returns400() throws Exception {
-    // groupId is @NotBlank — required so the service can place the guest in the right group.
+  void postGuest_whenGroupIdMissing_returns201WithNullGroup() throws Exception {
+    // groupId is intentionally nullable: a guest can be created without a
+    // group (it then shows up under "Sin grupo" in the FE). The DB schema
+    // and FK both allow null group_id; only fullName remains required.
+    GuestDto savedAsUnassigned =
+        new GuestDto(
+            GUEST_ID,
+            null,
+            "Solo Sin Grupo",
+            null,
+            null,
+            null,
+            "token-guest",
+            "pending",
+            null,
+            null,
+            null,
+            Instant.now(),
+            Instant.now());
+    when(guestApi.createGuest(eq(EVENT_ID), any(CreateGuestDto.class), eq(ORGANIZER_ID)))
+        .thenReturn(savedAsUnassigned);
+
     mvc.perform(
             post("/api/v1/events/{id}/guests", EVENT_ID)
                 .with(authorizedUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"fullName": "Maria Morales"}
+                    {"fullName": "Solo Sin Grupo"}
                     """))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value(GUEST_ID))
+        .andExpect(jsonPath("$.groupId").doesNotExist());
   }
 
   @Test

@@ -222,7 +222,7 @@ export function GuestListScreen(): React.ReactElement {
                         onClick={() =>
                           updateRsvp.mutate({
                             guestId: g.id,
-                            dto: { rsvpStatus: 'confirmed' },
+                            dto: { status: 'confirmed' },
                           })
                         }
                       />
@@ -234,7 +234,7 @@ export function GuestListScreen(): React.ReactElement {
                         onClick={() =>
                           updateRsvp.mutate({
                             guestId: g.id,
-                            dto: { rsvpStatus: 'pending' },
+                            dto: { status: 'pending' },
                           })
                         }
                       />
@@ -246,7 +246,7 @@ export function GuestListScreen(): React.ReactElement {
                         onClick={() =>
                           updateRsvp.mutate({
                             guestId: g.id,
-                            dto: { rsvpStatus: 'declined' },
+                            dto: { status: 'declined' },
                           })
                         }
                       />

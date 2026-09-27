@@ -845,16 +845,12 @@ export function NocheDeEstrellasTemplate(props: PublicInvitationPageProps) {
         className="relative mx-auto max-w-2xl px-6 py-20 md:py-24 text-center"
       >
         {props.rsvpEnabled ? (
-          <button
-            type="button"
-            className="noche-rsvp inline-flex items-center gap-3 rounded-sm bg-[#D4AF37] px-10 py-4 text-[#0B1A3D] text-sm md:text-base font-semibold uppercase tracking-[0.4em]"
+          <p
+            className="text-[#F5E6D3]/80 text-sm md:text-base"
             style={{ fontFamily: "'Cinzel', serif" }}
-            onClick={() => props.onRsvpClick?.()}
           >
-            <StarGlyph size={14} color={PALETTE.navyNight} />
-            {t.rsvpCta}
-            <StarGlyph size={14} color={PALETTE.navyNight} />
-          </button>
+            {t.rsvpHint ?? t.rsvpCta}
+          </p>
         ) : (
           <p
             className="text-[#F5E6D3]/60 uppercase tracking-[0.4em] text-[0.7rem]"

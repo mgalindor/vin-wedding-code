@@ -1134,14 +1134,6 @@ function RsvpSection({
         <p className="mx-auto mt-6 max-w-md font-['Playfair_Display',serif] text-sm italic leading-relaxed text-[#4A2B2D]/85">
           {t.rsvpHint}
         </p>
-        <button
-          type="button"
-          onClick={onRsvpClick}
-          className="quince-cta mt-10 inline-flex items-center justify-center rounded-md border border-[#D4AF37]/70 bg-[#D4AF37] px-12 py-4 font-['Playfair_Display',serif] text-[11px] uppercase tracking-[0.3em] text-[#4A2B2D] shadow-[0_22px_44px_-28px_rgba(74,43,45,0.55)]"
-        >
-          <span className="relative z-10">{t.rsvp}</span>
-          <span className="quince-cta-shine" aria-hidden="true" />
-        </button>
         <div className="mt-10 flex items-center justify-center gap-4 opacity-90">
           <RosePetal size={12} color="#4A2B2D" />
           <RosePetal size={16} color="#4A2B2D" />

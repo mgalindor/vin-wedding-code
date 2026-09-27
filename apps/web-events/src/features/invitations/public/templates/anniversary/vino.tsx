@@ -926,17 +926,6 @@ function RsvpSection(props: { t: Labels; onRsvpClick?: () => void }) {
         >
           {props.t.rsvpBody}
         </p>
-        <div className="mt-10 flex justify-center">
-          <button
-            type="button"
-            onClick={props.onRsvpClick}
-            className="vino-cta relative inline-flex items-center gap-3 rounded-sm border border-[#D4AF37] bg-[#722F37] px-10 py-4 text-sm font-semibold uppercase tracking-[0.4em] text-[#D4AF37] transition-all duration-300 hover:bg-[#A53F2B]"
-            style={{ fontFamily: FONT_BODY }}
-          >
-            <span>{props.t.rsvpCta}</span>
-            <span aria-hidden="true" className="text-base">›</span>
-          </button>
-        </div>
       </div>
     </section>
   );

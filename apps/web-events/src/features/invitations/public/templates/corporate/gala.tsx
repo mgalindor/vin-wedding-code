@@ -717,15 +717,6 @@ const GalaTemplate: React.FC<PublicInvitationPageProps> = (props) => {
               >
                 {t.rsvpNote}
               </p>
-              <div className="mt-10">
-                <button
-                  type="button"
-                  onClick={onRsvpClick}
-                  className="gala-rsvp inline-flex items-center justify-center rounded-[2px] border border-[#D4AF37]/75 bg-[#8B0000] px-12 py-4 font-['Cormorant_Garamond',Georgia,serif] text-base uppercase tracking-[0.4em] text-[#D4AF37] shadow-[0_10px_30px_rgba(139,0,0,0.45),inset_0_1px_0_rgba(212,175,55,0.35)]"
-                >
-                  <span className="relative z-10">{t.rsvpCta}</span>
-                </button>
-              </div>
             </section>
           ) : null}
         </main>

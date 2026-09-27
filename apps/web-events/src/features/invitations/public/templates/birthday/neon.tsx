@@ -1046,18 +1046,6 @@ export default function NeonTemplate({
             >
               {t.rsvpTitle}
             </h2>
-            <button
-              type="button"
-              onClick={onRsvpClick}
-              className="neon-button rounded-full px-14 py-5 text-xs uppercase sm:text-sm"
-              style={{
-                fontFamily: BODY_FONT,
-                fontWeight: 600,
-                letterSpacing: '0.35em',
-              }}
-            >
-              {t.rsvp}
-            </button>
           </div>
         </section>
       ) : null}

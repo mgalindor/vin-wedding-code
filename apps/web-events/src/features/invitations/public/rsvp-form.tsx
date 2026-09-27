@@ -270,10 +270,24 @@ function RsvpSuccess({ locale }: { locale: 'en' | 'es' }): ReactElement {
       <h2 className="font-display text-3xl">{t('¡Gracias!', 'Thank you!')}</h2>
       <p className="text-sm text-[var(--color-secondary)]">
         {t(
-          'Tu confirmación ha sido registrada. Si necesitas cambiar algo, contacta al organizador.',
-          'Your response has been recorded. If you need to change something, contact the organizer.',
+          'Tu confirmación ha sido registrada. Si cambias de opinión, vuelve a esta misma página para actualizar tu respuesta.',
+          'Your response has been recorded. If you change your mind, revisit this page to update your answer.',
         )}
       </p>
+      <button
+        type="button"
+        onClick={() => {
+          // Reset local state to the freshly-saved values so the form
+          // re-mounts with the user's confirmation in place and lets
+          // them mark additional guests (or change anyone) without
+          // reloading the page.
+          window.location.reload();
+        }}
+        className="mt-2 rounded-md border border-[var(--color-outline-variant)] bg-white px-4 py-2 text-sm font-medium text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-low)]"
+        data-testid="rsvp-edit-again"
+      >
+        {t('Cambiar mi respuesta', 'Edit my response')}
+      </button>
     </section>
   );
 }

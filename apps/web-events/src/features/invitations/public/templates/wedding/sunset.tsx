@@ -803,14 +803,6 @@ function SunsetTemplate(props: PublicInvitationPageProps): ReactElement {
           <GoldCircles variant="soft" />
           <div className="sunset-rise relative z-10 mx-auto max-w-xl text-center">
             <SectionLabel>{t.rsvp}</SectionLabel>
-            <button
-              type="button"
-              onClick={onRsvpClick}
-              className="group inline-flex items-center gap-3 rounded-full bg-[#F4A261] px-10 py-4 text-base font-medium uppercase tracking-[0.2em] text-white shadow-[0_10px_30px_-8px_rgba(244,162,97,0.7)] transition-all duration-300 hover:scale-[1.04] hover:bg-[#E9C46A] hover:shadow-[0_14px_40px_-8px_rgba(233,196,106,0.7)] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#E9C46A]/60"
-            >
-              <SunGlyph size={20} className="opacity-90" />
-              {t.rsvp}
-            </button>
           </div>
         </section>
       ) : null}

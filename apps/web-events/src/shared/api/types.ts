@@ -333,10 +333,18 @@ export interface ChangeGuestGroupRequest {
   groupId: string;
 }
 
+/**
+ * Body for `PUT /events/{eventId}/guests/{guestId}/rsvp` and the
+ * group-level equivalent. Mirrors the Java record `RsvpUpdateDto`,
+ * whose only required field is `status` (`@NotNull RsvpStatus`).
+ *
+ * The FE historically named this `rsvpStatus` to mirror the entity
+ * field, but the BE DTO uses `status`. Keep the wire names aligned
+ * with the BE contract to avoid 400s.
+ */
 export interface RsvpUpdateRequest {
-  rsvpStatus: 'pending' | 'confirmed' | 'declined';
-  rsvpMessage?: string;
-  rsvpDietaryChoice?: string;
+  status: 'pending' | 'confirmed' | 'declined';
+  message?: string;
 }
 
 // =========================================================================
@@ -387,10 +395,14 @@ export interface UpdateInvitationConfigRequest {
  * `GET /api/v1/public/invitations/{slug}` response.
  *
  * The BE bundles the active event with the chosen invitation template
- * and the wedding detail. For non-wedding events, `weddingDetail` is
+ * and the wedding detail. For non-wedding events, `wedding` is
  * `null` — the FE mapper falls back to the generic event shape.
  *
  * The `slug` doubles as the access token per ADR-10 (path-based URLs).
+ *
+ * NOTE: the wire field is `wedding` (not `weddingDetail`) — keep the
+ * type aligned with the BE contract or the mapper silently drops the
+ * wedding payload and renders generic placeholders.
  */
 export interface PublicInvitationDto {
   slug: string;
@@ -398,7 +410,7 @@ export interface PublicInvitationDto {
   rsvpEnabled: boolean;
   event: EventDto;
   template: InvitationTemplate | null;
-  weddingDetail: WeddingDetailDto | null;
+  wedding: WeddingDetailDto | null;
   updatedAt?: string;
 }
 
