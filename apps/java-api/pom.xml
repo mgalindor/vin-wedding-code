@@ -16,9 +16,9 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
-		<java.version>21</java.version>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<java.version>25</java.version>
+		<maven.compiler.source>25</maven.compiler.source>
+		<maven.compiler.target>25</maven.compiler.target>
 
     <spring-modulith.version>2.1.1</spring-modulith.version>
     <org.mapstruct.version>1.6.3</org.mapstruct.version>
@@ -253,6 +253,10 @@
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
         <artifactId>git-commit-id-maven-plugin</artifactId>
+        <configuration>
+          <!-- Docker builds copy only src/pom.xml into the build context, not .git -->
+          <failOnNoGitDirectory>false</failOnNoGitDirectory>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
