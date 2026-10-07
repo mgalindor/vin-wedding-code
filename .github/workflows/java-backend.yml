@@ -24,6 +24,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # mvnw loses its executable bit when committed from Windows (git doesn't
+      # track Unix file permissions there), so restore it before running it.
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
       - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
