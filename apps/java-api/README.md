@@ -137,15 +137,3 @@ Each module follows the same hexagonal layout:
 ├── outbound/     # outbound adapters (repositories, clients)
 └── facade/       # public ports exposed to other modules
 ```
-
-
-INITIAL ADMIN BOOTSTRAPPED — copy these values, they will not be shown again
-2026-09-03T14:48:09.277-06:00  WARN 33900 --- [deerPlanner] [           main] c.v.d.i.application.IdentityBootstrap    :   username:     admin@deer
-2026-09-03T14:48:09.277-06:00  WARN 33900 --- [deerPlanner] [           main] c.v.d.i.application.IdentityBootstrap    :   userId:       dactq28n80ijlap6ng70
-2026-09-03T14:48:09.277-06:00  WARN 33900 --- [deerPlanner] [           main] c.v.d.i.application.IdentityBootstrap    :   displayName:  Administrator
-2026-09-03T14:48:09.277-06:00  WARN 33900 --- [deerPlanner] [           main] c.v.d.i.application.IdentityBootstrap    :   temporary password: LaUU78MNcU
-2026-09-03T14:48:09.277-06:00  WARN 33900 --- [deerPlanner] [           main] c.v.d.i.application.IdentityBootstrap    :   CHANGE THIS PASSWORD AS SOON AS POSSIBLE (PUT /oauth/user/password).
-
-
-username:     admin@deer
-temporary password: LaUU78MNcU
