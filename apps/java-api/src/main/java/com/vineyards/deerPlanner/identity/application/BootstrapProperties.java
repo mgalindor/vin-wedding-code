@@ -30,4 +30,13 @@ public class BootstrapProperties {
 
   /** Email associated with the initial admin. Defaults to the username to mirror the seed. */
   @NotBlank private String email = "admin@deer";
+
+  /**
+   * Optional pre-hashed (BCrypt) password for the initial admin. When set, this hash is stored
+   * directly instead of generating a random password, so the admin credential is stable across
+   * restarts/redeploys (e.g. supplied via the {@code DEERPLANNER_BOOTSTRAP_PASSWORDHASH} env var).
+   * Never put a raw/plaintext password here — generate the hash once offline (e.g. {@code new
+   * BCryptPasswordEncoder(12).encode("...")}) and store only the hash as a secret.
+   */
+  private String passwordHash;
 }

@@ -20,8 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
  * a placeholder password hash.
  *
  * <p>Behaviour: if no user with the configured username exists, a fresh row is created with both
- * the {@code Administrator} and {@code EventOrganizer} roles and a cryptographically random
- * 10-character alphanumeric password. The password is printed to the application log at WARN level
+ * the {@code Administrator} and {@code EventOrganizer} roles. If {@code
+ * deerplanner.bootstrap.password-hash} is set, that pre-computed BCrypt hash is stored as-is so the
+ * admin credential stays stable across restarts/redeploys. Otherwise a cryptographically random
+ * 10-character alphanumeric password is generated and printed to the application log at WARN level
  * exactly once, framed by a banner that asks the operator to rotate it. If the user already exists,
  * the runner is a no-op.
  *
@@ -61,8 +63,9 @@ public class IdentityBootstrap implements CommandLineRunner {
       return;
     }
 
-    String rawPassword = generatePassword();
-    String hash = passwordEncoder.encode(rawPassword);
+    boolean usesFixedHash = props.getPasswordHash() != null && !props.getPasswordHash().isBlank();
+    String rawPassword = usesFixedHash ? null : generatePassword();
+    String hash = usesFixedHash ? props.getPasswordHash() : passwordEncoder.encode(rawPassword);
     Set<Role> roles = EnumSet.of(Role.Administrator, Role.EventOrganizer);
 
     User admin =
@@ -82,8 +85,12 @@ public class IdentityBootstrap implements CommandLineRunner {
     log.warn("  username:     {}", created.getUsername());
     log.warn("  userId:       {}", created.getId());
     log.warn("  displayName:  {}", created.getDisplayName());
-    log.warn("  temporary password: {}", rawPassword);
-    log.warn("  CHANGE THIS PASSWORD AS SOON AS POSSIBLE (PUT /oauth/user/password).");
+    if (usesFixedHash) {
+      log.warn("  password:     <configured via deerplanner.bootstrap.password-hash>");
+    } else {
+      log.warn("  temporary password: {}", rawPassword);
+      log.warn("  CHANGE THIS PASSWORD AS SOON AS POSSIBLE (PUT /oauth/user/password).");
+    }
     log.warn("================================================================================");
   }
 

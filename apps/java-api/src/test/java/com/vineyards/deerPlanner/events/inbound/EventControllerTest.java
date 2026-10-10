@@ -25,7 +25,6 @@ import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
-import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigInPort;
 import com.vineyards.deerPlanner.shared.exceptions.ResourceNotFoundError;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticationFilter;
 import com.vineyards.deerPlanner.shared.security.JwtAuthenticatorInPort;
@@ -57,7 +56,6 @@ class EventControllerTest {
   @Autowired MockMvc mvc;
 
   @MockitoBean EventInPort eventApi;
-  @MockitoBean EventInvitationConfigInPort invitationConfigApi;
   @MockitoBean JwtAuthenticationFilter jwtAuthenticationFilter;
   @MockitoBean TokenBucketRateLimiter rateLimiter;
   @MockitoBean JwtAuthenticatorInPort jwtAuthenticator;
@@ -152,8 +150,7 @@ class EventControllerTest {
                 "Maya & Luis",
                 LocalDate.of(2027, 4, 15),
                 EventStatus.draft,
-                Instant.parse("2026-08-01T09:00:00Z"),
-                null),
+                Instant.parse("2026-08-01T09:00:00Z")),
             new EventSummaryDto(
                 "evt-2",
                 ORGANIZER_ID,
@@ -161,8 +158,7 @@ class EventControllerTest {
                 "Sofia & Diego",
                 LocalDate.of(2027, 6, 20),
                 EventStatus.published,
-                Instant.parse("2026-08-01T10:00:00Z"),
-                null));
+                Instant.parse("2026-08-01T10:00:00Z")));
     when(eventApi.listOwnEvents(
             org.mockito.ArgumentMatchers.eq(ORGANIZER_ID),
             org.mockito.ArgumentMatchers.eq(false),
@@ -174,7 +170,6 @@ class EventControllerTest {
             any(org.springframework.data.domain.Pageable.class)))
         .thenReturn(
             new PagedEventsResponse(new PagedResponse<>(items, 0, 20, items.size(), 1, false)));
-    when(invitationConfigApi.getTemplateCodesForEvents(any())).thenReturn(java.util.Map.of());
 
     mvc.perform(get("/api/v1/events").with(authorizedUser()))
         .andExpect(status().isOk())

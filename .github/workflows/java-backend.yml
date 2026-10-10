@@ -61,7 +61,7 @@ jobs:
       # reuses the images pre-pulled above instead of hitting the registry again.
       - name: Build and publish native image
         run: |
-          ./mvnw -B -Pnative -DskipTests \
+          ./mvnw -B -Pnative \
             -Dspring-boot.build-image.imageName=${{ env.IMAGE_NAME }}:${{ github.sha }} \
             -Dspring-boot.build-image.publish=true \
             -Dspring-boot.build-image.pullPolicy=IF_NOT_PRESENT \

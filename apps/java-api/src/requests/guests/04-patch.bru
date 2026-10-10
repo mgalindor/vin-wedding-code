@@ -16,13 +16,13 @@ auth:bearer {
 
 body:json {
   {
-    "firstName": "Juan Pablo",
+    "fullName": "Juan Pablo",
     "dietaryNotes": "No shellfish"
   }
 }
 
 assert {
   res.status: eq 200
-  res.body.firstName: eq "Juan Pablo"
+  res.body.fullName: eq "Juan Pablo"
   res.body.dietaryNotes: eq "No shellfish"
 }

@@ -4,20 +4,16 @@ import com.vineyards.deerPlanner.events.facade.EventInPort;
 import com.vineyards.deerPlanner.events.facade.dto.ContactsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.CreateEventDto;
 import com.vineyards.deerPlanner.events.facade.dto.EventDto;
-import com.vineyards.deerPlanner.events.facade.dto.EventSummaryDto;
 import com.vineyards.deerPlanner.events.facade.dto.LocationsPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.PagedEventsResponse;
 import com.vineyards.deerPlanner.events.facade.dto.ProgramPayloadDto;
 import com.vineyards.deerPlanner.events.facade.dto.ReassignOrganizerDto;
 import com.vineyards.deerPlanner.events.facade.dto.UpdateEventDto;
-import com.vineyards.deerPlanner.invitation.facade.EventInvitationConfigInPort;
-import com.vineyards.deerPlanner.shared.web.PagedResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
@@ -70,7 +66,6 @@ public class EventController {
       java.util.Set.of("organizerId", "eventType", "title", "eventDate", "status", "createdAt");
 
   private final EventInPort eventApi;
-  private final EventInvitationConfigInPort invitationConfigApi;
 
   @PostMapping
   public ResponseEntity<EventDto> createEvent(
@@ -100,50 +95,8 @@ public class EventController {
       @AuthenticationPrincipal Jwt jwt) {
     validateSort(pageable.getSort());
     boolean admin = isAdmin(jwt);
-    PagedEventsResponse response =
-        eventApi.listOwnEvents(
-            jwt.getSubject(),
-            admin,
-            title,
-            status,
-            eventType,
-            eventDateFrom,
-            eventDateTo,
-            pageable);
-    return withTemplateCodes(response);
-  }
-
-  /**
-   * Overlays each summary with its selected invitation template's {@code code}, resolved via the
-   * invitation module's facade in a single batch call (avoids one invitation-config lookup per card
-   * on the FE dashboard).
-   */
-  private PagedEventsResponse withTemplateCodes(PagedEventsResponse response) {
-    List<EventSummaryDto> items = response.page().items();
-    List<String> eventIds = items.stream().map(EventSummaryDto::id).toList();
-    Map<String, String> templateCodesByEventId =
-        invitationConfigApi.getTemplateCodesForEvents(eventIds);
-    if (templateCodesByEventId.isEmpty()) {
-      return response;
-    }
-    List<EventSummaryDto> enriched =
-        items.stream()
-            .map(
-                item ->
-                    new EventSummaryDto(
-                        item.id(),
-                        item.organizerId(),
-                        item.eventType(),
-                        item.title(),
-                        item.eventDate(),
-                        item.status(),
-                        item.updatedAt(),
-                        templateCodesByEventId.get(item.id())))
-            .toList();
-    PagedResponse<EventSummaryDto> page = response.page();
-    return new PagedEventsResponse(
-        new PagedResponse<>(
-            enriched, page.page(), page.size(), page.total(), page.totalPages(), page.hasMore()));
+    return eventApi.listOwnEvents(
+        jwt.getSubject(), admin, title, status, eventType, eventDateFrom, eventDateTo, pageable);
   }
 
   private static void validateSort(Sort sort) {

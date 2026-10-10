@@ -2,7 +2,6 @@ package com.vineyards.deerPlanner.invitation.outbound;
 
 import com.vineyards.deerPlanner.invitation.application.port.InvitationTemplateOutPort;
 import com.vineyards.deerPlanner.invitation.domain.InvitationTemplate;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +29,6 @@ public class InvitationTemplateRepositoryAdapter implements InvitationTemplateOu
   @Override
   public Optional<InvitationTemplate> findById(String id) {
     return jpa.findById(id).map(InvitationTemplateRepositoryAdapter::toDomain);
-  }
-
-  @Override
-  public List<InvitationTemplate> findAllByIds(Collection<String> ids) {
-    return jpa.findAllById(ids).stream()
-        .map(InvitationTemplateRepositoryAdapter::toDomain)
-        .toList();
   }
 
   @Override

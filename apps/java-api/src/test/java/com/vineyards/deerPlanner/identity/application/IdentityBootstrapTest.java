@@ -114,6 +114,42 @@ class IdentityBootstrapTest {
   }
 
   @Test
+  void run_whenPasswordHashConfigured_usesFixedHashAndDoesNotLogRawPassword() {
+    String fixedHash = encoder.encode("S3cret-Fixed-Pwd");
+    BootstrapProperties props = defaultProps();
+    props.setPasswordHash(fixedHash);
+    bootstrap = new IdentityBootstrap(props, userRepository, encoder);
+    bootstrapLogger.addAppender(logAppender);
+
+    when(userRepository.findByUsername("admin@deer")).thenReturn(Optional.empty());
+    when(userRepository.create(any(User.class)))
+        .thenAnswer(
+            inv -> {
+              User u = inv.getArgument(0);
+              return User.builder()
+                  .id("fixed-admin-id")
+                  .username(u.getUsername())
+                  .displayName(u.getDisplayName())
+                  .email(u.getEmail())
+                  .passwordHash(u.getPasswordHash())
+                  .isActive(true)
+                  .roles(u.getRoles())
+                  .build();
+            });
+
+    bootstrap.run();
+
+    ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+    verify(userRepository).create(captor.capture());
+    assertThat(captor.getValue().getPasswordHash()).isEqualTo(fixedHash);
+
+    assertThat(logAppender.list)
+        .noneMatch(e -> e.getFormattedMessage().contains("temporary password:"));
+    assertThat(logAppender.list)
+        .anyMatch(e -> e.getFormattedMessage().contains("INITIAL ADMIN BOOTSTRAPPED"));
+  }
+
+  @Test
   void run_whenAdminAlreadyExists_skipsCreationAndDoesNotLogPassword() {
     when(userRepository.findByUsername("admin@deer"))
         .thenReturn(Optional.of(User.builder().username("admin@deer").build()));
