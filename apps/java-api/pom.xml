@@ -93,10 +93,15 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>3.1.0</version>
 		</dependency>
+		<!-- Disabled: bootstraps ApplicationModules via ArchUnit at runtime regardless
+		     of the precomputed metadata, crashing native image startup (ClassNotFoundException
+		     on ArchUnit's ModuleImportPlugin). Re-enable only once this is native-image safe. -->
+		<!--
 		<dependency>
 			<groupId>org.springframework.modulith</groupId>
 			<artifactId>spring-modulith-observability-api</artifactId>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>org.springframework.modulith</groupId>
 			<artifactId>spring-modulith-starter-core</artifactId>
@@ -116,11 +121,14 @@
 			<artifactId>spring-modulith-actuator</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Disabled: same native-image incompatible ArchUnit bootstrap as spring-modulith-observability-api above. -->
+		<!--
 		<dependency>
 			<groupId>org.springframework.modulith</groupId>
 			<artifactId>spring-modulith-observability-core</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		-->
 		<!-- Must be on the runtime (not test) classpath so Spring's AOT processing
 		     can precompute application-modules.json during the native build. Without
 		     it, Spring Modulith falls back to scanning with ArchUnit inside the native
