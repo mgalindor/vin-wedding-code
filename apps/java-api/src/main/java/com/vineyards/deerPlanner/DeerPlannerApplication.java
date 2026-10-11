@@ -9,7 +9,7 @@ import org.springframework.modulith.Modulith;
 @SpringBootApplication
 @Modulith(sharedModules = "shared")
 @ConfigurationPropertiesScan
-@ImportRuntimeHints(LiquibaseNativeRuntimeHints.class)
+@ImportRuntimeHints({LiquibaseNativeRuntimeHints.class, HibernateNativeRuntimeHints.class})
 public class DeerPlannerApplication {
 
   public static void main(String[] args) {
