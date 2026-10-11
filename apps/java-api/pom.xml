@@ -121,6 +121,16 @@
 			<artifactId>spring-modulith-observability-core</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Must be on the runtime (not test) classpath so Spring's AOT processing
+		     can precompute application-modules.json during the native build. Without
+		     it, Spring Modulith falls back to scanning with ArchUnit inside the native
+		     image itself, where ArchUnit's reflective plugin loader isn't supported. -->
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit</artifactId>
+			<version>1.4.1</version>
+			<scope>runtime</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

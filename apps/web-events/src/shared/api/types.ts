@@ -137,8 +137,6 @@ export interface EventSummary {
   eventDate: string; // YYYY-MM-DD
   status: EventStatus;
   updatedAt: string;
-  /** Selected invitation template's stable code (e.g. "wedding-bosco"), or null when none is selected yet. */
-  templateCode?: string | null;
 }
 
 /**

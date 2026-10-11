@@ -225,22 +225,19 @@ describe('EventCard', () => {
     expect(screen.getByText('Archived')).toBeInTheDocument();
   });
 
-  it('uses the eventType default gradient when no templateCode is selected', () => {
+  it('assigns a deterministic decorative gradient based on the event id', () => {
+    const { unmount } = renderWithI18n(<EventCard {...baseProps} />);
+    const firstBackground = screen.getByTestId('event-card-header').style.background;
+    unmount();
+
     renderWithI18n(<EventCard {...baseProps} />);
+    expect(screen.getByTestId('event-card-header').style.background).toBe(firstBackground);
+  });
+
+  it('falls back to the eventType default gradient when id is empty', () => {
+    renderWithI18n(<EventCard {...baseProps} id="" />);
     const header = screen.getByTestId('event-card-header');
     expect(header.style.background).toContain('#f7e3d8'); // wedding default
-  });
-
-  it('uses the template-specific gradient when templateCode matches the registry', () => {
-    renderWithI18n(<EventCard {...baseProps} templateCode="wedding-noir" />);
-    const header = screen.getByTestId('event-card-header');
-    expect(header.style.background).toContain('#0A0A0A');
-  });
-
-  it('falls back to the eventType default gradient for an unknown templateCode', () => {
-    renderWithI18n(<EventCard {...baseProps} templateCode="not-a-real-template" />);
-    const header = screen.getByTestId('event-card-header');
-    expect(header.style.background).toContain('#f7e3d8');
   });
 
   it('hides the stats block when stats prop is not provided', () => {
@@ -320,18 +317,6 @@ describe('EventCard', () => {
       </I18nextProvider>,
     );
     expect(screen.getByText(noTemplateMessage)).toBeInTheDocument();
-  });
-
-  it('shows a template-aware draft message once a template is selected', () => {
-    renderWithI18n(<EventCard {...baseProps} status="draft" templateCode="wedding-noir" />);
-    expect(
-      screen.queryByText('No invitation template chosen yet.'),
-    ).not.toBeInTheDocument();
-  });
-
-  it('shows the template chip when templateCode is provided', () => {
-    renderWithI18n(<EventCard {...baseProps} templateCode="wedding-noir" />);
-    expect(screen.getByText('Template: Noir')).toBeInTheDocument();
   });
 
   it('shows the relative "updated" hint when updatedAt is provided', () => {
